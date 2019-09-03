@@ -1,21 +1,24 @@
 
+
+
+
                                                           August 3, 2019
 
 
-                    Trabajo PrÃ¡ctico Especial 2019/2
-                               RevisiÃ³n 0
+                    Trabajo Práctico Especial 2019/2
+                               Revisión 0
 
 Resumen
 
    Este documento describe el Trabajo Especial de la materia Protocolos
-   de ComunicaciÃ³n para la cursada del segundo cuatrimestre del aÃ±o
+   de Comunicación para la cursada del segundo cuatrimestre del año
    2019.
 
-TerminologÃ­a
+Terminología
 
-   Las palabras clave "DEBE", "NO DEBE", "OBLIGATORIO", "DEBERÃ", "NO
-   DEBERÃ", "DEBERÃA", "NO DEBERÃA", "RECOMENDADO", "PUEDE" y "OPCIONAL"
-   en este documento serÃ¡n interpretadas como se describe en el RFC 2119
+   Las palabras clave "DEBE", "NO DEBE", "OBLIGATORIO", "DEBERÁ", "NO
+   DEBERÁ", "DEBERÍA", "NO DEBERÍA", "RECOMENDADO", "PUEDE" y "OPCIONAL"
+   en este documento serán interpretadas como se describe en el RFC 2119
    [RFC2119].
 
 Tabla de Contenidos
@@ -29,24 +32,24 @@ Tabla de Contenidos
      1.6.  Pipelining  . . . . . . . . . . . . . . . . . . . . . . .   3
      1.7.  Transformaciones de mensajes utilizando aplicaciones
            externas  . . . . . . . . . . . . . . . . . . . . . . . .   3
-     1.8.  MÃ©tricas  . . . . . . . . . . . . . . . . . . . . . . . .   3
-     1.9.  ConfiguraciÃ³n dinÃ¡mica y monitoreo  . . . . . . . . . . .   4
+     1.8.  Métricas  . . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.9.  Configuración dinámica y monitoreo  . . . . . . . . . . .   4
    2.  Requerimientos No Funcionales . . . . . . . . . . . . . . . .   4
      2.1.  API de Sockets a utilizar . . . . . . . . . . . . . . . .   4
      2.2.  Performance . . . . . . . . . . . . . . . . . . . . . . .   4
      2.3.  Argumentos de las aplicaciones  . . . . . . . . . . . . .   5
    3.  Trabajo en Grupo  . . . . . . . . . . . . . . . . . . . . . .   5
      3.1.  Alumnos Recursantes . . . . . . . . . . . . . . . . . . .   5
-     3.2.  Herramientas de colaboraciÃ³n  . . . . . . . . . . . . . .   5
-   4.  PresentaciÃ³n Oral . . . . . . . . . . . . . . . . . . . . . .   6
+     3.2.  Herramientas de colaboración  . . . . . . . . . . . . . .   5
+   4.  Presentación Oral . . . . . . . . . . . . . . . . . . . . . .   6
    5.  Entrega . . . . . . . . . . . . . . . . . . . . . . . . . . .   6
      5.1.  Material a entregar . . . . . . . . . . . . . . . . . . .   6
      5.2.  Forma de Entrega  . . . . . . . . . . . . . . . . . . . .   7
      5.3.  Pre-entrega . . . . . . . . . . . . . . . . . . . . . . .   7
      5.4.  Fecha de Entrega  . . . . . . . . . . . . . . . . . . . .   7
-     5.5.  CalificaciÃ³n  . . . . . . . . . . . . . . . . . . . . . .   7
-     5.6.  Entrega tardÃ­a  . . . . . . . . . . . . . . . . . . . . .   8
-     5.7.  CÃ³digo de Honor . . . . . . . . . . . . . . . . . . . . .   9
+     5.5.  Calificación  . . . . . . . . . . . . . . . . . . . . . .   7
+     5.6.  Entrega tardía  . . . . . . . . . . . . . . . . . . . . .   8
+     5.7.  Código de Honor . . . . . . . . . . . . . . . . . . . . .   9
 
 
 
@@ -64,27 +67,27 @@ Tabla de Contenidos
 1.1.  Objetivo
 
    El objetivo del trabajo es implementar un servidor proxy para el
-   protocolo POP3 (Post Office Protocol versiÃ³n 3) [RFC1957] que pueda
+   protocolo POP3 (Post Office Protocol versión 3) [RFC1957] que pueda
    ser usado por Mail User Agents tales como Mozilla Thunderbird,
-   Microsoft Outlook y Evolution para la recepciÃ³n de correos
-   electrÃ³nicos.  El proxy proveerÃ¡ al usuario algunos servicios extras
+   Microsoft Outlook y Evolution para la recepción de correos
+   electrónicos.  El proxy proveerá al usuario algunos servicios extras
    que el servidor de origen POP3 no provee.
 
-   Los alumnos DEBEN demostrar habilidad para la programaciÃ³n de
-   aplicaciones cliente/servidor con sockets, la comprensiÃ³n de
-   estÃ¡ndares de la industria, y la capacidad de diseÃ±ar protocolos de
-   aplicaciÃ³n.
+   Los alumnos DEBEN demostrar habilidad para la programación de
+   aplicaciones cliente/servidor con sockets, la comprensión de
+   estándares de la industria, y la capacidad de diseñar protocolos de
+   aplicación.
 
 1.2.  Formas de uso
 
-   El usuario DEBERÃ configurar su MUA para que se utilice el proxy.  No
-   serÃ¡ necesario soportar STARTTLS, TLS, SSL.
+   El usuario DEBERÁ configurar su MUA para que se utilice el proxy.  No
+   será necesario soportar STARTTLS, TLS, SSL.
 
 1.3.  Concurrencia y Disponibilidad
 
-   El servidor proxy DEBE soportar mÃºltiples clientes de forma
-   concurrente y simultÃ¡nea (al menos 1024).  Se DEBE tener en cuenta en
-   la implementaciÃ³n aquellos factores que afecten la disponibilidad del
+   El servidor proxy DEBE soportar múltiples clientes de forma
+   concurrente y simultánea (al menos 1024).  Se DEBE tener en cuenta en
+   la implementación aquellos factores que afecten la disponibilidad del
    servicio.
 
 1.4.  Fallos
@@ -95,7 +98,7 @@ Tabla de Contenidos
 1.5.  Registros de acceso
 
    El servidor proxy DEBE dejar registros de los accesos en la consola
-   y/o en un archivo que permitan entender que peticiones estÃ¡n pasando
+   y/o en un archivo que permitan entender que peticiones están pasando
    por el proxy y su resultado.
 
    Consejo: es conveniente observar como registran los accesos los
@@ -114,49 +117,49 @@ Tabla de Contenidos
 1.6.  Pipelining
 
    El servidor proxy DEBE proveer a sus clientes la capacidad de
-   PIPELINING ([RFC2449] secciÃ³n 6.6) independientemente de la
-   disponibilidad en el servidor origen.  En caso de que Ã©ste lo
-   soporte, el envio de comandos usarÃ¡ PIPELINING; mientras que si Ã©ste
-   no lo soporta tendrÃ¡ que enviar los comandos de a uno por vez
+   PIPELINING ([RFC2449] sección 6.6) independientemente de la
+   disponibilidad en el servidor origen.  En caso de que éste lo
+   soporte, el envio de comandos usará PIPELINING; mientras que si éste
+   no lo soporta tendrá que enviar los comandos de a uno por vez
    esperando cada una de las respuestas.
 
 1.7.  Transformaciones de mensajes utilizando aplicaciones externas
 
    El servidor proxy DEBE implementar mecanismos que permita transformar
-   los correos electrÃ³nicos utilizando aplicaciones externas.  Estas
-   aplicaciones externas recibirÃ¡n por entrada estÃ¡ndar el mensaje de
-   correo y dejarÃ¡ en su salida estÃ¡ndar el mensaje procesado.
+   los correos electrónicos utilizando aplicaciones externas.  Estas
+   aplicaciones externas recibirán por entrada estándar el mensaje de
+   correo y dejará en su salida estándar el mensaje procesado.
 
-   La utilizaciÃ³n de aplicaciones externas permite externalizar el
+   La utilización de aplicaciones externas permite externalizar el
    procesamiento de los mensajes en aplicaciones que nada saben del
    protocolo que transporta los mensajes (en este caso POP3).  El
    programa externo por excelencia a correr es cat(1).  Existen
    herramientas anti-spam (basado en el contenido del mensaje) que
-   utilizan esta interfaz como ser Spamassasin [1].  TambiÃ©n existen
+   utilizan esta interfaz como ser Spamassasin [1].  También existen
    herramientas en la lucha del malware como RenAttach [2].
 
    Se DEBE implementar al menos una de las siguientes transformaciones:
 
    o  reemplazo de archivos adjuntos: las partes MIME de cierto media-
-      type configurable (por ejemplo application/*) serÃ¡n reemplazadas
+      type configurable (por ejemplo application/*) serán reemplazadas
       por una parte de tipo text/plain con un texto configurable.  Esta
-      funcionalidad permitirÃ­a por ejemplo reemplazar en el servidor
+      funcionalidad permitiría por ejemplo reemplazar en el servidor
       archivos adjuntos "peligrosos" (.exe) por una nota que indique por
-      quÃ© se removiÃ³.
+      qué se removió.
 
-1.8.  MÃ©tricas
+1.8.  Métricas
 
    El sistema DEBE implementar mecanismos que permitan recolectar
-   mÃ©tricas que ayuden a la operaciÃ³n del sistema.
+   métricas que ayuden a la operación del sistema.
 
    o  conexiones concurrentes
 
-   o  cantidad de accesos histÃ³ricos
+   o  cantidad de accesos históricos
 
    o  bytes transferidos
 
-   o  cualquier otra mÃ©trica que considere oportuno para el
-      entendimiento del funcionamiento dinÃ¡mico del sistema
+   o  cualquier otra métrica que considere oportuno para el
+      entendimiento del funcionamiento dinámico del sistema
 
 
 
@@ -167,50 +170,50 @@ Tabla de Contenidos
                          Trabajo Especial 2019/2             August 2019
 
 
-   Las mÃ©tricas PUEDEN ser volÃ¡tiles (si se reinicia el servidor las
-   estadÃ­sticas pueden perderse).
+   Las métricas PUEDEN ser volátiles (si se reinicia el servidor las
+   estadísticas pueden perderse).
 
-1.9.  ConfiguraciÃ³n dinÃ¡mica y monitoreo
+1.9.  Configuración dinámica y monitoreo
 
-   Las transformaciones DEBEN poder modificarse en tiempo de ejecuciÃ³n
+   Las transformaciones DEBEN poder modificarse en tiempo de ejecución
    (sin reiniciar el servidor).  Las diferentes implementaciones PUEDEN
-   decidir disponibilizar otros cambios de ejecuciÃ³n en tiempo de
-   ejecuciÃ³n de otras configuraciones (memoria utilizada en I/O,
+   decidir disponibilizar otros cambios de ejecución en tiempo de
+   ejecución de otras configuraciones (memoria utilizada en I/O,
    timeouts, etc).
 
-   Las mÃ©tricas (Seccion 1.8) recolectadas tambiÃ©n deben poder obtenerse
-   en tiempo de ejecuciÃ³n.
+   Las métricas (Seccion 1.8) recolectadas también deben poder obtenerse
+   en tiempo de ejecución.
 
-   Para cumplir con esto deberÃ¡ diseÃ±ar e implementar uno o varios
-   protocolos.  Estos protocolos deberÃ¡n funcionar sobre SCTP.  Los
-   protocolos DEBERÃN estar debidamente documentados.
+   Para cumplir con esto deberá diseñar e implementar uno o varios
+   protocolos.  Estos protocolos deberán funcionar sobre SCTP.  Los
+   protocolos DEBERÁN estar debidamente documentados.
 
-   DEBERÃ implementar una aplicaciÃ³n cliente que use dicho protocolo.
+   DEBERÁ implementar una aplicación cliente que use dicho protocolo.
 
 2.  Requerimientos No Funcionales
 
-   AdemÃ¡s de los requerimientos listados en el documento Lineamiento de
-   ProgramaciÃ³n (Material DidÃ¡ctico > Trabajo PrÃ¡ctico Especial), se
+   Además de los requerimientos listados en el documento Lineamiento de
+   Programación (Material Didáctico > Trabajo Práctico Especial), se
    suman los siguientes requerimientos no funcionales:
 
 2.1.  API de Sockets a utilizar
 
-   La implementaciÃ³n del proxy DEBE utilizar sockets en modo no
+   La implementación del proxy DEBE utilizar sockets en modo no
    bloqueante multiplexada.
 
 2.2.  Performance
 
    Se DEBE tener en cuenta todos los aspectos que hagan a la buena
    performance, escalabilidad y disponibilidad del servidor.  Se espera
-   que se maneje de forma eficiente los flujos de informaciÃ³n (por
+   que se maneje de forma eficiente los flujos de información (por
    ejemplo no cargar en memoria mensajes muy grandes, ser eficaz y
-   eficiente en el intÃ©rprete de mensajes).  El informe DEBE contener
-   informaciÃ³n sobre las pruebas de stress.  Algunas preguntas
+   eficiente en el intérprete de mensajes).  El informe DEBE contener
+   información sobre las pruebas de stress.  Algunas preguntas
    interesantes a responder son:
 
-   o  Â¿Cual es la mÃ¡xima cantidad de conexiones simultÃ¡neas que soporta?
+   o  ¿Cual es la máxima cantidad de conexiones simultáneas que soporta?
 
-   o  Â¿CÃ³mo se degrada el throughput?
+   o  ¿Cómo se degrada el throughput?
 
 
 
@@ -225,51 +228,51 @@ Tabla de Contenidos
 
 2.3.  Argumentos de las aplicaciones
 
-   Tanto la aplicaciÃ³n servidor, como la aplicaciÃ³n cliente de
-   configuraciÃ³n/monitoreo DEBERÃN manejar los argumentos de lÃ­nea de
-   comandos de cierta forma uniforme (por ejemplo -c <puerto> podrÃ­a
-   especificar el puerto utilizado para el protocolo de configuraciÃ³n/
-   monitoreo).  Los detalles de quÃ© parÃ¡metros se deben manejar serÃ¡
+   Tanto la aplicación servidor, como la aplicación cliente de
+   configuración/monitoreo DEBERÁN manejar los argumentos de línea de
+   comandos de cierta forma uniforme (por ejemplo -c <puerto> podría
+   especificar el puerto utilizado para el protocolo de configuración/
+   monitoreo).  Los detalles de qué parámetros se deben manejar será
    publicado en otro documento.
 
 3.  Trabajo en Grupo
 
-   Para la realizaciÃ³n del Trabajo PrÃ¡ctico los alumnos DEBERÃN
-   conformar grupos y trabajar en equipo.  Se espera la participaciÃ³n
+   Para la realización del Trabajo Práctico los alumnos DEBERÁN
+   conformar grupos y trabajar en equipo.  Se espera la participación
    equitativa de todos los integrantes de un grupo durante la
-   realizaciÃ³n y exposiciÃ³n del trabajo.  Todos los alumnos DEBEN
-   demostrar que han participado de la realizaciÃ³n del trabajo y que han
+   realización y exposición del trabajo.  Todos los alumnos DEBEN
+   demostrar que han participado de la realización del trabajo y que han
    desarrollaron las competencias alineadas a los objetivos del trabajo
    (Seccion 1.1).
 
 3.1.  Alumnos Recursantes
 
    Los alumnos que se encuentren recursando la materia y que hayan
-   aprobado en su Ãºltima cursada un Trabajo PrÃ¡ctico Especial de
-   similares caracterÃ­sticas al que se describe en este documento pueden
+   aprobado en su última cursada un Trabajo Práctico Especial de
+   similares características al que se describe en este documento pueden
    optar entre las siguientes alternativas:
 
-   1.  Realizar el Trabajo PrÃ¡ctico Especial descripto en este
+   1.  Realizar el Trabajo Práctico Especial descripto en este
        documento.
 
-       El mismo deberÃ¡ ser aprobado.  Se tomarÃ¡ la calificaciÃ³n que
-       surja de la misma.  En caso de desaprobar no se tendrÃ¡ en cuenta
+       El mismo deberá ser aprobado.  Se tomará la calificación que
+       surja de la misma.  En caso de desaprobar no se tendrá en cuenta
        ejecuciones pasadas.
 
-   2.  No realizar el Trabajo PrÃ¡ctico Especial de este cuatrimestre.
+   2.  No realizar el Trabajo Práctico Especial de este cuatrimestre.
 
-       El alumno mantendrÃ¡ la nota del Ãºltimo Trabajo PrÃ¡ctico Especial
-       de similar caracterÃ­sticas aprobado.  El alumno DEBE exteriorizar
-       dicha decisiÃ³n mediante el canal adecuado (tablero de discusiÃ³n)
-       antes de la fecha lÃ­mite de inscripciÃ³n de grupos.
+       El alumno mantendrá la nota del último Trabajo Práctico Especial
+       de similar características aprobado.  El alumno DEBE exteriorizar
+       dicha decisión mediante el canal adecuado (tablero de discusión)
+       antes de la fecha límite de inscripción de grupos.
 
-3.2.  Herramientas de colaboraciÃ³n
+3.2.  Herramientas de colaboración
 
-   Los grupos tendrÃ¡n a su disposiciÃ³n las herramientas provistas por el
-   mÃ³dulo Grupos de Campus ITBA y un repositorio GIT Bitbucket para el
-   cÃ³digo (y otros archivos).  Se espera transparencia en el desarrollo
+   Los grupos tendrán a su disposición las herramientas provistas por el
+   módulo Grupos de Campus ITBA y un repositorio GIT Bitbucket para el
+   código (y otros archivos).  Se espera transparencia en el desarrollo
    del trabajo.  Como ejemplo a un comportamiento poco transparente se
-   puede describir la utilizaciÃ³n de otro repositorio de cÃ³digo.
+   puede describir la utilización de otro repositorio de código.
 
 
 
@@ -279,12 +282,12 @@ Tabla de Contenidos
                          Trabajo Especial 2019/2             August 2019
 
 
-4.  PresentaciÃ³n Oral
+4.  Presentación Oral
 
-   El Jueves 17 de Octubre durante la clase teÃ³rica cada grupo dispondrÃ¡
-   de no mÃ¡s de 15 minutos donde DEBERÃ exponer un resumen del trabajo,
-   detallando como han organizado tÃ©cnicamente el trabajo, describiendo
-   los problemas encontrados y las tÃ©cnicas utilizadas para
+   El Jueves 17 de Octubre durante la clase teórica cada grupo dispondrá
+   de no más de 15 minutos donde DEBERÁ exponer un resumen del trabajo,
+   detallando como han organizado técnicamente el trabajo, describiendo
+   los problemas encontrados y las técnicas utilizadas para
    solucionarlos.
 
 5.  Entrega
@@ -292,20 +295,20 @@ Tabla de Contenidos
 5.1.  Material a entregar
 
    Cada grupo DEBE entregar todo el material necesario para reproducir
-   el Trabajo PrÃ¡ctico.  Como mÃ­nimo DEBE contener:
+   el Trabajo Práctico.  Como mínimo DEBE contener:
 
    a.  Un informe en formato PDF [RFC3778] o text/plain (con
-       codificaciÃ³n UTF-8) que contenga las siguientes secciones
+       codificación UTF-8) que contenga las siguientes secciones
        (respetando el orden):
 
-       1.   Ãndice (por lo tanto las hojas deberÃ¡n estar numeradas).
+       1.   Índice (por lo tanto las hojas deberán estar numeradas).
 
-       2.   DescripciÃ³n detallada de los protocolos y aplicaciones
+       2.   Descripción detallada de los protocolos y aplicaciones
             desarrolladas.
 
-       3.   Problemas encontrados durante el diseÃ±o y la implementaciÃ³n.
+       3.   Problemas encontrados durante el diseño y la implementación.
 
-       4.   Limitaciones de la aplicaciÃ³n.
+       4.   Limitaciones de la aplicación.
 
        5.   Posibles extensiones.
 
@@ -313,20 +316,20 @@ Tabla de Contenidos
 
        7.   Ejemplos de prueba.
 
-       8.   GuÃ­a de instalaciÃ³n detallada y precisa.  No es necesario
+       8.   Guía de instalación detallada y precisa.  No es necesario
             desarrollar un programa instalador.
 
-       9.   Instrucciones para la configuraciÃ³n.
+       9.   Instrucciones para la configuración.
 
-       10.  Ejemplos de configuraciÃ³n y monitoreo.
+       10.  Ejemplos de configuración y monitoreo.
 
-       11.  Documento de diseÃ±o del proyecto (que ayuden a entender la
-            arquitectura de la aplicaciÃ³n).
+       11.  Documento de diseño del proyecto (que ayuden a entender la
+            arquitectura de la aplicación).
 
-   b.  Documento utilizados como soporte durante la presentaciÃ³n.  Deben
+   b.  Documento utilizados como soporte durante la presentación.  Deben
        estar en formato PDF [RFC3778].
 
-   c.  CÃ³digos fuente y archivos de construcciÃ³n
+   c.  Códigos fuente y archivos de construcción
 
 
 
@@ -335,21 +338,21 @@ Tabla de Contenidos
                          Trabajo Especial 2019/2             August 2019
 
 
-   d.  Un archivo README en la raÃ­z que describa al menos:
+   d.  Un archivo README en la raíz que describa al menos:
 
-       *  la ubicaciÃ³n de todos los materiales previamente enumerados
+       *  la ubicación de todos los materiales previamente enumerados
 
-       *  el procedimiento necesario para generar una versiÃ³n ejecutable
+       *  el procedimiento necesario para generar una versión ejecutable
           de las aplicaciones
 
-       *  la ubicaciÃ³n de los diferentes artefactos generados
+       *  la ubicación de los diferentes artefactos generados
 
-       *  cÃ³mo se debe ejecutar las diferentes artefactos generados (y
+       *  cómo se debe ejecutar las diferentes artefactos generados (y
           sus opciones)
 
 5.2.  Forma de Entrega
 
-   La entrega se realizarÃ¡ por Campus ITBA en la asignaciÃ³n creada para
+   La entrega se realizará por Campus ITBA en la asignación creada para
    ello.
 
    Se DEBE entregar un tarball que sea el producto de clonar el
@@ -358,28 +361,28 @@ Tabla de Contenidos
 
 5.3.  Pre-entrega
 
-   El Martes 17 de septiembre a las 16.05 los grupos deberÃ¡n entregar
-   una implementaciÃ³n del proxy que podrÃ¡ utilizar sockets blockeantes.
+   El Martes 17 de septiembre a las 16.05 los grupos deberán entregar
+   una implementación del proxy que podrá utilizar sockets blockeantes.
 
-   TendrÃ¡ que soportar transformaciones externas, pero no serÃ¡ necesario
-   implementar ninguna transformaciÃ³n especÃ­fica.  No serÃ¡ necesario que
-   estÃ© implementado el PIPELINING.  Tampoco serÃ¡ necesaria que esta
-   implementaciÃ³n sea configurable/monitoreable remotamente.
+   Tendrá que soportar transformaciones externas, pero no será necesario
+   implementar ninguna transformación específica.  No será necesario que
+   esté implementado el PIPELINING.  Tampoco será necesaria que esta
+   implementación sea configurable/monitoreable remotamente.
 
-   La pre-entrega se realizarÃ¡ por Campus ITBA.  Se deberÃ¡n seguir los
+   La pre-entrega se realizará por Campus ITBA.  Se deberán seguir los
    mismos lineamientos que para la entrega final.
 
 5.4.  Fecha de Entrega
 
-   Las entregas se podrÃ¡n realizar hasta el Martes 12 de Noviembre a las
+   Las entregas se podrán realizar hasta el Martes 12 de Noviembre a las
    16.05hs (horario Buenos Aires).  Una vez realizada la entrega los
-   grupos DEBERÃN mostrar el correcto funcionamiento del sistema con
-   casos de prueba provisto por los equipos y provistos ese dÃ­a por la
-   CÃ¡tedra.
+   grupos DEBERÁN mostrar el correcto funcionamiento del sistema con
+   casos de prueba provisto por los equipos y provistos ese día por la
+   Cátedra.
 
-5.5.  CalificaciÃ³n
+5.5.  Calificación
 
-   Para aprobar el Trabajo PrÃ¡ctico se DEBE cumplir TODAS las siguientes
+   Para aprobar el Trabajo Práctico se DEBE cumplir TODAS las siguientes
    condiciones:
 
 
@@ -394,7 +397,7 @@ Tabla de Contenidos
    o  El material entregado DEBE estar completo (por ejemplo no se puede
       corregir si falta el informe o alguna clase)
 
-   o  Se utilizan Ãºnicamente las librerÃ­a permitidas para los usos
+   o  Se utilizan únicamente las librería permitidas para los usos
       definidos.
 
    o  DEBE ser correcta las cuestiones de entradas/salida no bloqueante.
@@ -405,37 +408,37 @@ Tabla de Contenidos
    o  DEBE ser correcta las cuestiones relacionadas a la lectura/
       escrituras parciales.
 
-   o  Sumar CUATRO puntos de calificaciÃ³n.
+   o  Sumar CUATRO puntos de calificación.
 
-   La calificaciÃ³n ocurre dentro de una escala de DIEZ puntos
+   La calificación ocurre dentro de una escala de DIEZ puntos
    destinando...
 
-   o  CUATRO puntos a la evaluaciÃ³n de la funcionalidad bÃ¡sica.  El
-      guiÃ³n de prueba serÃ¡ publicado unos dÃ­as antes de la entrega.
-      Cada prueba tendrÃ¡ un puntaje asignado.
+   o  CUATRO puntos a la evaluación de la funcionalidad básica.  El
+      guión de prueba será publicado unos días antes de la entrega.
+      Cada prueba tendrá un puntaje asignado.
 
-   o  TRES puntos a la correctitud de implementaciÃ³n, el diseÃ±o del
-      cÃ³digo (selecciÃ³n adecuada de algoritmos, estructura de programa
-      limpia, etc;) y al estilo (Â¿estÃ¡ debidamente comentado?, Â¿es
+   o  TRES puntos a la correctitud de implementación, el diseño del
+      código (selección adecuada de algoritmos, estructura de programa
+      limpia, etc;) y al estilo (¿está debidamente comentado?, ¿es
       legible? ...)
 
-   o  UN punto con CINCUENTA centÃ©simos a la evaluaciÃ³n de la pre-
+   o  UN punto con CINCUENTA centésimos a la evaluación de la pre-
       entrega.  Solo se evaluaran pre-entregas entregadas en tiempo y
       forma.
 
-   o  UN punto con CINCUENTA centÃ©simos a la descripciÃ³n del protocolo
-      diseÃ±ado, la presentaciÃ³n oral, y el informe.
+   o  UN punto con CINCUENTA centésimos a la descripción del protocolo
+      diseñado, la presentación oral, y el informe.
 
-   La calificaciÃ³n es de carÃ¡cter grupal; pero si hay evidencias de que
-   un alumno de un grupo no participÃ³ en la elaboraciÃ³n, o Ã©ste no puede
-   defender o demostrar su participaciÃ³n, entonces el alumno no podrÃ¡
-   aprobar el Trabajo PrÃ¡ctico.
+   La calificación es de carácter grupal; pero si hay evidencias de que
+   un alumno de un grupo no participó en la elaboración, o éste no puede
+   defender o demostrar su participación, entonces el alumno no podrá
+   aprobar el Trabajo Práctico.
 
-5.6.  Entrega tardÃ­a
+5.6.  Entrega tardía
 
    Las entregas que ocurran entre 0 horas (inclusive) y 24 horas
-   (exclusivo) luego de la fecha de entrega especificada perderÃ¡n 25% de
-   la calificaciÃ³n.
+   (exclusivo) luego de la fecha de entrega especificada perderán 25% de
+   la calificación.
 
 
 
@@ -448,20 +451,20 @@ Tabla de Contenidos
 
 
    Las entregas que ocurran entre 24 horas (inclusive) y 48 horas
-   (exclusivo) luego de la fecha de entrega especificada perderÃ¡n 50% de
-   la calificaciÃ³n.
+   (exclusivo) luego de la fecha de entrega especificada perderán 50% de
+   la calificación.
 
-   Luego de 48 horas el trabajo serÃ¡ considerado NO APROBADO, con una
-   calificaciÃ³n de CERO puntos.
+   Luego de 48 horas el trabajo será considerado NO APROBADO, con una
+   calificación de CERO puntos.
 
-5.7.  CÃ³digo de Honor
+5.7.  Código de Honor
 
    Las entregas deben ser creaciones originales de los alumnos de cada
    grupo.  Estas creaciones pueden ser resultado de discusiones en
-   general o en particular en las clase (clase teÃ³rica, discusiones
-   prÃ¡cticas, exposiciÃ³n de grupos), pero las implementaciones DEBEN ser
-   originales.  EstÃ¡ permitido utilizar parcialmente o totalmente el
-   cÃ³digo fuente presentando por la cÃ¡tedra en clase.
+   general o en particular en las clase (clase teórica, discusiones
+   prácticas, exposición de grupos), pero las implementaciones DEBEN ser
+   originales.  Está permitido utilizar parcialmente o totalmente el
+   código fuente presentando por la cátedra en clase.
 
 6.  Referencias
 
