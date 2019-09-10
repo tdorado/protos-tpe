@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# POP3 Proxy Filter compiled
+pop3filter
+
+# Visual Studio Code
+.vscode
