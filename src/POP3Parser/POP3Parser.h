@@ -32,3 +32,5 @@
 
 #define LISTOK "+OK scan listing follows"
 #define LISTERR "-ERR no such message"
+
+#define PARSERERR "ERROR WHILE PARSING COMANDS"
