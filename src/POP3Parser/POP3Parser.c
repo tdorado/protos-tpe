@@ -133,17 +133,16 @@ int parserPASSCmd(char* input) {
     }
     
     printf("%s\n", error ? PASSINVALID : PASSOK);
-
     free(arguments);
 
     return !error;
 }
 
-
 void parseRETRCmd(char *input) {
     int inputLength = strlen(input);
     char *arguments = malloc(inputLength);
     int error = 0;
+
     // check whether its actually RETR command
     if (!strncmp(input, "RETR ", 5)) { 
         strncpy(arguments, input+5, inputLength-4);
@@ -155,8 +154,8 @@ void parseRETRCmd(char *input) {
         printf("El comando que le pasaste esta al mostro\n");
     }
 
-    char *str = malloc(strlen(USERERR) + strlen(arguments) +1);
-    sprintf(str, error ? USERERR : USEROK, arguments);
+    char *str = malloc(strlen(RETRERR) + strlen(arguments) +1);
+    sprintf(str, error ? RETRERR : RETROK, arguments);
     printf("%s\n", str);
 
     free(arguments);
@@ -166,17 +165,18 @@ void parserRSETCmd(char *input) {
     int inputLength = strlen(input);
     char *arguments = malloc(inputLength);
     int error = 0;
-    // check whether its actually USER command
+
+    // check whether its actually RSET command
     if (!strncmp(input, "RSET ", 5) ) { 
-        // estamos ok, stat no recibe argumentos
+
     } else {
         // error
         printf("El comando que le pasaste esta al mostro\n");
     }
 
     //print whatever goes in stat cmd
-    char *str = malloc(strlen(USERERR) + strlen(arguments) +1);
-    sprintf(str, error ? USERERR : USEROK, arguments);
+    char *str = malloc(strlen(RSETOK) + strlen(arguments) +1);
+    sprintf(str, RSETOK, arguments);
     printf("%s\n", str);
 
     free(arguments);
@@ -186,8 +186,10 @@ void parseDELECmd(char *input) {
     int inputLength = strlen(input);
     char *arguments = malloc(inputLength);
     int error = 0;
-    // check whether its actually RETR command
+
+    // check whether its actually DELE command
     if (!strncmp(input, "DELE ", 5)) { 
+
         strncpy(arguments, input+5, inputLength-4 );
         // check wheter is not 1 argument
         if (strstr(arguments, " ") != NULL) error = 1;
@@ -197,8 +199,8 @@ void parseDELECmd(char *input) {
         printf("El comando que le pasaste esta al mostro\n");
     }
 
-    char *str = malloc(strlen(USERERR) + strlen(arguments) +1);
-    sprintf(str, error ? USERERR : USEROK, arguments);
+    char *str = malloc(strlen(DELEERR) + strlen(arguments) +1);
+    sprintf(str, error ? DELEERR : DELEOK, arguments);
     printf("%s\n", str);
 
     free(arguments);
@@ -208,7 +210,8 @@ void parseNOOPCmd(char *input) {
     int inputLength = strlen(input);
     char *arguments = malloc(inputLength);
     int error = 0;
-    // check whether its actually USER command
+
+    // check whether its actually NOOP command
     if (!strncmp(input, "NOOP ", 5)) { 
         // estamos ok, stat no recibe argumentos
     } else {
@@ -217,8 +220,8 @@ void parseNOOPCmd(char *input) {
     }
 
     //print whatever goes in stat cmd
-    char *str = malloc(strlen(USERERR) + strlen(arguments) +1);
-    sprintf(str, error ? USERERR : USEROK, arguments);
+    char *str = malloc(strlen(NOOPOK) + strlen(arguments) +1);
+    sprintf(str, NOOPOK, arguments);
     printf("%s\n", str);
 
     free(arguments);
@@ -228,7 +231,8 @@ void parseSTATCmd(char *input) {
     int inputLength = strlen(input);
     char *arguments = malloc(inputLength);
     int error = 0;
-    // check whether its actually USER command
+
+    // check whether its actually STAT command
     if (!strncmp(input, "STAT ", 5)) { 
         // estamos ok, stat no recibe argumentos
     } else {
@@ -237,8 +241,8 @@ void parseSTATCmd(char *input) {
     }
 
     //print whatever goes in stat cmd
-    char *str = malloc(strlen(USERERR) + strlen(arguments) +1);
-    sprintf(str, error ? USERERR : USEROK, arguments);
+    char *str = malloc(strlen(STATOK) + strlen(arguments) +1);
+    sprintf(str, STATOK, arguments);
     printf("%s\n", str);
 
     free(arguments);
@@ -248,8 +252,12 @@ void parseLISTCmd(char *input) {
     int inputLength = strlen(input);
     char *arguments = malloc(inputLength);
     int error = 0;
-    // check whether its actually RETR command
-    if (!strncmp(input, "RETR ", 5)) { 
+    // check whether its actually LIST command
+    if (!strncmp(input, "LIST ", 5)) { 
+        if (inputLength == 5) { // only one argument
+            
+        }
+
         strncpy(arguments, input+4, inputLength-3);
         // check wheter is not 1 argument
         if (strstr(arguments, " ") != NULL) error = 1;
@@ -259,8 +267,8 @@ void parseLISTCmd(char *input) {
         printf("El comando que le pasaste esta al mostro\n");
     }
 
-    char *str = malloc(strlen(USERERR) + strlen(arguments) +1);
-    sprintf(str, error ? USERERR : USEROK, arguments);
+    char *str = malloc(strlen(LISTOK) + strlen(arguments) +1);
+    sprintf(str, error ? LISTERR : LISTOK, arguments);
     printf("%s\n", str);
 
     free(arguments);
