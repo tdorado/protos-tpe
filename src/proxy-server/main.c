@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 
 #include "include/input_parser.h"
+#include "include/logs.h"
 
 #define BUFFER_SIZE 2048
 
@@ -40,9 +41,13 @@ void pop3_handle_connection(const int client, struct sockaddr* client_addr) {
         perror("Connection to origin POP3 Server Failed. \n");
         close(client);
         return; 
-    }
+    }    
+
+    log_message(false, "Origin server connected");
 
     int n = recv(origin_server_fd, buffer, BUFFER_SIZE, 0);
+    int invalid_counter = 0;
+    bool user_logged = false;
     while (!exit) {
         send(client, buffer, n, 0);
         n = recv(client, buffer, BUFFER_SIZE, 0);
@@ -57,13 +62,32 @@ void pop3_handle_connection(const int client, struct sockaddr* client_addr) {
 
         //SOLUCION TEMPORAL PARA EL QUIT O CUANDO SE PIERDE CONEXION, ETC
         //ESTO VA A SER DIFERENTE CON EL PARSER EL INPUT DE POP3
-        if(n == 0 || (strncmp(buffer, "+OK Logging out", 15) == 0)){
+        if(n == 0 || (strncmp(buffer, "+OK Logging out", 15) == 0) || (strncmp(buffer, "-ERR Disconnected for inactivity.", 33) == 0)){
             exit = true;
             send(client, buffer, n, 0);
         }
+        else if (strncmp(buffer, "-ERR Unknown command", 20) == 0){
+            invalid_counter++;
+            if(invalid_counter == 3 && !user_logged){
+                exit = true;
+                send(client, buffer, n, 0);
+            }
+            else if(invalid_counter == 21){
+                exit = true;
+                send(client, buffer, n, 0);
+            }
+        }
+        else if (strncmp(buffer, "+OK Logged in.", 14) == 0){
+            user_logged = true;
+        }
+        else{
+            invalid_counter = 0;
+        }
     }
     close(origin_server_fd);
+    log_message(false, "Origin server disconnected");
     close(client);
+    log_message(false, "Client disconnected");
 }
 
 /**
@@ -93,6 +117,7 @@ int serve_pop3_connections(const int server) {
         socklen_t caddrlen = sizeof (caddr);
         // Wait for a client to connect
         const int client = accept(server, (struct sockaddr*)&caddr, &caddrlen);
+        log_message(false, "Client connected");
         if (client < 0) {
             perror("Unable to accept incoming socket. \n");
         }
