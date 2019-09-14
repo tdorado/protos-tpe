@@ -59,18 +59,21 @@ bool valid_address(char *address) {
     int num, dots = 0;
     char *ptr;
  
-    if (address == NULL)
+    if (address == NULL) {
         return false;
+    }
  
     ptr = strtok(address, DELIM);
  
-    if (ptr == NULL)
+    if (ptr == NULL) {
         return false;
+    }
  
     while (ptr) {
  
-        if (!valid_digit(ptr))
+        if (!valid_digit(ptr)) {
             return false;
+        }
  
         num = atoi(ptr);
  
@@ -85,8 +88,10 @@ bool valid_address(char *address) {
         }
     }
  
-    if (dots != 3)
+    if (dots != 3) {
         return false;
+    }
+
     return true;
 }
 
@@ -114,8 +119,14 @@ int validate_and_set_params(const int argc, char ** argv, input_t proxy_params) 
 
     while ((c = getopt(argc, argv, "e:l:L:m:M:o:p:P:t:")) != EOF && !flag_error) {
         switch (c) {
-            case 'e':
-                proxy_params->error_file = optarg;
+            case 'P':
+                if (valid_port(optarg)){
+                    proxy_params->origin_server_port = (uint16_t) atoi(optarg);
+                }
+                else{
+                    fprintf(stderr, "Invalid -P <origin-server-port> argument. \n");
+                    flag_error = true;
+                }
                 break;
             case 'l':
                 if (valid_address(optarg)){
@@ -123,30 +134,6 @@ int validate_and_set_params(const int argc, char ** argv, input_t proxy_params) 
                 }
                 else{
                     fprintf(stderr, "Invalid -l <local-address> argument. \n");
-                    flag_error = true;
-                }
-                break;
-            case 'L':
-                if (valid_address(optarg)){
-                    proxy_params->management_addr = optarg;
-                }
-                else{
-                    fprintf(stderr, "Invalid -L <managment-address> argument. \n");
-                    flag_error = true;
-                }
-                break;
-            case 'm':
-                proxy_params->replace_message = optarg;
-                break;
-            case 'M':
-                proxy_params->media_types = optarg;
-                break;
-            case 'o':
-                if (valid_port(optarg)){
-                    proxy_params->management_port = (uint16_t) atoi(optarg);
-                }
-                else{
-                    fprintf(stderr, "Invalid -o <managment-port> argument. \n");
                     flag_error = true;
                 }
                 break;
@@ -159,17 +146,35 @@ int validate_and_set_params(const int argc, char ** argv, input_t proxy_params) 
                     flag_error = true;
                 }
                 break;
-            case 'P':
-                if (valid_port(optarg)){
-                    proxy_params->origin_server_port = (uint16_t) atoi(optarg);
+            case 'L':
+                if (valid_address(optarg)){
+                    proxy_params->management_addr = optarg;
                 }
                 else{
-                    fprintf(stderr, "Invalid -P <origin-server-port> argument. \n");
+                    fprintf(stderr, "Invalid -L <managment-address> argument. \n");
+                    flag_error = true;
+                }
+                break;
+            case 'o':
+                if (valid_port(optarg)){
+                    proxy_params->management_port = (uint16_t) atoi(optarg);
+                }
+                else{
+                    fprintf(stderr, "Invalid -o <managment-port> argument. \n");
                     flag_error = true;
                 }
                 break;
             case 't':
                 proxy_params->cmd = optarg;
+                break;
+            case 'e':
+                proxy_params->error_file = optarg;
+                break;
+            case 'm':
+                proxy_params->replace_message = optarg;
+                break;
+            case 'M':
+                proxy_params->media_types = optarg;
                 break;
             default:
                 flag_error = true;
