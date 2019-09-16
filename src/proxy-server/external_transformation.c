@@ -8,7 +8,8 @@
 // PIPE QUE SE CONECTE CON EL STDOUT DEL PROCESO QUE RECIBE EL TEXTO Y LO VUELVE A PARSEAR CON LOS . EN MODO POP3
 
 char * transform(char * transform_command , char * buffer, int buffer_size) {
-    char * message_body = extract_body(email, buffer_size);
+    char * body = extract_body(buffer, buffer_size);
+    char * body = pop3_to_text(buffer, buffer_size);
     int fd[2];
     pipe(fd);
     if (fork()) {
@@ -29,4 +30,40 @@ char * extract_body(char * buffer, int buffer_size) {
         return NULL;
     }
     return body;
+}
+
+char * pop3_to_text(char * buffer, int buffer_size) {
+    int status = WORKING;
+    int actual=0;
+    int new=0;
+    int on_point = FALSE;
+    while(status != FINISHED && i < buffer_size) {
+        switch(buffer[actual]) {
+            case '.':
+                if(on_point) {
+                    actual++;
+                } else {
+                    on_point = TRUE;
+                    buffer[new] = buffer[actual];
+                    actual++;
+                    new++;
+                }
+                break;
+            case '\r':
+                if(strcmp(buffer + actual), FINISH_STRING, FINISH_LENGTH) {
+                    status = FINISHED;
+                    break;
+                } else {
+                    buffer[new] = buffer[actual];
+                    actual++;
+                    new++;
+                }
+            default: 
+                buffer[new] = buffer[actual];
+                actual++;
+                new++;
+                break;
+        }
+    }
+    return buffer;
 }
