@@ -13,7 +13,6 @@ char * transform(char * transform_command , char * buffer, int buffer_size) {
     int fd[2];
     pipe(fd);
     if (fork()) {
-        close(fd[])
     }
     return transform_command;
 }
@@ -37,16 +36,14 @@ char * pop3_to_text(char * buffer, int buffer_size) {
     int actual=0;
     int new=0;
     int on_point = FALSE;
-    while(status != FINISHED && i < buffer_size) {
+    while(status != FINISHED && actual < buffer_size) {
         switch(buffer[actual]) {
             case '.':
-                if(on_point) {
+                buffer[new] = buffer[actual];
+                new++;
+                actual++;
+                while(buffer[actual] == '.') {
                     actual++;
-                } else {
-                    on_point = TRUE;
-                    buffer[new] = buffer[actual];
-                    actual++;
-                    new++;
                 }
                 break;
             case '\r':
@@ -65,9 +62,12 @@ char * pop3_to_text(char * buffer, int buffer_size) {
                 break;
         }
     }
+    if( actual == buffer_size ) {
+        free(buffer);
+        return NULL
+    }
     return buffer;
 }
 
 char * text_to_pop3(char * buffer, int buffer_size) {
-    
 }
