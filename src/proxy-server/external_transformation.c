@@ -67,3 +67,7 @@ char * pop3_to_text(char * buffer, int buffer_size) {
     }
     return buffer;
 }
+
+char * text_to_pop3(char * buffer, int buffer_size) {
+    
+}

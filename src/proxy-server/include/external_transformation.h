@@ -11,5 +11,7 @@
 // function that extract body from pop3 message recived by server ( extract first line )
 char * extract_body(char * buffer, int buffer_size);
 char * transform(char * transform_command , char * email);
+char * text_to_pop3(char * buffer, int buffer_size);
+char * pop3_to_text(char * buffer, int buffer_size);
 
 #endif
