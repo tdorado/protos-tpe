@@ -4,11 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h> 
-#define WORKING 1
+#include <unistd.h>
+#include <sys/wait.h>
+
 #define FINISHED 0
-#define TRUE 1
+#define WORKING 1
 #define FALSE 0
+#define TRUE 1
 #define FINISH_LENGTH 5
 #define FINISH_STRING "\n\r.\n\r"
 // this value is the max that a transformation can extend a normal text

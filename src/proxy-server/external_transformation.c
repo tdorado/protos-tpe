@@ -1,6 +1,4 @@
 #include "include/external_transformation.h"
-#include <sys/wait.h>
-
 
 int external_transformation(char * transform_command , char * buffer, int buffer_size) {
     int from, to = buffer_size - FINISH_LENGTH;
@@ -10,7 +8,7 @@ int external_transformation(char * transform_command , char * buffer, int buffer
     return to + FINISH_LENGTH;
 }
 
-int call_command(char * command, char *buffer, int from, int to) {
+int call_command(char * command, char * buffer, int from, int to) {
     int pipe1[2];
     int pipe2[2];
     if ( pipe(pipe1) == -1 || pipe(pipe2) == -1 ){
@@ -43,7 +41,7 @@ int call_command(char * command, char *buffer, int from, int to) {
     return j;
 }
 
-void extract_pop3_info(char * buffer, int *from) {
+void extract_pop3_info(char * buffer, int * from) {
     int i = 0;
     while(strncmp(buffer + i, "\r\n", 2)) {
         i++;
@@ -53,8 +51,8 @@ void extract_pop3_info(char * buffer, int *from) {
 
 int pop3_to_text(char * buffer, int buffer_size, char * text) {
     int status = WORKING;
-    int actual=0;
-    int new=0;
+    int actual = 0;
+    int new = 0;
     int first_point = TRUE;
     while(status != FINISHED && actual < buffer_size) {
         switch(buffer[actual]) {
