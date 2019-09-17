@@ -99,14 +99,15 @@ int pop3_to_text(char * buffer, int buffer_size, char * text) {
     int status = WORKING;
     int actual=0;
     int new=0;
+    int first_point = TRUE;
     while(status != FINISHED && actual < buffer_size) {
         switch(buffer[actual]) {
             case '.':
-                text[new] = buffer[actual];
-                new++;
-                actual++;
-                if(buffer[actual] != '.') {
-                    new--;
+                if(first_point || buffer[actual+1] == '.') {
+                    text[new] = buffer[actual];
+                    new++;
+                    actual++;
+                    first_point = FALSE;
                 }
                 break;
             case '\0':
