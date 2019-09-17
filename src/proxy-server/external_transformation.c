@@ -35,26 +35,25 @@ char * pop3_to_text(char * buffer, int buffer_size) {
     int status = WORKING;
     int actual=0;
     int new=0;
-    int on_point = FALSE;
     while(status != FINISHED && actual < buffer_size) {
         switch(buffer[actual]) {
             case '.':
                 buffer[new] = buffer[actual];
                 new++;
                 actual++;
-                while(buffer[actual] == '.') {
+                while(buffer[actual] == '.' && actual < buffer_size) {
                     actual++;
                 }
                 break;
             case '\r':
                 if(strcmp(buffer + actual), FINISH_STRING, FINISH_LENGTH) {
                     status = FINISHED;
-                    break;
                 } else {
                     buffer[new] = buffer[actual];
                     actual++;
                     new++;
                 }
+                break;
             default: 
                 buffer[new] = buffer[actual];
                 actual++;
@@ -62,7 +61,7 @@ char * pop3_to_text(char * buffer, int buffer_size) {
                 break;
         }
     }
-    if( actual == buffer_size ) {
+    if( actual > buffer_size ) {
         free(buffer);
         return NULL
     }
@@ -70,4 +69,33 @@ char * pop3_to_text(char * buffer, int buffer_size) {
 }
 
 char * text_to_pop3(char * buffer, int buffer_size) {
+    char * pop3_text = malloc(buffer_size*sizeof(char));
+    int actual = 0;
+    int new = 0;
+    while(actual < buffer_size) {
+        switch(buffer[actual]) {
+            case '.': 
+                pop3_text[new] = buffer[actual];
+                new++;
+                actual++;
+                while(buffer[actual] == '.') {
+                    pop3_text[new] = buffer[actual];
+                    new++;
+                    actual++;
+                }
+                pop3_text[new] = '.';
+                new++;
+            default:
+                pop3_text[new] = buffer[actual];
+                actual++;
+                new++;
+                break;
+        }
+    }
+    if(actual > buffer_size) {
+        free(buffer);
+        return NULL;
+    }
+    strcpy(pop3_text + new, FINISH_STRING, 5);
+    return pop3_text;
 }
