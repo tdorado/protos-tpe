@@ -1,7 +1,3 @@
-#include <time.h>
-
-#define TIME_BUFFER_SIZE 20
-
 #include "include/logs.h"
 
 void log_message(bool error, char * message){

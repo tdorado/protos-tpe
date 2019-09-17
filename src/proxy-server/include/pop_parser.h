@@ -1,6 +1,16 @@
 #ifndef POP_PARSER_H
 #define POP_PARSER_H
 
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #define INPUT_BUFFER_BLOCK 1024
 
 // States

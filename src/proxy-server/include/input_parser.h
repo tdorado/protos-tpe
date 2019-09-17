@@ -2,6 +2,12 @@
 #define INPUT_PARSER_H
 
 #include <stdint.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <getopt.h>
 
 struct input_params{
     char *origin_server_addr;
@@ -18,6 +24,7 @@ struct input_params{
 
 typedef struct input_params * input_t;
 
+//
 int input_parser(int argc, char ** argv, input_t proxy_params);
 
 #endif

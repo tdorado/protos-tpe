@@ -1,35 +1,6 @@
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include "include/pop_parser.h"
 
-
-int request_greeting(int origin_server_fd, char **input_buffer, int *buffer_size);
-void send_greeting(int client_fd);
-void send_socket_message_from_buffer(int fd, char* input_buffer, int n);
-void send_socket_message(int fd, char* message, int n);
-int request_socket_message(int fd, char** input_buffer, int *buffer_size);
-int parse_capa_cmd(char *input, int n);
-int parse_user_cmd(char *input, int n);
-int parse_pass_cmd(char *input, int n);
-int parse_quit_cmd(char *input, int n);
-int parse_retr_or_rset_cmd(char *input, int n);
-int parse_retr_cmd(char *input, int n);
-int parse_rset_cmd(char *input, int n);
-int parse_dele_cmd(char *input, int n);
-int parse_noop_cmd(char *input, int n);
-int parse_stat_cmd(char *input, int n);
-int parse_list_cmd(char *input, int n);
-
-void parse_pop(int client_fd, int origin_server_fd) {    
+void parse_pop(int client_fd, int origin_server_fd) {
 
     char **input_buffer = malloc(sizeof(char*));
     *input_buffer = malloc(INPUT_BUFFER_BLOCK);
@@ -262,7 +233,7 @@ int parse_retr_cmd(char *input, int n) {
     return 0;
 }
 
-int parse_rset_cmd(char *input, int n) { 
+int parse_rset_cmd(char *input, int n) {
     if (!strncasecmp(input, "RSET", 4) && n == 5) {
         return 1;
     }
@@ -283,7 +254,7 @@ int parse_noop_cmd(char *input, int n) {
     return 0;
 }
 
-int parse_stat_cmd(char *input, int n) { 
+int parse_stat_cmd(char *input, int n) {
     if (!strncasecmp(input, "STAT", 4) && n == 5) {
         return 1;
     }

@@ -1,10 +1,3 @@
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <getopt.h>
-
 #include "include/input_parser.h"
 #include "include/constants.h"
 
@@ -54,29 +47,29 @@ bool valid_digit(char *digit) {
     }
     return true;
 }
- 
+
 bool valid_address(char *address) {
     int num, dots = 0;
     char *ptr;
- 
+
     if (address == NULL) {
         return false;
     }
- 
+
     ptr = strtok(address, DELIM);
- 
+
     if (ptr == NULL) {
         return false;
     }
- 
+
     while (ptr) {
- 
+
         if (!valid_digit(ptr)) {
             return false;
         }
- 
+
         num = atoi(ptr);
- 
+
         if (num >= 0 && num <= 255) {
             ptr = strtok(NULL, DELIM);
             if (ptr != NULL) {
@@ -87,7 +80,7 @@ bool valid_address(char *address) {
             return false;
         }
     }
- 
+
     if (dots != 3) {
         return false;
     }
@@ -97,7 +90,7 @@ bool valid_address(char *address) {
 
 bool valid_port(char *port) {
     int num;
-    
+
     if (!valid_digit(port)) {
         return false;
     }
@@ -114,7 +107,7 @@ bool valid_port(char *port) {
 int validate_and_set_params(const int argc, char ** argv, input_t proxy_params) {
     int c;
     bool flag_error = false;
-    
+
     initialize_values(proxy_params);
 
     while ((c = getopt(argc, argv, "e:l:L:m:M:o:p:P:t:")) != EOF && !flag_error) {
@@ -180,11 +173,11 @@ int validate_and_set_params(const int argc, char ** argv, input_t proxy_params) 
                 flag_error = true;
                 break;
         }
-    } 
+    }
 
     if (optind == argc - 1 && !flag_error) {
         if (valid_address(argv[optind])) {
-            proxy_params->origin_server_addr = argv[optind]; 
+            proxy_params->origin_server_addr = argv[optind];
         }
         else{
             fprintf(stderr, "Invalid <origin-server-address> argument. \n");

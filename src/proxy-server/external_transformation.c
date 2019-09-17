@@ -1,6 +1,4 @@
 #include "include/external_transformation.h"
-#include <sys/wait.h>
-
 
 char * external_transformation(char * transform_command , char * buffer, int buffer_size) {
     char * head = malloc(buffer_size * sizeof(char));
