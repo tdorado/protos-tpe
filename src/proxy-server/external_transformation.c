@@ -5,7 +5,6 @@
 // PIPE QUE SE CONECTE CON EL STDOUT DEL PROCESO QUE RECIBE EL TEXTO Y LO VUELVE A PARSEAR CON LOS . EN MODO POP3
 
 char * external_transformation(char * transform_command , char * buffer, int buffer_size) {
-    printf("1");
     char * head = malloc(buffer_size * sizeof(char));
     char * body = malloc(buffer_size * sizeof(char));
     if(extract_pop3_info(buffer, buffer_size, head, body) == -1) {
@@ -13,8 +12,6 @@ char * external_transformation(char * transform_command , char * buffer, int buf
         free(body);
         return NULL;
     }
-    printf("2");
-    printf("HEAD: %S, BODY: %S", head, body);
     char * normal_text = malloc(buffer_size * sizeof(char));
     if(pop3_to_text(body, buffer_size, normal_text) == -1) {
         free(head);
@@ -22,36 +19,34 @@ char * external_transformation(char * transform_command , char * buffer, int buf
         free(normal_text);
         return NULL;
     }
-    /*
+    char * transformed_text = malloc(buffer_size * 2 * sizeof(char));
+    printf("HOLA");
+    //call_command(transform_command, normal_text, 100, transformed_text);
+    return transformed_text;
+}
+
+int call_command(char * command, char * text, int buffer_size, char * transformed_text) {
     int pipe1[2];
     int pipe2[2];
     pipe(pipe1);
     pipe(pipe2);
-    printf("Este es el texto normal: %s", normal_text);
     if(fork()) {
         close(0);
         dup(pipe1[0]);
         close(1);
         dup(pipe2[1]);
-        execv(transform_command, NULL);
+        execv(command, NULL);
     }
     else {
         int i=0;
-        while(normal_text[i] != '\0' && i < buffer_size) {
-            write(pipe1[1], normal_text + i, 1);
+        while(text[i] != '\0' && i < buffer_size) {
+            write(pipe1[1], text + i, 1);
         }
         int j = 0;
-        char * transformed_text = malloc(buffer_size * 2 * sizeof(char));
         while(transformed_text[j] != EOF && transformed_text[j]!='\0') {
-            read(pipe2[0], transformed_text + j , 1);
+            read(pipe2[0], transformed_text, 1);
         }
-        char * transformed_text_pop3 = malloc(buffer_size * 2 * sizeof(char));
-        text_to_pop3(transformed_text, buffer_size * 3, transformed_text_pop3);
-        char * rta = malloc( 3 * buffer_size * sizeof(char)); 
-        strcat(rta, head);
-        strcat(rta, transformed_text_pop3);
     }
-    */
 }
 
 int extract_pop3_info(char * buffer, int buffer_size, char * head, char * body) {
