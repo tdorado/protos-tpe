@@ -18,5 +18,6 @@ char * external_transformation(char * transform_command , char * buffer, int buf
 int text_to_pop3(char * buffer, int buffer_size, char * pop3_text);
 int pop3_to_text(char * buffer, int buffer_size, char * text);
 int call_command(char * command, char * text, int buffer_size, char * transformed_text);
+char * complete_pop3( char * head, char * body, int buffer_size);
 
 #endif
