@@ -56,22 +56,24 @@
 
 #define CAPA_MESSAGE "CAPA\nTOP\n\nUIDL\nRESP-CODES\nAUTH-RESP-CODE\nUSER\nSASL PLAIN LOGIN\n"
 
-void parse_pop(int client_fd, int origin_server_fd);
+int request_greeting(int origin_server_fd, char ** input_buffer, int *buffer_size);
 void send_greeting(int client_fd);
-void send_socket_message_from_buffer(int fd, char* input_buffer, int n);
-void send_socket_message(int fd, char* message, int n);
-int request_greeting(int origin_server_fd, char **input_buffer, int *buffer_size);
-int request_socket_message(int fd, char** input_buffer, int *buffer_size);
-int parse_capa_cmd(char *input, int n);
-int parse_user_cmd(char *input, int n);
-int parse_pass_cmd(char *input, int n);
-int parse_quit_cmd(char *input, int n);
-int parse_retr_or_rset_cmd(char *input, int n);
-int parse_retr_cmd(char *input, int n);
-int parse_rset_cmd(char *input, int n);
-int parse_dele_cmd(char *input, int n);
-int parse_noop_cmd(char *input, int n);
-int parse_stat_cmd(char *input, int n);
-int parse_list_cmd(char *input, int n);
+
+void send_socket_message_from_buffer(int fd, char * input_buffer, int n);
+void send_socket_message(int fd, char * message, int n);
+int request_socket_message(int fd, char ** input_buffer, int * buffer_size);
+
+void parse_pop(int client_fd, int origin_server_fd);
+int parse_capa_cmd(char * input, int n);
+int parse_user_cmd(char * input, int n);
+int parse_pass_cmd(char * input, int n);
+int parse_quit_cmd(char * input, int n);
+int parse_retr_or_rset_cmd(char * input, int n);
+int parse_retr_cmd(char * input, int n);
+int parse_rset_cmd(char * input, int n);
+int parse_dele_cmd(char * input, int n);
+int parse_noop_cmd(char * input, int n);
+int parse_stat_cmd(char * input, int n);
+int parse_list_cmd(char * input, int n);
 
 #endif

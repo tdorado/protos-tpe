@@ -2,9 +2,9 @@
 
 void parse_pop(int client_fd, int origin_server_fd) {
 
-    char **input_buffer = malloc(sizeof(char*));
+    char ** input_buffer = malloc(sizeof(char*));
     *input_buffer = malloc(INPUT_BUFFER_BLOCK);
-    int *buffer_size = malloc(sizeof(int));
+    int * buffer_size = malloc(sizeof(int));
     *buffer_size = INPUT_BUFFER_BLOCK;
     char c;
 
@@ -158,7 +158,7 @@ void parse_pop(int client_fd, int origin_server_fd) {
     free(buffer_size);
 }
 
-int request_greeting(int origin_server_fd, char **input_buffer, int *buffer_size){
+int request_greeting(int origin_server_fd, char ** input_buffer, int * buffer_size){
     request_socket_message(origin_server_fd, input_buffer, buffer_size);
     if(strncmp("+OK", *input_buffer, 3) == 0){
         return 1;
@@ -170,15 +170,15 @@ void send_greeting(int client_fd){
     send_socket_message(client_fd, GREETING, strlen(GREETING));
 }
 
-void send_socket_message_from_buffer(int fd, char* input_buffer, int n){
+void send_socket_message_from_buffer(int fd, char * input_buffer, int n){
     send_socket_message(fd, input_buffer, n);
 }
 
-void send_socket_message(int fd, char* message, int n){
+void send_socket_message(int fd, char * message, int n){
     send(fd, message, n, 0);
 }
 
-int request_socket_message(int fd, char** input_buffer, int *buffer_size){
+int request_socket_message(int fd, char ** input_buffer, int * buffer_size){
     int ret = 0;
     int n = 0;
     n = recv(fd, *input_buffer, INPUT_BUFFER_BLOCK, 0);
@@ -192,7 +192,7 @@ int request_socket_message(int fd, char** input_buffer, int *buffer_size){
     return ret;
 }
 
-int parse_retr_or_rset_cmd(char *input, int n){
+int parse_retr_or_rset_cmd(char * input, int n){
     if (((char) tolower(input[1])) == 'e') {
         if(parse_retr_cmd(input, n)){
             return 1;
@@ -205,70 +205,70 @@ int parse_retr_or_rset_cmd(char *input, int n){
     return 0;
 }
 
-int parse_quit_cmd(char *input, int n) {
+int parse_quit_cmd(char * input, int n) {
     if (!strncasecmp(input, "QUIT", 4) && n == 5) {
         return 1;
     }
     return 0;
 }
 
-int parse_user_cmd(char *input, int n) {
+int parse_user_cmd(char * input, int n) {
     if (!strncasecmp(input, "USER", 4) && n > 5) {
         return 1;
     }
     return 0;
 }
 
-int parse_pass_cmd(char* input, int n) {
+int parse_pass_cmd(char * input, int n) {
     if (!strncasecmp(input, "PASS", 4) && n > 5) {
         return 1;
     }
     return 0;
 }
 
-int parse_retr_cmd(char *input, int n) {
+int parse_retr_cmd(char * input, int n) {
     if (!strncasecmp(input, "RETR", 4) && n > 5) {
         return 1;
     }
     return 0;
 }
 
-int parse_rset_cmd(char *input, int n) {
+int parse_rset_cmd(char * input, int n) {
     if (!strncasecmp(input, "RSET", 4) && n == 5) {
         return 1;
     }
     return 0;
 }
 
-int parse_dele_cmd(char *input, int n) {
+int parse_dele_cmd(char * input, int n) {
     if (!strncasecmp(input, "DELE", 4) && n > 5) {
         return 1;
     }
     return 0;
 }
 
-int parse_noop_cmd(char *input, int n) {
+int parse_noop_cmd(char * input, int n) {
     if (!strncasecmp(input, "NOOP", 4) && n == 5) {
         return 1;
     }
     return 0;
 }
 
-int parse_stat_cmd(char *input, int n) {
+int parse_stat_cmd(char * input, int n) {
     if (!strncasecmp(input, "STAT", 4) && n == 5) {
         return 1;
     }
     return 0;
 }
 
-int parse_capa_cmd(char *input, int n){
+int parse_capa_cmd(char * input, int n){
     if (!strncasecmp(input, "CAPA", 4) && n == 5) {
         return 1;
     }
     return 0;
 }
 
-int parse_list_cmd(char *input, int n) {
+int parse_list_cmd(char * input, int n) {
     if (!strncasecmp(input, "LIST", 4)) {
         return 1;
     }
