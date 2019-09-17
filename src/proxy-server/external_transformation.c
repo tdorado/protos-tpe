@@ -1,39 +1,57 @@
 #include "include/external_transformation.h"
 
-int external_transformation(char * transform_command , char * buffer, int buffer_size) {
+int external_transformation(input_t proxy_params, char * buffer, int buffer_size) {
     int from, to = buffer_size - FINISH_LENGTH;
     extract_pop3_info(buffer, &from);
-    to = call_command(transform_command, buffer, from, to);
+    to = call_command(proxy_params, buffer, from, to);
     complete_pop3(buffer, to);
     return to + FINISH_LENGTH;
 }
 
-int call_command(char * command, char * buffer, int from, int to) {
-    int pipe1[2];
-    int pipe2[2];
-    if ( pipe(pipe1) == -1 || pipe(pipe2) == -1 ){
+int call_command(input_t proxy_params, char * buffer, int from, int to) {
+    int pipeFatherToChild[2];
+    int pipeChildToFather[2];
+    if ( pipe(pipeFatherToChild) == -1 || pipe(pipeChildToFather) == -1 ){
         return to;
     }
+
+    char * argv[4];
+    argv[0] = "bash";
+    argv[1] = "-c";
+    argv[2] = proxy_params->cmd;
+    argv[3] = NULL;
+
     int pid;
     int i = from;
     int j = from;
     while(i < to) {
-        write(pipe1[1], buffer + i, 1);
+        write(pipeFatherToChild[WRITE], buffer + i, 1);
         i++;
     }
-    close(pipe1[1]);
+    close(pipeFatherToChild[WRITE]);
     if( (pid = fork()) == 0 ) {
-        close(0);
-        dup(pipe1[0]);
-        close(1);
-        close(pipe2[0]);
-        dup(pipe2[1]);
-        execl("/bin/cat", command, (char *) 0);
+        close(STDIN_FILENO);
+        dup(pipeFatherToChild[READ]);
+        close(STDOUT_FILENO);
+        close(pipeChildToFather[READ]);
+        dup(pipeChildToFather[WRITE]);
+
+        FILE * f = freopen(proxy_params->error_file, "a+", stderr);
+        if(f == NULL){
+            exit(EXIT_FAILURE);
+        }
+        
+        int exec_ret = execve("/bin/bash", argv, NULL);
+
+        if (exec_ret == -1){
+            fprintf(stderr, "Error on filtered command \n");
+        }
+
     }
     else {
-        close(pipe2[1]);
+        close(pipeChildToFather[WRITE]);
         buffer[j] = 0;
-        while(read(pipe2[0], buffer + j, 1) != 0) {
+        while(read(pipeChildToFather[READ], buffer + j, 1) != 0) {
             j++;
         }
         kill(pid, SIGKILL);

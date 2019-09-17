@@ -11,7 +11,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define INPUT_BUFFER_BLOCK 1024
+#include "input_parser.h"
+
+#define INPUT_BUFFER_BLOCK 2048
 
 // States
 #define AUTHORIZATION 0
@@ -25,7 +27,7 @@
 #define OK_RESPONSE "+OK \n"
 
 #define OK_LOGGED_IN "+OK Logged in \n"
-#define OK_LOGGED_OUT "+OK Logged out \n"
+#define OK_LOGGED_OUT "+OK Logging out \n"
 
 #define USEROK "+OK %s is a valid mailbox \n"
 #define USERERR "-ERR never heard of mailbox %s \n"
@@ -54,7 +56,7 @@
 #define ERR_INVALID "-ERR Invalid command \n"
 #define ERR_INVALID_TOO_MANY "-ERR Too many invalid commands \n"
 
-#define CAPA_MESSAGE "CAPA\nTOP\n\nUIDL\nRESP-CODES\nAUTH-RESP-CODE\nUSER\nSASL PLAIN LOGIN\n"
+#define CAPA_MESSAGE "CAPA\nTOP\nUIDL\nRESP-CODES\nAUTH-RESP-CODE\nUSER\nSASL PLAIN LOGIN\n"
 
 int request_greeting(int origin_server_fd, char ** input_buffer, int *buffer_size);
 void send_greeting(int client_fd);
@@ -63,7 +65,7 @@ void send_socket_message_from_buffer(int fd, char * input_buffer, int n);
 void send_socket_message(int fd, char * message, int n);
 int request_socket_message(int fd, char ** input_buffer, int * buffer_size);
 
-void parse_pop(int client_fd, int origin_server_fd);
+void parse_pop(int client_fd, int origin_server_fd, input_t proxy_params);
 int parse_capa_cmd(char * input, int n);
 int parse_user_cmd(char * input, int n);
 int parse_pass_cmd(char * input, int n);

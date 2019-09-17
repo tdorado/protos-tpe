@@ -2,7 +2,7 @@ PROXY_NAME = pop3filter
 PROXY_SOURCES = src/proxy-server/main src/proxy-server/input_parser src/proxy-server/logs src/proxy-server/external_transformation src/proxy-server/pop_parser
 
 CC_C = gcc
-CFLAGS = -Wall -g -pthread -std=gnu99
+CFLAGS = -Wall -g -pthread
 
 all: clean proxy-server
 

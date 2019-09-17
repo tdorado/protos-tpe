@@ -41,7 +41,7 @@ void pop3_handle_connection(const int client, struct sockaddr* client_addr) {
 
     log_message(false, "Origin server connected");
 
-    parse_pop(client, origin_server_fd);
+    parse_pop(client, origin_server_fd, proxy_params);
 
     close(origin_server_fd);
     log_message(false, "Origin server disconnected");
@@ -110,6 +110,12 @@ int main(int argc, char ** argv) {
     
     if (input_parser(argc, argv, proxy_params) < 0) {
         return 1;
+    }
+
+    FILE * f = freopen(proxy_params->error_file, "a+", stderr);
+
+    if (f == NULL) {
+        exit(EXIT_FAILURE);
     }
 
     struct sockaddr_in addr;

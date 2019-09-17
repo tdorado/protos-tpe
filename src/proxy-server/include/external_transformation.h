@@ -7,6 +7,11 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include "input_parser.h"
+
+#define READ 0
+#define WRITE 1
+
 #define FINISHED 0
 #define WORKING 1
 #define FALSE 0
@@ -18,10 +23,10 @@
 
 // function that extract body and head from pop3 message recived by server
 void extract_pop3_info(char * buffer, int *from);
-int external_transformation(char * transform_command , char * buffer, int buffer_size);
+int external_transformation(input_t proxy_params , char * buffer, int buffer_size);
 int text_to_pop3(char * buffer, int buffer_size, char * pop3_text);
 int pop3_to_text(char * buffer, int buffer_size, char * text);
-int call_command(char * command, char *buffer, int from, int to);
+int call_command(input_t proxy_params, char *buffer, int from, int to);
 void complete_pop3(char * buffer, int to);
 
 #endif
