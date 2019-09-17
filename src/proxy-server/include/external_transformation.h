@@ -11,6 +11,8 @@
 #define FALSE 0
 #define FINISH_LENGTH 5
 #define FINISH_STRING "\n\r.\n\r"
+// this value is the max that a transformation can extend a normal text
+#define MAX_TRANSFORMATION_EXTEND 2
 
 // function that extract body and head from pop3 message recived by server
 int extract_pop3_info(char * buffer, int buffer_size, char * head, char * body);
@@ -18,5 +20,6 @@ char * external_transformation(char * transform_command , char * buffer, int buf
 int text_to_pop3(char * buffer, int buffer_size, char * pop3_text);
 int pop3_to_text(char * buffer, int buffer_size, char * text);
 int call_command(char * command, char * text, int buffer_size, char * transformed_text);
+char * complete_pop3( char * head, char * body, int buffer_size);
 
 #endif

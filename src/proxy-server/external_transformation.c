@@ -17,9 +17,26 @@ char * external_transformation(char * transform_command , char * buffer, int buf
         free(normal_text);
         return NULL;
     }
-    char * transformed_text = malloc(buffer_size * 2 * sizeof(char));
-    call_command(transform_command, normal_text, 100, transformed_text);
-    return transformed_text;
+    char * transformed_text = malloc(buffer_size * MAX_TRANSFORMATION_EXTEND * sizeof(char));
+    int rta = call_command(transform_command, normal_text, buffer_size, transformed_text);
+    free(body);
+    free(normal_text);
+    if (rta == -1) {
+        free(transformed_text);
+        free(head);
+        return NULL;
+    }
+    char * transformed_text_pop3 = malloc(buffer_size * MAX_TRANSFORMATION_EXTEND);
+    if(text_to_pop3(transformed_text, buffer_size, transformed_text_pop3) == -1) {
+        free(transformed_text);
+        free(head);
+        free(transformed_text_pop3);
+    }
+    free(transformed_text);
+    char * return_value = complete_pop3(head, transformed_text_pop3, buffer_size);
+    free(head);
+    free(transformed_text_pop3);
+    return return_value;
 }
 
 int call_command(char * command, char * text, int buffer_size, char * transformed_text) {
@@ -50,6 +67,7 @@ int call_command(char * command, char * text, int buffer_size, char * transforme
         while(read(pipe2[0], transformed_text + j, 1) != 0) {
             j++;
         }
+        return 0;
     }
 }
 
@@ -61,6 +79,7 @@ int extract_pop3_info(char * buffer, int buffer_size, char * head, char * body) 
         i++;
     }
     if(i == buffer_size) {
+        perror("There was an error with the format in the head of pop3 packet.");
         return -1;
     }
     i+=2;
@@ -70,6 +89,7 @@ int extract_pop3_info(char * buffer, int buffer_size, char * head, char * body) 
         j++;
     }
     if( i == buffer_size) {
+        perror("There was an error with the format in the body of pop3 packet");
         return -1;
     }
     return 0;
@@ -89,14 +109,11 @@ int pop3_to_text(char * buffer, int buffer_size, char * text) {
                     new--;
                 }
                 break;
-            case '\r':
-                if(strncmp(buffer + actual, "\r\n.\r\n", FINISH_LENGTH)) {
-                    status = FINISHED;
-                } else {
-                    text[new] = buffer[actual];
-                    actual++;
-                    new++;
-                }
+            case '\0':
+                status = FINISHED;
+                text[new] = buffer[actual];
+                actual++;
+                new++;
                 break;
             default:
                 text[new] = buffer[actual];
@@ -105,8 +122,8 @@ int pop3_to_text(char * buffer, int buffer_size, char * text) {
                 break;
         }
     }
-    if( actual > buffer_size ) {
-        free(buffer);
+    if( actual >= buffer_size ) {
+        perror("There was en error passing pop3 body to plain text. It's possible that the format of the pop3 body is corrupted.");
         return -1;
     }
     return 0;
@@ -115,7 +132,7 @@ int pop3_to_text(char * buffer, int buffer_size, char * text) {
 int text_to_pop3(char * buffer, int buffer_size, char * pop3_text) {
     int actual = 0;
     int new = 0;
-    while(actual < buffer_size) {
+    while(buffer[actual] != '\0' && actual < buffer_size) {
         switch(buffer[actual]) {
             case '.':
                 pop3_text[new] = buffer[actual];
@@ -136,8 +153,20 @@ int text_to_pop3(char * buffer, int buffer_size, char * pop3_text) {
         }
     }
     if(actual >= buffer_size) {
+        perror("There was en error passing the plain text to pop3 body format. It's possible that the plain text is corrupted.");
         return -1;
     }
-    strcpy(pop3_text + new, "\r\n.\r\n");
     return 0;
+}
+
+char * complete_pop3( char * head, char * body, int buffer_size) {
+    if( head == NULL || body == NULL) {
+        return NULL;
+    }
+    char * rta = malloc(buffer_size*(MAX_TRANSFORMATION_EXTEND + 1)*sizeof(char));
+    strcpy(rta, head);
+    strcat(rta, "\r\n");
+    strcat(rta, body);
+    strcat(rta, "\r\n.\r\n");
+    return rta;
 }
