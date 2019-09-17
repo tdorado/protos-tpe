@@ -26,9 +26,16 @@ char * external_transformation(char * transform_command , char * buffer, int buf
         free(head);
         return NULL;
     }
-    char * return_value = complete_pop3(head, transformed_text, buffer_size);
+    char * transformed_text_pop3 = malloc(buffer_size * MAX_TRANSFORMATION_EXTEND);
+    if(text_to_pop3(transformed_text, buffer_size, transformed_text_pop3) == -1) {
+        free(transformed_text);
+        free(head);
+        free(transformed_text_pop3);
+    }
+    free(transformed_text)
+    char * return_value = complete_pop3(head, transformed_text_pop3, buffer_size);
     free(head);
-    free(transformed_text);
+    free(transformed_text_pop3);
     return return_value;
 }
 
