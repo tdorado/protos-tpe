@@ -3,7 +3,7 @@
 // this are useless tests, only are used for developing
 
 int main(void) {
-    char testPop3[] = "+OK 123\r\nhola como . estas\r\n.\r\n";
+    char testPop3[] = "+OK 123\r\nhola como .... estas\r\n.\r\n";
     char * head = malloc(100);
     char * body = malloc(100);
     extract_pop3_info(testPop3, 100, head, body);
