@@ -1,9 +1,6 @@
 #include "include/external_transformation.h"
 #include <sys/wait.h>
 
-// HACER FUNCION QUE TOME TEXTO QUE LLEGA DE POP3, HAGA EL PARSEO DE LOS . Y LO MANDE POR UN PIPE
-// AL STDIN DE UN PROCESO QUE EJECUTE EL CMD QUE ESTA EN PROXY_PARAMS->CMD, Y SE VA A TENER OTRO
-// PIPE QUE SE CONECTE CON EL STDOUT DEL PROCESO QUE RECIBE EL TEXTO Y LO VUELVE A PARSEAR CON LOS . EN MODO POP3
 
 char * external_transformation(char * transform_command , char * buffer, int buffer_size) {
     char * head = malloc(buffer_size * sizeof(char));

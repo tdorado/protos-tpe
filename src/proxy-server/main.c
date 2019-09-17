@@ -22,7 +22,6 @@
 static input_t proxy_params;
 
 void pop3_handle_connection(const int client, struct sockaddr* client_addr) {
-    //HABRIA QUE VER COMO HACER BIEN LA BUFFER. UNA COLA DE BUFFERS QUIZAS?
 
     struct sockaddr_in origin_pop_addr;
 
