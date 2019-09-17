@@ -11,4 +11,8 @@ int main(void) {
     char * normal_text = malloc(100);
     pop3_to_text(body, 100, normal_text);
     printf("parsed text: %s", normal_text);
+    printf("\n SEPARADOR LINEA \n");
+    char * pop3_text = malloc(100);
+    text_to_pop3(normal_text, 100, pop3_text);
+    printf(" pop3 text: %s", pop3_text);
 }
