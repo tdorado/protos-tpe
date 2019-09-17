@@ -110,6 +110,7 @@ int pop3_to_text(char * buffer, int buffer_size, char * text) {
                     first_point = FALSE;
                 } else {
                     actual++;
+                    first_point = TRUE;
                 }
                 break;
             case '\0':
