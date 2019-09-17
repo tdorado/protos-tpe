@@ -1,8 +1,6 @@
 #include "include/input_parser.h"
 #include "include/constants.h"
 
-#define DELIM "."
-
 void print_usage() {
     printf("USAGE: ./pop3filter [POSIX style options] <origin-server-address> \n"
             "   <origin-server-address>        Address of POP3 origin server. \n\n"
@@ -36,7 +34,7 @@ void initialize_values(input_t proxy_params) {
     proxy_params->error_file = DEFAULT_ERROR_FILE;
 }
 
-bool valid_digit(char *digit) {
+bool valid_digit(char * digit) {
     while (*digit) {
         if (*digit >= '0' && *digit <= '9') {
             digit++;
@@ -48,9 +46,9 @@ bool valid_digit(char *digit) {
     return true;
 }
 
-bool valid_address(char *address) {
+bool valid_address(char * address) {
     int num, dots = 0;
-    char *ptr;
+    char * ptr;
 
     if (address == NULL) {
         return false;
@@ -88,7 +86,7 @@ bool valid_address(char *address) {
     return true;
 }
 
-bool valid_port(char *port) {
+bool valid_port(char * port) {
     int num;
 
     if (!valid_digit(port)) {
