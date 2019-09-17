@@ -15,4 +15,7 @@ int main(void) {
     char * pop3_text = malloc(100);
     text_to_pop3(normal_text, 100, pop3_text);
     printf(" pop3 text: %s", pop3_text);
-}
+    char * transformed_text = transform("cat", testPop3, 100);
+    printf("\n SEPARADOR LINEA \n");
+    printf("texto_transformado: %s", transformed_text);
+}   
