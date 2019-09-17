@@ -17,7 +17,7 @@ char * external_transformation(char * transform_command , char * buffer, int buf
         free(normal_text);
         return NULL;
     }
-    char * transformed_text = malloc(buffer_size * 2 * sizeof(char));
+    char * transformed_text = malloc(buffer_size * MAX_TRANSFORMATION_EXTEND * sizeof(char));
     int rta = call_command(transform_command, normal_text, buffer_size, transformed_text);
     free(body);
     free(normal_text);
@@ -159,7 +159,7 @@ char * complete_pop3( char * head, char * body, int buffer_size) {
     if( head == NULL || body == NULL) {
         return NULL;
     }
-    char * rta = malloc(buffer_size*3*sizeof(char));
+    char * rta = malloc(buffer_size*(MAX_TRANSFORMATION_EXTEND + 1)*sizeof(char));
     strcpy(rta, head);
     strcat(rta, body);
     return rta;
