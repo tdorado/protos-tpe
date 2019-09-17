@@ -28,39 +28,32 @@ char * external_transformation(char * transform_command , char * buffer, int buf
 int call_command(char * command, char * text, int buffer_size, char * transformed_text) {
     int pipe1[2];
     int pipe2[2];
-    pipe(pipe1);
-    pipe(pipe2);
+    if ( pipe(pipe1) == -1 || pipe(pipe2) == -1 ){
+        return -1;
+    }
     int pid;
     int i=0;
-    printf("WRITE");
     while(text[i] != '\0' && i < buffer_size) {
-        putchar(text[i]);
         write(pipe1[1], text + i, 1);
         i++;
     }
-    printf("FINISHWRITE");
-    /*
+    close(pipe1[1]);
     if(pid = fork()) {
         close(0);
         dup(pipe1[0]);
         close(1);
+        close(pipe2[0]);
         dup(pipe2[1]);
-        execl("/bin/sh", "sh", "-c", command, (char *) 0);
+        execl("/bin/cat", command, (char *) 0);
     }
     else {
+        close(pipe2[1]);
         int j = 0;
-        int rta;
         transformed_text[j] = 0;
-        printf("READ");
-        while(transformed_text[j]!=EOF) {
-            rta = read(pipe2[0], transformed_text + j, 1);
-            printf("%d", rta);
+        while(read(pipe2[0], transformed_text + j, 1) != 0) {
             j++;
         }
-        printf("FINISHREAD");
-
     }
-    */
 }
 
 int extract_pop3_info(char * buffer, int buffer_size, char * head, char * body) {
