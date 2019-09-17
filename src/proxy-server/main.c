@@ -14,17 +14,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "include/pop_parser.h"
 #include "include/input_parser.h"
 #include "include/logs.h"
-
-#define BUFFER_SIZE 2048
 
 // Variable con toda la informacion del proxy, esto despues modificaria el administrator
 static input_t proxy_params;
 
 void pop3_handle_connection(const int client, struct sockaddr* client_addr) {
-    bool exit = false;
-    char buffer[BUFFER_SIZE];
     //HABRIA QUE VER COMO HACER BIEN LA BUFFER. UNA COLA DE BUFFERS QUIZAS?
 
     struct sockaddr_in origin_pop_addr;
@@ -45,45 +42,8 @@ void pop3_handle_connection(const int client, struct sockaddr* client_addr) {
 
     log_message(false, "Origin server connected");
 
-    int n = recv(origin_server_fd, buffer, BUFFER_SIZE, 0);
-    int invalid_counter = 0;
-    bool user_logged = false;
-    while (!exit) {
-        send(client, buffer, n, 0);
-        n = recv(client, buffer, BUFFER_SIZE, 0);
+    parse_pop(client, origin_server_fd);
 
-        //FALTA CONECTAR CON EL PARSER DE ENTRADA DE LA OTRA BRANCH
-
-        send(origin_server_fd, buffer, n, 0);
-        n = recv(origin_server_fd, buffer, BUFFER_SIZE, 0);
-        
-        //HAY QUE VER LO DE LA BUFFER, COLA DE BUFFERS QUIZAS?
-        //ACA SE HARIA LA TRANSFORMACION EXTERNA
-
-        //SOLUCION TEMPORAL PARA EL QUIT O CUANDO SE PIERDE CONEXION, ETC
-        //ESTO VA A SER DIFERENTE CON EL PARSER EL INPUT DE POP3
-        if(n == 0 || (strncmp(buffer, "+OK Logging out", 15) == 0) || (strncmp(buffer, "-ERR Disconnected for inactivity.", 33) == 0)){
-            exit = true;
-            send(client, buffer, n, 0);
-        }
-        else if (strncmp(buffer, "-ERR Unknown command", 20) == 0){
-            invalid_counter++;
-            if(invalid_counter == 3 && !user_logged){
-                exit = true;
-                send(client, buffer, n, 0);
-            }
-            else if(invalid_counter == 21){
-                exit = true;
-                send(client, buffer, n, 0);
-            }
-        }
-        else if (strncmp(buffer, "+OK Logged in.", 14) == 0){
-            user_logged = true;
-        }
-        else{
-            invalid_counter = 0;
-        }
-    }
     close(origin_server_fd);
     log_message(false, "Origin server disconnected");
     close(client);
@@ -112,7 +72,7 @@ static void * handle_connection_pthread(void *args) {
 }
 
 int serve_pop3_connections(const int server) {
-    while (1) {
+    while (true) {
         struct sockaddr_in6 caddr;
         socklen_t caddrlen = sizeof (caddr);
         // Wait for a client to connect
