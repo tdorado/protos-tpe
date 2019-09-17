@@ -21,5 +21,4 @@ int main(void) {
     printf("\n SEPARADOR LINEA \n");
     char * transfo = external_transformation("cat", testPop3, 100);
     printf(" transfo: %s", transfo);
-    printf("\n SEPARADOR LINEA \n");
 }
