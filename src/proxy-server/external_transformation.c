@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "include/external_transformation.h"
 
 // HACER FUNCION QUE TOME TEXTO QUE LLEGA DE POP3, HAGA EL PARSEO DE LOS . Y LO MANDE POR UN PIPE
@@ -13,9 +9,6 @@ char * cat_transform(char * buffer, int buffer_size) {
     char * bodyPop = pop3_to_text(buffer, buffer_size);
     int fd[2];
     pipe(fd);
-    if (fork()) {
-      return "";
-    }
     char * command = malloc((buffer_size + 4) * sizeof(char));
     strcpy(command, "cat ");
     strcat(command, bodyPop);
@@ -62,7 +55,7 @@ char * pop3_to_text(char * buffer, int buffer_size) {
                 }
                 break;
             case '\r':
-                if(strncmp(buffer[actual], FINISH_STRING, FINISH_LENGTH) {
+                if(strncmp(buffer + actual, FINISH_STRING, FINISH_LENGTH)) {
                     status = FINISHED;
                 } else {
                     buffer[new] = buffer[actual];
@@ -79,7 +72,7 @@ char * pop3_to_text(char * buffer, int buffer_size) {
     }
     if( actual > buffer_size ) {
         free(buffer);
-        return NULL
+        return NULL;
     }
     return buffer;
 }
@@ -112,6 +105,6 @@ char * text_to_pop3(char * buffer, int buffer_size) {
         free(buffer);
         return NULL;
     }
-    strcpy(pop3_text + new, FINISH_STRING, 5);
+    strcpy(pop3_text + new, FINISH_STRING);
     return pop3_text;
 }
