@@ -12,10 +12,10 @@
 #define FINISH_LENGTH 5
 #define FINISH_STRING "\n\r.\n\r"
 
-// function that extract body from pop3 message recived by server ( extract first line )
-char * extract_body(char * buffer, int buffer_size);
-char * transform(char * transform_command , char * buffer, int buffer_size);
-char * text_to_pop3(char * buffer, int buffer_size);
-char * pop3_to_text(char * buffer, int buffer_size);
+// function that extract body and head from pop3 message recived by server
+int extract_pop3_info(char * buffer, int buffer_size, char * head, char * body);
+char * external_transformation(char * transform_command , char * buffer, int buffer_size);
+int text_to_pop3(char * buffer, int buffer_size, char * pop3_text);
+int pop3_to_text(char * buffer, int buffer_size, char * text);
 
 #endif
