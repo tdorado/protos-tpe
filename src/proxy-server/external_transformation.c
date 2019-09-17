@@ -32,7 +32,7 @@ char * external_transformation(char * transform_command , char * buffer, int buf
         free(head);
         free(transformed_text_pop3);
     }
-    free(transformed_text)
+    free(transformed_text);
     char * return_value = complete_pop3(head, transformed_text_pop3, buffer_size);
     free(head);
     free(transformed_text_pop3);
@@ -67,6 +67,7 @@ int call_command(char * command, char * text, int buffer_size, char * transforme
         while(read(pipe2[0], transformed_text + j, 1) != 0) {
             j++;
         }
+        return 0;
     }
 }
 
@@ -108,14 +109,11 @@ int pop3_to_text(char * buffer, int buffer_size, char * text) {
                     new--;
                 }
                 break;
-            case '\r':
-                if(strncmp(buffer + actual, "\r\n.\r\n", FINISH_LENGTH)) {
-                    status = FINISHED;
-                } else {
-                    text[new] = buffer[actual];
-                    actual++;
-                    new++;
-                }
+            case '\0':
+                status = FINISHED;
+                text[new] = buffer[actual];
+                actual++;
+                new++;
                 break;
             default:
                 text[new] = buffer[actual];
@@ -134,7 +132,7 @@ int pop3_to_text(char * buffer, int buffer_size, char * text) {
 int text_to_pop3(char * buffer, int buffer_size, char * pop3_text) {
     int actual = 0;
     int new = 0;
-    while(actual < buffer_size) {
+    while(buffer[actual] != '\0' && actual < buffer_size) {
         switch(buffer[actual]) {
             case '.':
                 pop3_text[new] = buffer[actual];
@@ -158,7 +156,6 @@ int text_to_pop3(char * buffer, int buffer_size, char * pop3_text) {
         perror("There was en error passing the plain text to pop3 body format. It's possible that the plain text is corrupted.");
         return -1;
     }
-    strcpy(pop3_text + new, "\r\n.\r\n");
     return 0;
 }
 
@@ -168,6 +165,8 @@ char * complete_pop3( char * head, char * body, int buffer_size) {
     }
     char * rta = malloc(buffer_size*(MAX_TRANSFORMATION_EXTEND + 1)*sizeof(char));
     strcpy(rta, head);
+    strcat(rta, "\r\n");
     strcat(rta, body);
+    strcat(rta, "\r\n.\r\n");
     return rta;
 }
