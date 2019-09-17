@@ -17,4 +17,6 @@ int main(void) {
     printf(" pop3 text: %s", pop3_text3);
     printf("\n SEPARADOR LINEA \n");
     char * transfo = external_transformation("cat", testPop3, 100);
+    printf(" transfo: %s", transfo);
+    printf("\n SEPARADOR LINEA \n");
 }

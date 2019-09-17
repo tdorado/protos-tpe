@@ -1,4 +1,5 @@
 #include "include/external_transformation.h"
+#include <sys/wait.h>
 
 // HACER FUNCION QUE TOME TEXTO QUE LLEGA DE POP3, HAGA EL PARSEO DE LOS . Y LO MANDE POR UN PIPE
 // AL STDIN DE UN PROCESO QUE EJECUTE EL CMD QUE ESTA EN PROXY_PARAMS->CMD, Y SE VA A TENER OTRO
@@ -20,8 +21,7 @@ char * external_transformation(char * transform_command , char * buffer, int buf
         return NULL;
     }
     char * transformed_text = malloc(buffer_size * 2 * sizeof(char));
-    printf("HOLA");
-    //call_command(transform_command, normal_text, 100, transformed_text);
+    call_command(transform_command, normal_text, 100, transformed_text);
     return transformed_text;
 }
 
@@ -30,23 +30,37 @@ int call_command(char * command, char * text, int buffer_size, char * transforme
     int pipe2[2];
     pipe(pipe1);
     pipe(pipe2);
-    if(fork()) {
+    int pid;
+    int i=0;
+    printf("WRITE");
+    while(text[i] != '\0' && i < buffer_size) {
+        putchar(text[i]);
+        write(pipe1[1], text + i, 1);
+        i++;
+    }
+    printf("FINISHWRITE");
+    /*
+    if(pid = fork()) {
         close(0);
         dup(pipe1[0]);
         close(1);
         dup(pipe2[1]);
-        execv(command, NULL);
+        execl("/bin/sh", "sh", "-c", command, (char *) 0);
     }
     else {
-        int i=0;
-        while(text[i] != '\0' && i < buffer_size) {
-            write(pipe1[1], text + i, 1);
-        }
         int j = 0;
-        while(transformed_text[j] != EOF && transformed_text[j]!='\0') {
-            read(pipe2[0], transformed_text, 1);
+        int rta;
+        transformed_text[j] = 0;
+        printf("READ");
+        while(transformed_text[j]!=EOF) {
+            rta = read(pipe2[0], transformed_text + j, 1);
+            printf("%d", rta);
+            j++;
         }
+        printf("FINISHREAD");
+
     }
+    */
 }
 
 int extract_pop3_info(char * buffer, int buffer_size, char * head, char * body) {
