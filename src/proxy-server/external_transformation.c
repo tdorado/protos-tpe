@@ -2,57 +2,29 @@
 #include <sys/wait.h>
 
 
-char * external_transformation(char * transform_command , char * buffer, int buffer_size) {
-    char * head = malloc(buffer_size * sizeof(char));
-    char * body = malloc(buffer_size * sizeof(char));
-    if(extract_pop3_info(buffer, buffer_size, head, body) == -1) {
-        free(head);
-        free(body);
-        return NULL;
-    }
-    char * normal_text = malloc(buffer_size * sizeof(char));
-    if(pop3_to_text(body, buffer_size, normal_text) == -1) {
-        free(head);
-        free(body);
-        free(normal_text);
-        return NULL;
-    }
-    char * transformed_text = malloc(buffer_size * MAX_TRANSFORMATION_EXTEND * sizeof(char));
-    int rta = call_command(transform_command, normal_text, buffer_size, transformed_text);
-    free(body);
-    free(normal_text);
-    if (rta == -1) {
-        free(transformed_text);
-        free(head);
-        return NULL;
-    }
-    char * transformed_text_pop3 = malloc(buffer_size * MAX_TRANSFORMATION_EXTEND);
-    if(text_to_pop3(transformed_text, buffer_size, transformed_text_pop3) == -1) {
-        free(transformed_text);
-        free(head);
-        free(transformed_text_pop3);
-    }
-    free(transformed_text);
-    char * return_value = complete_pop3(head, transformed_text_pop3, buffer_size);
-    free(head);
-    free(transformed_text_pop3);
-    return return_value;
+int external_transformation(char * transform_command , char * buffer, int buffer_size) {
+    int from, to = buffer_size - FINISH_LENGTH;
+    extract_pop3_info(buffer, &from);
+    to = call_command(transform_command, buffer, from, to);
+    complete_pop3(buffer, to);
+    return to + FINISH_LENGTH;
 }
 
-int call_command(char * command, char * text, int buffer_size, char * transformed_text) {
+int call_command(char * command, char *buffer, int from, int to) {
     int pipe1[2];
     int pipe2[2];
     if ( pipe(pipe1) == -1 || pipe(pipe2) == -1 ){
-        return -1;
+        return to;
     }
     int pid;
-    int i=0;
-    while(text[i] != '\0' && i < buffer_size) {
-        write(pipe1[1], text + i, 1);
+    int i = from;
+    int j = from;
+    while(i < to) {
+        write(pipe1[1], buffer + i, 1);
         i++;
     }
     close(pipe1[1]);
-    if(pid = fork()) {
+    if( (pid = fork()) == 0 ) {
         close(0);
         dup(pipe1[0]);
         close(1);
@@ -62,37 +34,21 @@ int call_command(char * command, char * text, int buffer_size, char * transforme
     }
     else {
         close(pipe2[1]);
-        int j = 0;
-        transformed_text[j] = 0;
-        while(read(pipe2[0], transformed_text + j, 1) != 0) {
+        buffer[j] = 0;
+        while(read(pipe2[0], buffer + j, 1) != 0) {
             j++;
         }
-        return 0;
+        kill(pid, SIGKILL);
     }
+    return j;
 }
 
-int extract_pop3_info(char * buffer, int buffer_size, char * head, char * body) {
+void extract_pop3_info(char * buffer, int *from) {
     int i = 0;
-    int j = 0;
-    while(strncmp(buffer + i, "\r\n", 2) && i < buffer_size) {
-        head[i] = buffer[i];
+    while(strncmp(buffer + i, "\r\n", 2)) {
         i++;
     }
-    if(i == buffer_size) {
-        perror("There was an error with the format in the head of pop3 packet.");
-        return -1;
-    }
-    i+=2;
-    while(strncmp(buffer + i, "\r\n.\r\n", FINISH_LENGTH) && i < buffer_size) {
-        body[j] = buffer[i];
-        i++;
-        j++;
-    }
-    if( i == buffer_size) {
-        perror("There was an error with the format in the body of pop3 packet");
-        return -1;
-    }
-    return 0;
+    *from = i;
 }
 
 int pop3_to_text(char * buffer, int buffer_size, char * text) {
@@ -163,14 +119,6 @@ int text_to_pop3(char * buffer, int buffer_size, char * pop3_text) {
     return 0;
 }
 
-char * complete_pop3( char * head, char * body, int buffer_size) {
-    if( head == NULL || body == NULL) {
-        return NULL;
-    }
-    char * rta = malloc(buffer_size*(MAX_TRANSFORMATION_EXTEND + 1)*sizeof(char));
-    strcpy(rta, head);
-    strcat(rta, "\r\n");
-    strcat(rta, body);
-    strcat(rta, "\r\n.\r\n");
-    return rta;
+void complete_pop3(char * buffer, int to) {
+    strncat(buffer + to, "\r\n.\r\n", FINISH_LENGTH);
 }
