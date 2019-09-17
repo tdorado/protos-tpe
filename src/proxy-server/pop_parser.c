@@ -1,7 +1,7 @@
 #include "include/pop_parser.h"
+#include "include/external_transformation.h"
 
 void parse_pop(int client_fd, int origin_server_fd) {
-
     char ** input_buffer = malloc(sizeof(char*));
     *input_buffer = malloc(INPUT_BUFFER_BLOCK);
     int * buffer_size = malloc(sizeof(int));
@@ -98,6 +98,7 @@ void parse_pop(int client_fd, int origin_server_fd) {
                     if( r == 1 ){ // RETR
                         send_socket_message(origin_server_fd, *input_buffer, n);
                         n = request_socket_message(origin_server_fd, input_buffer, buffer_size);
+                        n = external_transformation("cat", *input_buffer, n);
                         send_socket_message(client_fd, *input_buffer, n);
                     }
                     else{        // RSET

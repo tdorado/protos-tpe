@@ -2,7 +2,7 @@
 
 void log_message(bool error, char * message) {
     char time_buffer[TIME_BUFFER_SIZE];
-    struct tm * tm;
+    struct tm *tm;
     time_t current_time;
 
     current_time = time(NULL);
