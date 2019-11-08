@@ -2,8 +2,6 @@
 #include "include/origin_server.h"
 #include "include/external_transformation.h"
 
-static int help = 0;
-
 client_list_t init_client_list(){
     client_list_t client_list = (client_list_t)malloc(sizeof(*client_list));
 
@@ -29,18 +27,20 @@ client_t create_client(client_list_t client_list, const int fd){
 
     client->client_state = CONNECTED;
     client->client_fd = fd;
-    client->client_read = initialize_buffer(BUFFER_SIZE);
-    client->client_write = initialize_buffer(BUFFER_SIZE);
+    client->client_read_buffer = initialize_buffer(BUFFER_SIZE);
+    client->client_write_buffer = initialize_buffer(BUFFER_SIZE);
     client->logged = false;
 
     client->origin_server_state = NOT_RESOLVED;
     client->origin_server_fd = -1;
-    client->origin_server = initialize_buffer(BUFFER_SIZE);
+    client->origin_server_read_buffer = initialize_buffer(BUFFER_SIZE);
+    client->origin_server_write_buffer = initialize_buffer(BUFFER_SIZE);
     client->received_greeting = false;
 
     client->external_transformation_state = PROCESS_NOT_INITIALIZED;
     client->external_transformation_read_fd = -1;
     client->external_transformation_write_fd = -1;
+    client->transformation_buffer = initialize_buffer(BUFFER_SIZE);
 
     client->next = NULL;
 
@@ -94,9 +94,11 @@ void remove_client(client_list_t client_list, client_t client){
         close(client->external_transformation_write_fd);
     }
 
-    free_buffer(client->client_read);
-    free_buffer(client->client_write);
-    free_buffer(client->origin_server);
+    free_buffer(client->client_read_buffer);
+    free_buffer(client->client_write_buffer);
+    free_buffer(client->origin_server_read_buffer);
+    free_buffer(client->origin_server_write_buffer);
+    free_buffer(client->transformation_buffer);
 
     free(client);
 }
@@ -144,12 +146,12 @@ int check_client_fds(client_t client, client_list_t client_list, int *max_fd, fd
         // Did the client write to us?
         // This writes the client request to the clientRead buffer
         // clientRead it's because we are READING from the client
-        if (buffer_can_write(client->client_read)) {
+        if (buffer_can_write(client->client_read_buffer)) {
             FD_SET(client->client_fd, read_fds);
         }
 
         /* Can we write to the client? */
-        if (buffer_can_read(client->client_write)) {
+        if (buffer_can_read(client->client_write_buffer)) {
             FD_SET(client->client_fd, write_fds);
         }
     }
@@ -165,11 +167,11 @@ int check_client_fds(client_t client, client_list_t client_list, int *max_fd, fd
     }
     else if (client->origin_server_state == CONNECTED_TO_ORIGIN_SERVER && client->origin_server_fd > 0) {
         /* Did the server write to us? */
-        if (buffer_can_write(client->origin_server)) {
+        if (buffer_can_write(client->origin_server_read_buffer)) {
             FD_SET(client->origin_server_fd, read_fds);
         }
         
-        if (buffer_can_read(client->client_read)) {
+        if (buffer_can_read(client->origin_server_write_buffer)) {
             FD_SET(client->origin_server_fd, write_fds);
         }
     }
@@ -178,15 +180,15 @@ int check_client_fds(client_t client, client_list_t client_list, int *max_fd, fd
 }
 
 void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics) {
-    long client_read_bytes;
+    long client_read_buffer_bytes;
     long origin_server_read_bytes;
 
     /* Client wrote to the pop3filter. */
     if (FD_ISSET(client->client_fd, read_fds)) {
-        client_read_bytes = read_from_fd(&client->client_fd, client->client_read);
+        client_read_buffer_bytes = read_from_fd(&client->client_fd, client->client_read_buffer);
 
         /* User wants to disconnet. */
-        if (client_read_bytes == 0) {
+        if (client_read_buffer_bytes == 0) {
             remove_client(client_list, client);
             metrics->concurrent_connections--;
             return;
@@ -194,26 +196,24 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
 
         interpret_request(client);
 
-        metrics->bytes_transfered += client_read_bytes;
+        metrics->bytes_transfered += client_read_buffer_bytes;
     }
 
     /* pop3filter can write to the client. */
     if (FD_ISSET(client->client_fd, write_fds)) {
-        write_to_fd(&client->client_fd, client->client_write);
-        if(client->client_state == RETR_FINISHED_TRANSFORMING){
-            send_message_to_fd(&client->client_fd, "\r\n.\r\n", 5);
-            client->client_state = CONNECTED;
-        }
+        write_to_fd(&client->client_fd, client->client_write_buffer);
     }
+
+    buffer_move(client->client_read_buffer, client->origin_server_write_buffer);
 
     if (client->origin_server_state == CONNECTED_TO_ORIGIN_SERVER) {
         /* pop3filter can write to the origin server. */
         if (FD_ISSET(client->origin_server_fd, write_fds)) {
-            write_to_fd(&client->origin_server_fd, client->client_read);
+            write_to_fd(&client->origin_server_fd, client->origin_server_write_buffer);
         }
         /* Origin server wrote to the pop3filter. */
         if (FD_ISSET(client->origin_server_fd, read_fds)) {
-            origin_server_read_bytes = read_from_fd(&client->origin_server_fd, client->origin_server);
+            origin_server_read_bytes = read_from_fd(&client->origin_server_fd, client->origin_server_read_buffer);
 
             if (origin_server_read_bytes == 0) {
                 /* Origin server wants to disconnect. */
@@ -222,7 +222,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
             }
 
             if(client->received_greeting){
-                if (interpret_response(client->origin_server) == OK_RESPONSE) {
+                if (interpret_response(client->origin_server_read_buffer) == OK_RESPONSE) {
                     switch (client->client_state) {
                         case USER_REQUEST:
                             client->client_state = USER_OK;
@@ -247,9 +247,9 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                 }
             }
             else{
-                if (interpret_response(client->origin_server) == OK_RESPONSE) {
+                if (interpret_response(client->origin_server_read_buffer) == OK_RESPONSE) {
                     send_message_to_fd(&client->client_fd, "+OK Welcome\r\n", 13);
-                    buffer_reset(client->origin_server);
+                    buffer_reset(client->origin_server_read_buffer);
                     client->received_greeting = true;
                 }
                 else{
@@ -261,50 +261,103 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
 
             metrics->bytes_transfered += origin_server_read_bytes;
         }
-        if (settings->transformations == true && (client->client_state == RETR_OK || client->client_state == RETR_TRANSFORMING)) {
-                help++;
-                client->client_state = RETR_TRANSFORMING;
-                switch(client->external_transformation_state){
-                    case PROCESS_INITIALIZED:
-                        move_response_line(client->origin_server, client->client_write);
-                        client->external_transformation_state = REMOVING_CRLF_DOT_CRLF;
-                        if (remove_crlf_dot_crlf(client->origin_server)) {
-                            client->external_transformation_state = WAITING_TRANSFORMATION;
-                        }
-                        break;
+        // if (settings->transformations == true && (client->client_state == RETR_OK || client->client_state == RETR_TRANSFORMING)) {
+        //         help++;
+        //         client->client_state = RETR_TRANSFORMING;
+        //         switch(client->external_transformation_state){
+        //             case PROCESS_INITIALIZED:
+        //                 move_response_line(client->origin_server, client->client_write_buffe);
+        //                 client->external_transformation_state = REMOVING_CRLF_DOT_CRLF;
+        //                 if (remove_crlf_dot_crlf(client->origin_server)) {
+        //                     client->external_transformation_state = WAITING_TRANSFORMATION;
+        //                 }
+        //                 break;
                     
-                    case REMOVING_CRLF_DOT_CRLF:
-                        if (remove_crlf_dot_crlf(client->origin_server)) {
-                            client->external_transformation_state = WAITING_TRANSFORMATION;
-                        }
-                        break;
-                }
-                if (FD_ISSET(client->external_transformation_read_fd, read_fds)) {
-                    origin_server_read_bytes = read_from_fd(&client->external_transformation_read_fd, client->origin_server);
+        //             case REMOVING_CRLF_DOT_CRLF:
+        //                 if (remove_crlf_dot_crlf(client->origin_server)) {
+        //                     client->external_transformation_state = WAITING_TRANSFORMATION;
+        //                 }
+        //                 break;
+        //         }
+        //         if (FD_ISSET(client->external_transformation_read_fd, read_fds)) {
+        //             origin_server_read_bytes = read_from_fd(&client->external_transformation_read_fd, client->origin_server);
                     
                                         
+        //             if (origin_server_read_bytes == -1) {
+        //                 perror("Error reading from transformation process");
+        //                 return;
+        //             }
+        //             else if (origin_server_read_bytes == 0 || origin_server_read_bytes < BUFFER_SIZE) {
+        //                 /* Transformation wants to disconnect. */
+        //                 close(client->external_transformation_read_fd);
+        //                 close(client->external_transformation_write_fd);
+        //                 client->external_transformation_read_fd = -1;
+        //                 client->external_transformation_write_fd = -1;
+        //                 client->external_transformation_state = PROCESS_NOT_INITIALIZED;
+        //                 client->client_state = RETR_FINISHED_TRANSFORMING;
+        //             }
+
+        //         }
+        //         if (FD_ISSET(client->external_transformation_write_fd, write_fds)) {
+        //             write_to_fd(&client->external_transformation_write_fd, client->origin_server);
+        //         }
+            
+        // }
+
+        /* Transformation it's enable */
+        if (settings->transformations && (client->client_state == RETR_OK || client->client_state == REMOVING_LAST_LINE || client->client_state == RETR_TRANSFORMING)) {
+            printf("ENTRA ACA\n");
+            if (!buffer_can_read(client->origin_server_read_buffer)) {
+                close(client->external_transformation_write_fd);
+            }
+
+            if (client->external_transformation_state == PROCESS_INITIALIZED) {
+                if (FD_ISSET(client->external_transformation_read_fd, read_fds)) {
+
+                    origin_server_read_bytes = read_from_fd(&client->external_transformation_read_fd, client->transformation_buffer);
+
                     if (origin_server_read_bytes == -1) {
                         perror("Error reading from transformation process");
                         return;
                     }
-                    else if (origin_server_read_bytes == 0 || origin_server_read_bytes < BUFFER_SIZE) {
+                    else if (origin_server_read_bytes == 0) {
                         /* Transformation wants to disconnect. */
                         close(client->external_transformation_read_fd);
                         close(client->external_transformation_write_fd);
                         client->external_transformation_read_fd = -1;
                         client->external_transformation_write_fd = -1;
                         client->external_transformation_state = PROCESS_NOT_INITIALIZED;
-                        client->client_state = RETR_FINISHED_TRANSFORMING;
+
+                        buffer_write(client->transformation_buffer, '\r');
+                        buffer_write(client->transformation_buffer, '\n');
+                        buffer_write(client->transformation_buffer, '.');
+                        buffer_write(client->transformation_buffer, '\r');
+                        buffer_write(client->transformation_buffer, '\n');
+                        client->client_state = CONNECTED;
                     }
 
+                    buffer_move(client->transformation_buffer, client->client_write_buffer);
                 }
+
+                if (client->client_state == RETR_OK) {
+                    move_response_line(client->origin_server_read_buffer, client->client_write_buffer);
+                    client->client_state = REMOVING_LAST_LINE;
+                    remove_crlf_dot_crlf(client->origin_server_read_buffer);
+                }
+
+                if (client->client_state == REMOVING_LAST_LINE) {
+                    if (remove_crlf_dot_crlf(client->origin_server_read_buffer)) {
+                        client->client_state = RETR_TRANSFORMING;
+                    }
+                }
+
                 if (FD_ISSET(client->external_transformation_write_fd, write_fds)) {
-                    write_to_fd(&client->external_transformation_write_fd, client->origin_server);
+                    write_to_fd(&client->external_transformation_write_fd, client->origin_server_read_buffer);
                 }
-            
+            }
         }
         else{
-            buffer_move(client->origin_server, client->client_write);
+            buffer_move(client->origin_server_read_buffer, client->client_write_buffer);
         }
     }
 }
@@ -320,11 +373,11 @@ int check_external_transformation_fds(client_list_t client_list, client_t client
         client->external_transformation_state = PROCESS_INITIALIZED;
     }
     else {
-        if (client->external_transformation_read_fd != -1 && buffer_can_write(client->client_write)) {
+        if (client->external_transformation_read_fd != -1 && buffer_can_write(client->transformation_buffer)) {
             FD_SET(client->external_transformation_read_fd, read_fds);
         }
 
-        if (client->external_transformation_write_fd != -1 && buffer_can_read(client->origin_server)) {
+        if (client->external_transformation_write_fd != -1 && buffer_can_read(client->origin_server_read_buffer)) {
             FD_SET(client->external_transformation_write_fd, write_fds);
         }
     }
@@ -334,8 +387,8 @@ int check_external_transformation_fds(client_list_t client_list, client_t client
 
 
 void interpret_request(client_t client) {
-    if (client->client_read->write - client->client_read->read >= 4) {
-        char * command = (char *)client->client_read->read;
+    if (client->client_read_buffer->write - client->client_read_buffer->read >= 4) {
+        char * command = (char *)client->client_read_buffer->read;
 
         if (strncasecmp(command, "retr", 4) == 0 && client->logged) {
             client->client_state = RETR_REQUEST;

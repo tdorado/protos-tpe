@@ -29,6 +29,7 @@ enum client_states{
     OTHER_REQUEST_OK,
     RETR_REQUEST,
     RETR_OK,
+    REMOVING_LAST_LINE,
     RETR_TRANSFORMING,
     RETR_FINISHED_TRANSFORMING
 };
@@ -52,19 +53,21 @@ struct client{
 
     int client_state;
     int client_fd;
-    buffer_t client_read;
-    buffer_t client_write;
+    buffer_t client_read_buffer;
+    buffer_t client_write_buffer;
     bool logged;
 
     int origin_server_state;
     int origin_server_fd;
     struct sockaddr_in6 origin_server_addr;
-    buffer_t origin_server;
+    buffer_t origin_server_read_buffer;
+    buffer_t origin_server_write_buffer;
     bool received_greeting;
 
     int external_transformation_state;
     int external_transformation_read_fd;
     int external_transformation_write_fd;
+    buffer_t transformation_buffer;
 
     client_t prev;
     client_t next;
