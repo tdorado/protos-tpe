@@ -56,3 +56,6 @@ pop3filter
 
 # Visual Studio Code
 .vscode
+
+# Mac
+.DS_Store
