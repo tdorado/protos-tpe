@@ -10,24 +10,25 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 
-#include "input_parser.h"
+#include "settings.h"
+
+#define TIMEOUT_NOT_LOGGED 180 //in seconds
+#define TIMEOUT_LOGGED 600 //in seconds
 
 #define INPUT_BUFFER_BLOCK 2048
-
-// States
-#define AUTHORIZATION 0
-#define TRANSACTION 1
-#define UPDATE 2
 
 // Responses
 #define GREETING "+OK POP3 Proxy Filter ready \n"
 #define GREETING_FAILED "-ERR Connection to POP3 server failed \n"
 
-#define OK_RESPONSE "+OK \n"
+#define OKK_RESPONSE "+OK \n"
 
 #define OK_LOGGED_IN "+OK Logged in \n"
-#define OK_LOGGED_OUT "+OK Logging out \n"
+#define OK_LOGGED_OUT "+OK Logging out. \n"
+
+#define ERR_TIMEOUT_RESPONSE "-ERR timeout connection ended. \n"
 
 #define USEROK "+OK %s is a valid mailbox \n"
 #define USERERR "-ERR never heard of mailbox %s \n"
@@ -65,7 +66,7 @@ void send_socket_message_from_buffer(int fd, char * input_buffer, int n);
 void send_socket_message(int fd, char * message, int n);
 int request_socket_message(int fd, char ** input_buffer, int * buffer_size);
 
-void parse_pop(int client_fd, int origin_server_fd, input_t proxy_params);
+void parse_pop(int client_fd, int origin_server_fd, settings_t settings);
 int parse_capa_cmd(char * input, int n);
 int parse_user_cmd(char * input, int n);
 int parse_pass_cmd(char * input, int n);

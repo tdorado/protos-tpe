@@ -1,7 +1,7 @@
 #include "include/pop_parser.h"
 #include "include/external_transformation.h"
 
-void parse_pop(int client_fd, int origin_server_fd, input_t proxy_params) {
+void parse_pop(int client_fd, int origin_server_fd, settings_t settings) {
     char ** input_buffer = malloc(sizeof(char*));
     *input_buffer = malloc(INPUT_BUFFER_BLOCK);
     int * buffer_size = malloc(sizeof(int));
@@ -20,12 +20,23 @@ void parse_pop(int client_fd, int origin_server_fd, input_t proxy_params) {
         exit = true;
     }
 
+    struct timeval tv;
+    tv.tv_sec = TIMEOUT_NOT_LOGGED;
+    tv.tv_usec = 0;
+
+    setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
     int invalid_counter = 0;
     int n;
     int r;
     while(!exit) {
         error = false;
         n = request_socket_message(client_fd, input_buffer, buffer_size);
+        if(n < 0){
+            send_socket_message(client_fd, ERR_TIMEOUT_RESPONSE, strlen(ERR_TIMEOUT_RESPONSE));
+            exit = true;
+            break;
+        }
         switch (c = tolower(*input_buffer[0])) {
             case 'c': // CAPA
                 if (parse_capa_cmd(*input_buffer, n)){
@@ -40,7 +51,7 @@ void parse_pop(int client_fd, int origin_server_fd, input_t proxy_params) {
                     send_socket_message(origin_server_fd, *input_buffer, n);
                     n = request_socket_message(origin_server_fd, input_buffer, buffer_size);
                     if(strncmp("+OK", *input_buffer, 3) == 0){
-                        send_socket_message(client_fd, OK_RESPONSE, strlen(OK_RESPONSE));
+                        send_socket_message(client_fd, OKK_RESPONSE, strlen(OKK_RESPONSE));
                     }
                 }
                 else{
@@ -54,6 +65,11 @@ void parse_pop(int client_fd, int origin_server_fd, input_t proxy_params) {
                     if(strncmp("+OK", *input_buffer, 3) == 0){
                         send_socket_message(client_fd, OK_LOGGED_IN, strlen(OK_LOGGED_IN));
                         user_logged = true;
+                        struct timeval ntv;
+                        ntv.tv_sec = TIMEOUT_LOGGED;
+                        ntv.tv_usec = 0;
+                        
+                        setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&ntv, sizeof ntv);
                     }
                 }
                 else {
@@ -98,7 +114,9 @@ void parse_pop(int client_fd, int origin_server_fd, input_t proxy_params) {
                     if( r == 1 ){ // RETR
                         send_socket_message(origin_server_fd, *input_buffer, n);
                         n = request_socket_message(origin_server_fd, input_buffer, buffer_size);
-                        n = external_transformation(proxy_params, *input_buffer, n);
+                        printf("n = %d\n", n);
+                        //n = external_transformation(settings, *input_buffer, n);
+                        printf("n = %d\n", n);
                         send_socket_message(client_fd, *input_buffer, n);
                     }
                     else{        // RSET

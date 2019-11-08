@@ -15,7 +15,7 @@ Esto generara el ejecutable:
 ### Ejecución
 Para ejecutar pop3filter:
 ```sh
-$ ./pop3filter <opciones> [Origin Server Address]
+$ ./pop3filter [POSIX Style Options] <origin-server-address>
 ```
 
 ### Opciones

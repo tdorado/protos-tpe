@@ -1,8 +1,16 @@
+UTILS_DIR = src/utils
+UTILS_SOURCES = $(UTILS_DIR)/buffer $(UTILS_DIR)/utils
+
 PROXY_NAME = pop3filter
-PROXY_SOURCES = src/proxy-server/main src/proxy-server/input_parser src/proxy-server/logs src/proxy-server/external_transformation src/proxy-server/pop_parser
+PROXY_DIR = src/proxy-server
+PROXY_SOURCES = $(PROXY_DIR)/main $(PROXY_DIR)/settings $(PROXY_DIR)/logs $(PROXY_DIR)/external_transformation $(PROXY_DIR)/pop_parser $(PROXY_DIR)/admin_socket $(PROXY_DIR)/metrics $(PROXY_DIR)/origin_server $(PROXY_DIR)/pop_clients $(PROXY_DIR)/proxy_socket $(PROXY_DIR)/server_socket $(PROXY_DIR)/error_file 
 
 CC_C = gcc
-CFLAGS = -Wall -g -pthread
+CFLAGS = -Wall
+CFLAGSBIEN = -Wall -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wstrict-prototypes -Wcast-align -Wstrict-overflow=5 -Waggregate-return -Wcast-qual -Wswitch-default -Wswitch-enum -Wunreachable-code -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Werror -pedantic-errors -Wmissing-prototypes -pedantic -std=c99 -D_DEFAULT_SOURCE
+SCTPFLAGS = -lsctp
+PTHREADFLAG = -pthread
+DEBUGFLAGS = -g
 
 all: clean proxy-server
 
@@ -11,6 +19,6 @@ clean:
 	@rm -f $(PROXY_SOURCES) $(PROXY_SOURCES:=.o)
 
 proxy-server:
-	$(CC_C) $(CFLAGS) $(PROXY_SOURCES:=.c) -o $(PROXY_NAME) -lrt
+	$(CC_C) $(CFLAGS) $(SCTPFLAGS) $(PTHREADFLAG) $(DEBUGFLAGS) $(PROXY_SOURCES:=.c) $(UTILS_SOURCES:=.c) -o $(PROXY_NAME) -lrt
 	
 .PHONY: all
