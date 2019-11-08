@@ -3,7 +3,7 @@ UTILS_SOURCES = $(UTILS_DIR)/buffer $(UTILS_DIR)/utils
 
 PROXY_NAME = pop3filter
 PROXY_DIR = src/proxy-server
-PROXY_SOURCES = $(PROXY_DIR)/main $(PROXY_DIR)/settings $(PROXY_DIR)/logs $(PROXY_DIR)/external_transformation $(PROXY_DIR)/pop_parser $(PROXY_DIR)/admin_socket $(PROXY_DIR)/metrics $(PROXY_DIR)/origin_server $(PROXY_DIR)/pop_clients $(PROXY_DIR)/proxy_socket $(PROXY_DIR)/server_socket $(PROXY_DIR)/error_file 
+PROXY_SOURCES = $(PROXY_DIR)/main $(PROXY_DIR)/settings $(PROXY_DIR)/logs $(PROXY_DIR)/external_transformation $(PROXY_DIR)/admin_socket $(PROXY_DIR)/metrics $(PROXY_DIR)/origin_server $(PROXY_DIR)/pop_clients $(PROXY_DIR)/proxy_socket $(PROXY_DIR)/server_socket $(PROXY_DIR)/error_file 
 
 CC_C = gcc
 CFLAGS = -Wall
