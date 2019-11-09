@@ -236,14 +236,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                         case RETR_REQUEST:
                             client->client_state = RETR_OK;
                             break;
-
-                        default:
-                            client->client_state = OTHER_REQUEST_OK;
-                            break;
                     }
-                }
-                else{
-                    client->client_state = CONNECTED;
                 }
             }
             else{
