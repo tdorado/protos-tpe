@@ -17,18 +17,14 @@
 typedef enum origin_server_states{
     ERROR_ORIGIN_SERVER = -1,
     RESOLVING_ORIGIN_SERVER,
-    NOT_RESOLVED,
+    NOT_RESOLVED_ORIGIN_SERVER,
     CONNECTED_TO_ORIGIN_SERVER
-} origin_server_state_ts;
+} origin_server_state_t;
 
 typedef enum client_states{
-    CONNECTED,
-    USER_REQUEST,
-    USER_OK,
+    NOT_LOGGED_IN,
     PASS_REQUEST,
-    PASS_OK,
-    OTHER_REQUEST,
-    OTHER_REQUEST_OK,
+    LOGGED_IN,
     RETR_REQUEST,
     RETR_OK,
     REMOVING_LAST_LINE,
@@ -53,19 +49,19 @@ typedef struct client * client_t;
 
 struct client{
 
-    int client_state;
+    client_state_t client_state;
     int client_fd;
     buffer_t client_read_buffer;
     buffer_t client_write_buffer;
     bool logged;
 
-    int origin_server_state;
+    origin_server_state_t origin_server_state;
     int origin_server_fd;
     struct sockaddr_in6 origin_server_addr;
     buffer_t origin_server_buffer;
     bool received_greeting;
 
-    int external_transformation_state;
+    external_transformation_state_t external_transformation_state;
     int external_transformation_read_fd;
     int external_transformation_write_fd;
 

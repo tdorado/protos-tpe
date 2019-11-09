@@ -25,13 +25,13 @@ client_t create_client(client_list_t client_list, const int fd){
         return NULL;
     }
 
-    client->client_state = CONNECTED;
+    client->client_state = NOT_LOGGED_IN;
     client->client_fd = fd;
     client->client_read_buffer = init_buffer(BUFFER_SIZE);
     client->client_write_buffer = init_buffer(BUFFER_SIZE);
     client->logged = false;
 
-    client->origin_server_state = NOT_RESOLVED;
+    client->origin_server_state = NOT_RESOLVED_ORIGIN_SERVER;
     client->origin_server_fd = -1;
     client->origin_server_buffer = init_buffer(BUFFER_SIZE);
     client->received_greeting = false;
@@ -150,7 +150,7 @@ int set_client_fds(client_t client, client_list_t client_list, int *max_fd, fd_s
         }
     }
 
-    if (client->origin_server_state == NOT_RESOLVED) {
+    if (client->origin_server_state == NOT_RESOLVED_ORIGIN_SERVER) {
         resolve_origin_server(client, settings);
     }
     else if (client->origin_server_state == ERROR_ORIGIN_SERVER) {
@@ -217,19 +217,12 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
 
             if(client->received_greeting){
                 if (interpret_response(client->origin_server_buffer) == OK_RESPONSE) {
-                    switch (client->client_state) {
-                        case USER_REQUEST:
-                            client->client_state = USER_OK;
-                            break;
-
-                        case PASS_REQUEST:
-                            client->client_state = PASS_OK;
-                            client->logged = true;
-                            break;
-
-                        case RETR_REQUEST:
-                            client->client_state = RETR_OK;
-                            break;
+                    if (client->client_state == PASS_REQUEST) {
+                        client->client_state = LOGGED_IN;
+                        client->logged = true;
+                    }
+                    else if(client->client_state == RETR_REQUEST){
+                        client->client_state = RETR_OK;
                     }
                 }
             }
@@ -271,13 +264,9 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                         client->external_transformation_write_fd = -1;
                         client->external_transformation_state = PROCESS_NOT_INITIALIZED;
 
-                        client->client_state = RETR_FINISHED_TRANSFORMING;
-                    }
-
-                    if(client->client_state == RETR_FINISHED_TRANSFORMING){
                         write_to_fd(&client->client_fd, client->client_write_buffer);
                         send_message_to_fd(&client->client_fd, "\r\n.\r\n", 5);
-                        client->client_state = CONNECTED;
+                        client->client_state = LOGGED_IN;
                     }
                 }
 
@@ -335,14 +324,8 @@ void interpret_request(client_t client) {
         if (strncasecmp(command, "retr", 4) == 0 && client->logged) {
             client->client_state = RETR_REQUEST;
         }
-        else if (strncasecmp(command, "user", 4) == 0) {
-            client->client_state = USER_REQUEST;
-        }
         else if (strncasecmp(command, "pass", 4) == 0) {
             client->client_state = PASS_REQUEST;
-        }
-        else{
-            client->client_state = OTHER_REQUEST;
         }
     }
 }
