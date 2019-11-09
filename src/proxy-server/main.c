@@ -13,8 +13,8 @@ bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t 
 void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, int admin_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics);
 static void signal_action_handler(const int signal_number);
 static void thread_handler(const int signal_number);
-int set_up_signals(void);
-void turn_off_proxy(void);
+int set_up_signals();
+void turn_off_proxy();
 
 static settings_t settings;
 static metrics_t metrics;
@@ -182,7 +182,7 @@ int set_up_signals(void) {
     return 0;
 }
 
-void turn_off_proxy(void) {
+void turn_off_proxy() {
     free_client_list(client_list);
     free_settings(settings);
     free_metrics(metrics);
