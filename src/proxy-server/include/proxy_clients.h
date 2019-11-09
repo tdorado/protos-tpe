@@ -15,11 +15,18 @@
 
 #define BUFFER_SIZE 2048
 
+#define CRLF_DOT_CRLF "\r\n.\r\n"
+#define CRLF_DOT_CRLF_LEN 5
+#define ERR_TRANSFORMATION "-ERR Transformation refused\r\n"
+#define ERR_TRANSFORMATION_LEN 29
+#define ERR_ORIGIN_SERVER_CONNECTION "-ERR Origin server connection refused\r\n"
+#define ERR_ORIGIN_SERVER_CONNECTION_LEN 39
+
 typedef enum origin_server_states{
     ERROR_ORIGIN_SERVER = -1,
     RESOLVING_ORIGIN_SERVER,
     NOT_RESOLVED_ORIGIN_SERVER,
-    CONNECTED_TO_ORIGIN_SERVER
+    RESOLVED_TO_ORIGIN_SERVER
 } origin_server_state_t;
 
 typedef enum client_states{
@@ -50,7 +57,6 @@ struct client{
     int client_fd;
     buffer_t client_read_buffer;
     buffer_t client_write_buffer;
-    bool logged;
 
     origin_server_state_t origin_server_state;
     int origin_server_fd;
@@ -87,7 +93,5 @@ int set_external_transformation_fds(client_list_t client_list, client_t client, 
 void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics);
 void interpret_request(client_t client);
 int interpret_response(buffer_t buff);
-void move_response_line(buffer_t from, buffer_t to);
-int remove_crlf_dot_crlf(buffer_t buffer);
 
 #endif

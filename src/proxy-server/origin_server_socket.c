@@ -80,7 +80,7 @@ static void *resolve_origin_server_thread(void *args) {
         }
         else {
             thread_args->client->origin_server_fd = socketFD;
-            thread_args->client->origin_server_state = CONNECTED_TO_ORIGIN_SERVER;
+            thread_args->client->origin_server_state = RESOLVED_TO_ORIGIN_SERVER;
             break;
         }
 

@@ -1,4 +1,5 @@
 #include "include/pop_parser.h"
+#include "include/proxy_clients.h"
 
 parser_state_t init_parser_state(){
     parser_state_t ret = (parser_state_t)malloc(sizeof(*ret));
@@ -101,7 +102,10 @@ ssize_t read_and_parse_from_fd(int fd, buffer_t buffer, parser_state_t parser_st
         buffer_write(buffer, parser_state->in_ps.last_char);
         parser_state->in_ps.last_char = 0;
     }
-    while(writes && buffer_can_write(buffer) && (n = read(fd, &c, 1))){
+    while(writes && buffer_can_write(buffer) && ((n = read(fd, &c, 1) != -1))){
+        if(errno != 0){
+            return ret;
+        }
         puts_dot = false;
         switch(c){
             case '\r':
@@ -142,6 +146,7 @@ ssize_t read_and_parse_from_fd(int fd, buffer_t buffer, parser_state_t parser_st
             }
             else{
                 parser_state->in_ps.last_char = c;
+                writes = false;
             }
         }
     }

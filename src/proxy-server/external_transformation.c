@@ -5,6 +5,9 @@
 #include "include/external_transformation.h"
 #include "include/error_file.h"
 
+#define READ_END 0
+#define WRITE_END 1
+
 int start_external_transformation_process(settings_t settings, client_t client) {
     int pipeFatherToChild[2] = {-1, -1};
     int pipeChildToFather[2] = {-1, -1};
