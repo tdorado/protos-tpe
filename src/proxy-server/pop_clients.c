@@ -40,7 +40,6 @@ client_t create_client(client_list_t client_list, const int fd){
     client->external_transformation_state = PROCESS_NOT_INITIALIZED;
     client->external_transformation_read_fd = -1;
     client->external_transformation_write_fd = -1;
-    client->transformation_buffer = initialize_buffer(BUFFER_SIZE);
 
     client->next = NULL;
 
@@ -98,7 +97,6 @@ void remove_client(client_list_t client_list, client_t client){
     free_buffer(client->client_write_buffer);
     free_buffer(client->origin_server_read_buffer);
     free_buffer(client->origin_server_write_buffer);
-    free_buffer(client->transformation_buffer);
 
     free(client);
 }
@@ -263,7 +261,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
             if (client->external_transformation_state == PROCESS_INITIALIZED) {
                 if (FD_ISSET(client->external_transformation_read_fd, read_fds)) {
 
-                    origin_server_read_bytes = read_from_fd(&client->external_transformation_read_fd, client->transformation_buffer);
+                    origin_server_read_bytes = read_from_fd(&client->external_transformation_read_fd, client->client_write_buffer);
 
                     if (origin_server_read_bytes == -1) {
                         perror("Error reading from transformation process");
@@ -280,7 +278,6 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                         client->client_state = RETR_FINISHED_TRANSFORMING;
                     }
 
-                    buffer_move(client->transformation_buffer, client->client_write_buffer);
                     if(client->client_state == RETR_FINISHED_TRANSFORMING){
                         write_to_fd(&client->client_fd, client->client_write_buffer);
                         send_message_to_fd(&client->client_fd, "\r\n.\r\n", 5);
@@ -322,7 +319,7 @@ int check_external_transformation_fds(client_list_t client_list, client_t client
         client->external_transformation_state = PROCESS_INITIALIZED;
     }
     else {
-        if (client->external_transformation_read_fd != -1 && buffer_can_write(client->transformation_buffer)) {
+        if (client->external_transformation_read_fd != -1 && buffer_can_write(client->client_write_buffer)) {
             FD_SET(client->external_transformation_read_fd, read_fds);
         }
 

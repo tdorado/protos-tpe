@@ -67,7 +67,6 @@ struct client{
     int external_transformation_state;
     int external_transformation_read_fd;
     int external_transformation_write_fd;
-    buffer_t transformation_buffer;
 
     client_t prev;
     client_t next;
