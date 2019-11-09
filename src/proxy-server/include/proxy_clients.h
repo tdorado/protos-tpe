@@ -17,6 +17,8 @@
 
 #define CRLF_DOT_CRLF "\r\n.\r\n"
 #define CRLF_DOT_CRLF_LEN 5
+#define OK_WELCOME "+OK Proxy filter ready\r\n"
+#define OK_WELCOME_LEN 24
 #define ERR_TRANSFORMATION "-ERR Transformation refused\r\n"
 #define ERR_TRANSFORMATION_LEN 29
 #define ERR_ORIGIN_SERVER_CONNECTION "-ERR Origin server connection refused\r\n"

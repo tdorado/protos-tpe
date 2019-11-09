@@ -258,12 +258,12 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
             }
             else{
                 if (interpret_response(client->origin_server_buffer) == OK_RESPONSE) {
-                    send_message_to_fd(&client->client_fd, "+OK Welcome\r\n", 13);
+                    send_message_to_fd(&client->client_fd, OK_WELCOME, OK_WELCOME_LEN);
                     buffer_reset(client->origin_server_buffer);
                     client->received_greeting = true;
                 }
                 else{
-                    send_message_to_fd(&client->client_fd, "-ERR Connection refused\r\n", 25);
+                    send_message_to_fd(&client->client_fd, ERR_ORIGIN_SERVER_CONNECTION, ERR_ORIGIN_SERVER_CONNECTION_LEN);
                     remove_client(client_list, client);
                     metrics->concurrent_connections--;
                 }
