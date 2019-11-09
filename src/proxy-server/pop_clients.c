@@ -138,7 +138,7 @@ int check_client_fds(client_t client, client_list_t client_list, int *max_fd, fd
 
     *max_fd = max(*max_fd, client->client_fd, client->origin_server_fd, client->external_transformation_read_fd, client->external_transformation_write_fd);
 
-    if (client->client_fd > 0 && client->origin_server_state == CONNECTED_TO_ORIGIN_SERVER) {
+    if (client->client_fd > 0 && client->received_greeting) {
         // Did the client write to us?
         // This writes the client request to the clientRead buffer
         // clientRead it's because we are READING from the client
