@@ -14,14 +14,14 @@
 
 #define BUFFER_SIZE 2048
 
-enum origin_server_states{
+typedef enum origin_server_states{
     ERROR_ORIGIN_SERVER = -1,
     RESOLVING_ORIGIN_SERVER,
     NOT_RESOLVED,
     CONNECTED_TO_ORIGIN_SERVER
-};
+} origin_server_state_ts;
 
-enum client_states{
+typedef enum client_states{
     CONNECTED,
     USER_REQUEST,
     USER_OK,
@@ -34,20 +34,20 @@ enum client_states{
     REMOVING_LAST_LINE,
     RETR_TRANSFORMING,
     RETR_FINISHED_TRANSFORMING
-};
+} client_state_t;
 
-enum pop_reponses{
+typedef enum pop_reponses{
     OK_RESPONSE,
     ERR_RESPONSE
-};
+} pop_reponse_t;
 
-enum external_transformation_states{
+typedef enum external_transformation_states{
     ERROR_TRANSFORMATION = -1,
     PROCESS_NOT_INITIALIZED,
     PROCESS_INITIALIZED,
     REMOVING_CRLF_DOT_CRLF,
     WAITING_TRANSFORMATION
-};
+} external_transformation_state_t;
 
 typedef struct client * client_t;
 
@@ -85,7 +85,7 @@ client_list_t init_client_list();
 client_t create_client(client_list_t client_list, const int fd);
 void remove_client(client_list_t client_list, client_t client);
 void free_client_list(client_list_t client_list);
-void accept_new_client(client_list_t client_list, const int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics);
+void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics);
 int set_client_fds(client_t client, client_list_t client_list, int *max_fd, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics);
 void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics);
 void interpret_request(client_t client);

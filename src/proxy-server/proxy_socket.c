@@ -63,6 +63,6 @@ void set_proxy_fd(const int proxy_fd, int *max_fd, fd_set *read_fds){
 
 void resolve_proxy_client(int proxy_fd, fd_set *read_fds, client_list_t client_list, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics) {
     if (FD_ISSET(proxy_fd, read_fds)) {
-        accept_new_client(client_list, proxy_fd, server_addr, server_addr_len, settings, metrics);
+        add_client(client_list, proxy_fd, server_addr, server_addr_len, settings, metrics);
     }
 }

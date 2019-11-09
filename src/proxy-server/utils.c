@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+
 #include "include/utils.h"
 
 #define MAX(n1, n2) ( (n1) > (n2) ? (n1) : (n2) )
@@ -40,26 +43,4 @@ ssize_t send_capa_message(const int *fd) {
 
 ssize_t send_message_to_fd(const int *fd, const char *message, const size_t messageLength) {
     return write(*fd, message, messageLength);
-}
-
-void remove_pop_first_line(buffer_t buffer, buffer_t pop_message) {
-    uint8_t character;
-    /* Saco la primer linea del pop3 */
-    while (buffer_can_read(buffer) && (character = buffer_read(buffer)) != '\r') {
-        buffer_write(pop_message, character);
-    }
-    buffer_write(pop_message, buffer_read(buffer));
-}
-
-int remove_pop_last_line(buffer_t buffer) {
-    /* Saco \r\n.\r\n */
-    char *ptr;
-    ptr = strstr((char *)buffer->read, "\r\n.\r\n");
-
-    if (ptr == NULL) {
-        return 0;
-    }
-
-    buffer->write = (uint8_t *)ptr;
-    return 1;
 }
