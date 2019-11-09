@@ -60,8 +60,7 @@ struct client{
     int origin_server_state;
     int origin_server_fd;
     struct sockaddr_in6 origin_server_addr;
-    buffer_t origin_server_read_buffer;
-    buffer_t origin_server_write_buffer;
+    buffer_t origin_server_buffer;
     bool received_greeting;
 
     int external_transformation_state;
