@@ -12,30 +12,6 @@
  * To compile this: gcc -o adminClient adminClient.c -lsctp -pthread -Wall -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wstrict-prototypes -Wcast-align -Wstrict-overflow=5 -Waggregate-return -Wcast-qual -Wswitch-default -Wswitch-enum -Wunreachable-code -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Werror -pedantic-errors -Wmissing-prototypes -pedantic -std=c99
 */
 
-#define TOUPPER(c) c - 32
-
-#define BUFFER_MAX 1000
-
-__uint8_t *parseCommand(char *buffer);
-__uint8_t *parseLoginOrLogout(char *buffer);
-__uint8_t *parseLogin(char *buffer, size_t login_size);
-__uint8_t *parseLogout(void);
-__uint8_t *parseGet(char *buffer);
-__uint8_t *parseSet(char *buffer);
-__uint8_t *parseRm(char *buffer);
-__uint8_t *getGETRequest(operations operation);
-__uint8_t *getSETMtypesRequest(char *buffer);
-__uint8_t *getSETCmdRequest(char *buffer);
-void printResponse(char *response);
-void printCharMatrix(char **matrix, int params_qty);
-char **getMatrixOfParams(char* response, int params_qty);
-int validParamsQty(char *mtypesParams, __uint8_t mtypesQty);
-void replaceSpacesWithCommas(__uint8_t *buffer);
-
-// externals
-int strncasecmp(const char *s1, const char *s2, size_t n);
-void bzero(void *s, size_t n);
-
 __uint8_t *parseCommand(char* buffer) {
     __uint8_t *command = NULL;
     switch(TOUPPER(buffer[0])) {
@@ -182,52 +158,6 @@ void replaceSpacesWithCommas(__uint8_t *buffer) {
     }
 }
 
-char **getMatrixOfParams(char* response, int params_qty) {
-    int i = 0;
-    char *current_param = response;
-    char **params = malloc(params_qty * sizeof(char*));
-    while (i < params_qty) {
-        params[i] = malloc(strlen(current_param) + 1);
-        strncpy(params[i], current_param, strlen(current_param));
-        current_param = current_param + strlen(current_param) + 1;
-        i++;
-    }
-    return params;
-}
-
-void printCharMatrix(char **matrix, int params_qty) {
-    printf("Mtypes parameters: ");
-    for (int i = 0 ; i < params_qty ; i++) {
-        printf("%s ", matrix[i]);
-        free(matrix[i]);
-    }
-    printf("\n");
-}
-
-void printResponse(char *response) {
-    printf("%s\n", response);
-    // switch (response[0]) {
-    //     case CONCURRENT:
-    //         printf("%s", response+1);
-    //         return;
-    //     case ACCESSES:
-    //         printf("%s", response+1);
-    //         return;
-    //     case BYTES:
-    //         printf("%s", response+1);
-    //         return;
-    //     case CMD:
-    //         printf("%s", response+1);
-    //         return;
-    //     case MTYPES:
-    //         printCharMatrix(getMatrixOfParams(response+2, response[1]-'0'), response[1]-'0');
-    //         return;
-    //     default:
-    //         printf("THERE WAS AN ERROR");
-    //         return;
-    // }
-}
-
 int main(int argc, char *argv[])
 {
 	int admin_socket;
@@ -283,7 +213,6 @@ int main(int argc, char *argv[])
 
 				printf(" Length of Data received: %d\n", receive_length);
 				printf(" Data : %s\n", (char *)buffer);
-                printResponse(buffer);
 			}
             free(request);
 		}

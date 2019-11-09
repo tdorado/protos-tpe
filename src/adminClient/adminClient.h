@@ -13,6 +13,9 @@
 #include <signal.h>
 #include <unistd.h>
 
+#define TOUPPER(c) c - 32
+#define BUFFER_MAX 2048
+
 typedef enum requestType {
     LOGIN_REQUEST = 0x01,
     LOGOUT_REQUEST, 
@@ -29,7 +32,13 @@ typedef enum operations {
     CMD
 } operations;
 
-static char PROTOCOL_SEPARATOR = '\0';
+typedef enum response_type { // is equivalent to request type, it kinda be duplicated code, but we win on expresiveness.
+    LOGIN_RESPONSE = 0x01,
+    LOGOUT_RESPONSE,
+    GET_RESPONSE,
+    SET_RESPONSE,
+    RM_RESPONSE
+} response_type;
 
 // LOGIN LOGOUT
 static char *LOGIN = "LOGIN";  // LOGIN <token>
@@ -56,7 +65,8 @@ __uint8_t *parseRm(char *buffer);
 __uint8_t *getGETRequest(operations operation);
 __uint8_t *getSETMtypesRequest(char *buffer);
 __uint8_t *getSETCmdRequest(char *buffer);
-void printCharMatrix(char **matrix, int params_qty);
-char **getMatrixOfParams(char* response, int params_qty);
 int validParamsQty(char *mtypesParams, __uint8_t mtypesQty);
 void replaceSpacesWithCommas(__uint8_t *buffer);
+
+int strncasecmp(const char *s1, const char *s2, size_t n);
+void bzero(void *s, size_t n);
