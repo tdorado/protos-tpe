@@ -29,7 +29,6 @@ typedef enum client_states{
     RETR_OK,
     REMOVING_LAST_LINE,
     RETR_TRANSFORMING,
-    RETR_FINISHED_TRANSFORMING
 } client_state_t;
 
 typedef enum pop_reponses{
@@ -41,8 +40,6 @@ typedef enum external_transformation_states{
     ERROR_TRANSFORMATION = -1,
     PROCESS_NOT_INITIALIZED,
     PROCESS_INITIALIZED,
-    REMOVING_CRLF_DOT_CRLF,
-    WAITING_TRANSFORMATION
 } external_transformation_state_t;
 
 typedef struct client * client_t;
@@ -83,10 +80,12 @@ void remove_client(client_list_t client_list, client_t client);
 void free_client_list(client_list_t client_list);
 void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics);
 int set_client_fds(client_t client, client_list_t client_list, int *max_fd, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics);
+void set_client_fd(client_t client, fd_set *read_fds, fd_set *write_fds);
+int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *write_fds, client_t client, settings_t settings, metrics_t metrics);
+int set_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set *read_fds, fd_set *write_fds, metrics_t metrics);
 void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics);
 void interpret_request(client_t client);
 int interpret_response(buffer_t buff);
-int check_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set *read_fds, fd_set *write_fds, metrics_t metrics);
 void move_response_line(buffer_t from, buffer_t to);
 int remove_crlf_dot_crlf(buffer_t buffer);
 
