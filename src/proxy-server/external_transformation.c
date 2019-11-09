@@ -47,7 +47,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
         int exec_ret = execve("/bin/bash", argv, NULL);
 
         if (exec_ret == -1){
-            fprintf(stderr, "Error on external transformations execve \n");
+            perror("Error on external transformations execve \n");
             exit(EXIT_FAILURE);
         }
 

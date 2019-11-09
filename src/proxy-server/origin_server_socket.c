@@ -67,7 +67,6 @@ static void *resolve_origin_server_thread(void *args) {
         saddr->sin_port = htons(thread_args->port);
 
         if (saddr->sin_family == AF_INET6) {
-            printf("IPv6\n");
             originServerDomain = AF_INET6;
             addrlen = sizeof(struct sockaddr_in6);
         }
@@ -77,7 +76,7 @@ static void *resolve_origin_server_thread(void *args) {
         }
 
         if (connect(socketFD, (struct sockaddr *)saddr, addrlen) == -1) {
-            perror("Error connecting to the Origin Server");
+            perror("Error connecting to Origin Server");
         }
         else {
             thread_args->client->origin_server_fd = socketFD;
@@ -91,7 +90,7 @@ static void *resolve_origin_server_thread(void *args) {
 
     if (rp == NULL) {
         /* No address succeeded */
-        fprintf(stderr, "Could not connect\n");
+        perror("Error connecting to Origin Server\n");
         thread_args->client->origin_server_state = ERROR_ORIGIN_SERVER;
         pthread_kill(thread_args->p_id, SIGUSR1);
         pthread_exit(NULL);

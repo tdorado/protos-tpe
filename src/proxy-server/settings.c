@@ -111,7 +111,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                     settings->origin_server_port = (uint16_t) atoi(optarg);
                 }
                 else{
-                    fprintf(stderr, "Invalid -P <origin-server-port> argument. \n");
+                    perror("Invalid -P <origin-server-port> argument. \n");
                     flag_error = true;
                 }
                 break;
@@ -120,7 +120,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                     settings->local_addr = optarg;
                 }
                 else{
-                    fprintf(stderr, "Invalid -l <local-address> argument. \n");
+                    perror("Invalid -l <local-address> argument. \n");
                     flag_error = true;
                 }
                 break;
@@ -129,7 +129,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                     settings->local_port = (uint16_t) atoi(optarg);
                 }
                 else{
-                    fprintf(stderr, "Invalid -p <local-port> argument. \n");
+                    perror("Invalid -p <local-port> argument. \n");
                     flag_error = true;
                 }
                 break;
@@ -138,7 +138,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                     settings->management_addr = optarg;
                 }
                 else{
-                    fprintf(stderr, "Invalid -L <managment-address> argument. \n");
+                    perror("Invalid -L <managment-address> argument. \n");
                     flag_error = true;
                 }
                 break;
@@ -147,7 +147,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                     settings->management_port = (uint16_t) atoi(optarg);
                 }
                 else{
-                    fprintf(stderr, "Invalid -o <managment-port> argument. \n");
+                    perror("Invalid -o <managment-port> argument. \n");
                     flag_error = true;
                 }
                 break;
@@ -159,7 +159,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                     settings->error_file = optarg;
                 }
                 else{
-                    fprintf(stderr, "Invalid -e <error-file> argument. \n");
+                    perror("Invalid -e <error-file> argument. \n");
                     flag_error = true;
                 }
                 break;
@@ -172,7 +172,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                     settings->transformations = true;
                 }
                 else{
-                    fprintf(stderr, "Invalid -M <filtered-media-type> argument. \n");
+                    perror("Invalid -M <filtered-media-type> argument. \n");
                     flag_error = true;
                 }
                 break;
@@ -187,12 +187,12 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
             settings->origin_server_addr = argv[optind];
         }
         else{
-            fprintf(stderr, "Invalid <origin-server-address> argument. \n");
+            perror("Invalid <origin-server-address> argument. \n");
             flag_error = true;
         }
     }
     else if (!flag_error) {
-        fprintf(stderr, "Expected <origin-server-address> argument after options. \n");
+        perror("Expected <origin-server-address> argument after options. \n");
         flag_error = true;
     }
 
@@ -207,7 +207,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
 int input_parser(const int argc, char ** argv, settings_t settings) {
 
     if (argc < 2) {
-        fprintf(stderr, "Expected one argument at least to execute. \n");
+        perror("Expected one argument at least to execute. \n");
         print_usage();
         return -1;
     }
