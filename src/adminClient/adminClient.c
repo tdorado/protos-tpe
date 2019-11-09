@@ -38,7 +38,6 @@ void bzero(void *s, size_t n);
 
 __uint8_t *parseCommand(char* buffer) {
     __uint8_t *command = NULL;
-
     switch(TOUPPER(buffer[0])) {
         case 'L': //login logout
             command = parseLoginOrLogout(buffer);
@@ -53,9 +52,10 @@ __uint8_t *parseCommand(char* buffer) {
             command = parseRm(buffer);
             break;
         default:
+            printf("Va a devolver null en default\n");
             return command;
     }
-
+    printf("Va a devolver: %s %x\n", (char*)command, command[0]);
     return command;
 }
 
@@ -205,26 +205,27 @@ void printCharMatrix(char **matrix, int params_qty) {
 }
 
 void printResponse(char *response) {
-    switch (response[0]) {
-        case CONCURRENT:
-            printf("%s", response+1);
-            return;
-        case ACCESSES:
-            printf("%s", response+1);
-            return;
-        case BYTES:
-            printf("%s", response+1);
-            return;
-        case CMD:
-            printf("%s", response+1);
-            return;
-        case MTYPES:
-            printCharMatrix(getMatrixOfParams(response+2, response[1]-'0'), response[1]-'0');
-            return;
-        default:
-            printf("THERE WAS AN ERROR");
-            return;
-    }
+    printf("%s\n", response);
+    // switch (response[0]) {
+    //     case CONCURRENT:
+    //         printf("%s", response+1);
+    //         return;
+    //     case ACCESSES:
+    //         printf("%s", response+1);
+    //         return;
+    //     case BYTES:
+    //         printf("%s", response+1);
+    //         return;
+    //     case CMD:
+    //         printf("%s", response+1);
+    //         return;
+    //     case MTYPES:
+    //         printCharMatrix(getMatrixOfParams(response+2, response[1]-'0'), response[1]-'0');
+    //         return;
+    //     default:
+    //         printf("THERE WAS AN ERROR");
+    //         return;
+    // }
 }
 
 int main(int argc, char *argv[])
@@ -250,17 +251,16 @@ int main(int argc, char *argv[])
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(proxy_port);
 	server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
-
 	send_status = connect(admin_socket, (struct sockaddr *)&server_address, sizeof(server_address));
-
 	while (1)
 	{
 		fgets(buffer, BUFFER_MAX, stdin); 
 		buffer[strcspn(buffer, "\r\n")] = 0;
         __uint8_t *request = parseCommand(buffer);
-        printf("request:%s\n", request);
 		if (request != NULL)
 		{
+            datalen = strlen((char*)request) + 1;
+            printf("A punto de mandar por sctp\n");
 			send_status = sctp_sendmsg(admin_socket, (void *)request, (size_t)datalen, NULL, 0, 0, 0, 0, 0, 0);
 			if (send_status == -1)
 			{

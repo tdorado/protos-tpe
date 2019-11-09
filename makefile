@@ -16,6 +16,6 @@ clean:
 	@rm -f $(PROXY_SOURCES) $(PROXY_SOURCES:=.o)
 
 proxy-server:
-	$(CC_C) $(CFLAGS) $(SCTPFLAGS) $(PTHREADFLAG) $(DEBUGFLAGS) $(PROXY_SOURCES:=.c) -o $(PROXY_NAME) -lrt
+	$(CC_C) $(CFLAGS) $(DEBUGFLAGS) $(PROXY_SOURCES:=.c) -o $(PROXY_NAME) $(SCTPFLAGS) $(PTHREADFLAG) -lrt
 	
 .PHONY: all

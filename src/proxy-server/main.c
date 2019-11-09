@@ -7,11 +7,12 @@
 #include "include/proxy_clients.h"
 #include "include/error_file.h"
 #include "include/origin_server_socket.h"
+#include "include/admin_socket.h"
 
 void init_server_config(int argc, char ** argv);
 int start_server();
 bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics);
-void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, int admin_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics);
+void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len,  struct sockaddr_in admin_addr, socklen_t * admin_addr_len, int admin_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics);
 static void signal_action_handler(const int signal_number);
 static void thread_handler(const int signal_number);
 int set_up_signals();
@@ -53,13 +54,13 @@ int start_server() {
 
     struct sockaddr_in6 server_addr;
     socklen_t server_addr_len;
-    //struct sockaddr_in admin_addr;
-    //socklen_t admin_addr_len;
+    struct sockaddr_in admin_addr;
+    socklen_t admin_addr_len;
 
-    //memset(&admin_addr, 0, sizeof(admin_addr));
+    memset(&admin_addr, 0, sizeof(admin_addr));
 
     proxy_fd = init_proxy_socket(&server_addr, &server_addr_len, settings);
-    //admin_fd = init_admin_socket(&admin_addr, &admin_addr_len, settings);
+    admin_fd = init_admin_socket(&admin_addr, &admin_addr_len, settings);
 
     sigset_t blockset;
     struct sigaction sa;
@@ -89,8 +90,8 @@ int start_server() {
             } else {
                 errno = 0;
             }
-
-            resolve_connections(proxy_fd, server_addr, &server_addr_len, admin_fd, &read_fds, &write_fds, client_list, settings, metrics);
+            
+            resolve_connections(proxy_fd, server_addr, &server_addr_len, admin_addr, &admin_addr_len, admin_fd, &read_fds, &write_fds, client_list, settings, metrics);
         }
     }
 
@@ -105,7 +106,7 @@ bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t 
     *max_fd = 0;
 
     set_proxy_fd(proxy_fd, max_fd, read_fds);
-    //set_admin_fd(admin_fd, max_fd, read_fds);
+    set_admin_fd(admin_fd, max_fd, read_fds);
 
     client_t client = client_list->first;
 
@@ -119,10 +120,11 @@ bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t 
     return false;
 }
 
-void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, int admin_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics) {
-
+void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len,  struct sockaddr_in admin_addr, socklen_t * admin_addr_len,
+    int admin_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics){
+    
     resolve_proxy_client(proxy_fd, read_fds, client_list, server_addr, server_addr_len, settings, metrics);
-    //resolve_admin_client(admin_fd, read_fds, &admin_addr, admin_addr_len, settings, metrics);
+    resolve_admin_client(admin_fd, read_fds, &admin_addr, admin_addr_len, settings, metrics);
 
     client_t client = client_list->first;
     while (client != NULL) {
