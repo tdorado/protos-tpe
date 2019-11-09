@@ -1,6 +1,9 @@
-#include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stddef.h>
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -46,7 +49,7 @@ static char *RM_MTYPES = "RM MTYPES"; // rm mtypes paramsQty [params]
 __uint8_t *parseCommand(char *buffer);
 __uint8_t *parseLoginOrLogout(char *buffer);
 __uint8_t *parseLogin(char *buffer, size_t login_size);
-__uint8_t *parseLogout();
+__uint8_t *parseLogout(void);
 __uint8_t *parseGet(char *buffer);
 __uint8_t *parseSet(char *buffer);
 __uint8_t *parseRm(char *buffer);
@@ -56,3 +59,4 @@ __uint8_t *getSETCmdRequest(char *buffer);
 void printCharMatrix(char **matrix, int params_qty);
 char **getMatrixOfParams(char* response, int params_qty);
 int validParamsQty(char *mtypesParams, __uint8_t mtypesQty);
+void replaceSpacesWithCommas(__uint8_t *buffer);

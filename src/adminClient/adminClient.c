@@ -3,24 +3,38 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <netinet/sctp.h>
 #include "adminClient.h"
 
+/** FIXME EXTRACT TO MAKEFILE
+ * To compile this: gcc -o adminClient adminClient.c -lsctp -pthread -Wall -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wstrict-prototypes -Wcast-align -Wstrict-overflow=5 -Waggregate-return -Wcast-qual -Wswitch-default -Wswitch-enum -Wunreachable-code -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Werror -pedantic-errors -Wmissing-prototypes -pedantic -std=c99
+*/
+
 #define TOUPPER(c) c - 32
+
+#define BUFFER_MAX 1000
 
 __uint8_t *parseCommand(char *buffer);
 __uint8_t *parseLoginOrLogout(char *buffer);
 __uint8_t *parseLogin(char *buffer, size_t login_size);
-__uint8_t *parseLogout();
+__uint8_t *parseLogout(void);
 __uint8_t *parseGet(char *buffer);
 __uint8_t *parseSet(char *buffer);
 __uint8_t *parseRm(char *buffer);
 __uint8_t *getGETRequest(operations operation);
 __uint8_t *getSETMtypesRequest(char *buffer);
 __uint8_t *getSETCmdRequest(char *buffer);
+void printResponse(char *response);
 void printCharMatrix(char **matrix, int params_qty);
 char **getMatrixOfParams(char* response, int params_qty);
 int validParamsQty(char *mtypesParams, __uint8_t mtypesQty);
-void replaceSpacesWithCommas(char *buffer);
+void replaceSpacesWithCommas(__uint8_t *buffer);
+
+// externals
+int strncasecmp(const char *s1, const char *s2, size_t n);
+void bzero(void *s, size_t n);
 
 __uint8_t *parseCommand(char* buffer) {
     __uint8_t *command = NULL;
@@ -38,6 +52,8 @@ __uint8_t *parseCommand(char* buffer) {
         case 'R': //rm
             command = parseRm(buffer);
             break;
+        default:
+            return command;
     }
 
     return command;
@@ -109,19 +125,17 @@ __uint8_t *getSETCmdRequest(char *buffer) {
         return NULL;
     }
     size_t command_size = strlen(buffer) - strlen(SET_CMD) + 1;
-    char *command = malloc(command_size);
-    strncpy(command, buffer + strlen(SET_CMD), command_size);
     __uint8_t *result = (__uint8_t *) malloc(command_size + 2);
     result[0] = SET_REQUEST;
     result[1] = CMD;
-    memcpy(result + 2, command, command_size);
+    memcpy(result + 2, buffer + strlen(SET_CMD), command_size);
     return result;
 }
 
 int validParamsQty(char *mtypesParams, __uint8_t mtypesQty) {
     int count = 0;
     int isBlankBefore = 0;
-    for (int j = 0 ; j < strlen(mtypesParams) ; j++) {
+    for (size_t j = 0 ; j < strlen(mtypesParams) ; j++) {
         if (!isBlankBefore && (isblank(mtypesParams[j]) || j == strlen(mtypesParams) - 1)) {
             count++;
             isBlankBefore = 1;
@@ -133,7 +147,7 @@ int validParamsQty(char *mtypesParams, __uint8_t mtypesQty) {
 }
 
 __uint8_t *getSETMtypesRequest(char *buffer) {
-    if (!strlen(buffer) > strlen(SET_MTYPES) + 2) return NULL;
+    if (!(strlen(buffer) > strlen(SET_MTYPES) + 2)) return NULL;
     __uint8_t mtypes_qty = buffer[strlen(SET_MTYPES)+1] - '0';
     char *mtypesParams = buffer + strlen(SET_MTYPES)+3;
     if (!validParamsQty(mtypesParams, mtypes_qty)) return NULL;;
@@ -147,7 +161,7 @@ __uint8_t *getSETMtypesRequest(char *buffer) {
 }
 
 __uint8_t *parseRm(char *buffer){
-    if (!strlen(buffer) > strlen(RM_MTYPES) + 2) return NULL;
+    if (!(strlen(buffer) > strlen(RM_MTYPES) + 2)) return NULL;
     __uint8_t mtypes_qty = buffer[strlen(RM_MTYPES)+1] - '0';
     char *mtypesParams = buffer + strlen(RM_MTYPES)+3;
     if (!validParamsQty(mtypesParams, mtypes_qty)) return NULL;;
@@ -160,8 +174,8 @@ __uint8_t *parseRm(char *buffer){
     return result;
 }
 
-void replaceSpacesWithCommas(char *buffer) {
-    for (int i = 0 ; i <= strlen(buffer) ; i++) {
+void replaceSpacesWithCommas(__uint8_t *buffer) {
+    for (size_t i = 0 ; i <= strlen((char *)buffer) ; i++) {
         if (buffer[i] == ' ') {
             buffer[i] = ',';
         }
@@ -217,13 +231,12 @@ int main(int argc, char *argv[])
 {
 	int admin_socket;
 
-	int listen_sock, ret, in, flags, i;
+	int listen_sock, send_status, receive_length, flags;
 	struct sockaddr_in server_address;
-	struct sctp_status status;
 	struct sctp_sndrcvinfo sndrcv_info;
-	char buffer[50000];
+	char buffer[BUFFER_MAX];
 	int datalen = 0;
-    int proxy_port;
+    int proxy_port = 9090;
 
 	admin_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
 
@@ -238,48 +251,45 @@ int main(int argc, char *argv[])
 	server_address.sin_port = htons(proxy_port);
 	server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-	// ret = connect(admin_socket, (struct sockaddr *)&server_address, sizeof(server_address));
-
-	char *r;
+	send_status = connect(admin_socket, (struct sockaddr *)&server_address, sizeof(server_address));
 
 	while (1)
 	{
-		fgets(buffer, 50000, stdin); // arreglá esto, sorete
+		fgets(buffer, BUFFER_MAX, stdin); 
 		buffer[strcspn(buffer, "\r\n")] = 0;
         __uint8_t *request = parseCommand(buffer);
         printf("request:%s\n", request);
 		if (request != NULL)
 		{
-			// ret = sctp_sendmsg(admin_socket, (void *)request, (size_t)datalen, NULL, 0, 0, 0, 0, 0, 0);
-			// if (ret == -1)
-			// {
-			// 	printf("Error in sctp_sendmsg\n");
-			// 	perror("sctp_sendmsg()");
-			// }
-			// else
-			// 	printf("Successfully sent %d bytes data to server\n", ret);
-			// in = sctp_recvmsg(admin_socket, buffer, sizeof(buffer), (struct sockaddr *)NULL, 0, &sndrcv_info, &flags);
+			send_status = sctp_sendmsg(admin_socket, (void *)request, (size_t)datalen, NULL, 0, 0, 0, 0, 0, 0);
+			if (send_status == -1)
+			{
+				printf("Error in sctp_sendmsg\n");
+				perror("sctp_sendmsg()");
+			}
+			else
+				printf("Successfully sent %d bytes data to server\n", send_status);
+			receive_length = sctp_recvmsg(admin_socket, buffer, sizeof(buffer), (struct sockaddr *)NULL, 0, &sndrcv_info, &flags);
 
-			// if (in == -1)
-			// {
-			// 	printf("Error in sctp_recvmsg\n");
-			// 	close(admin_socket);
-			// 	return 0;
-			// }
-			// else
-			// {
-				// buffer[in] = '\0';
+			if (receive_length == -1)
+			{
+				printf("Error receive_length sctp_recvmsg\n");
+				close(admin_socket);
+				return 0;
+			}
+			else
+			{
+				buffer[receive_length] = '\0';
 
-				// printf(" Length of Data received: %d\n", in);
-				// printf(" Data : %s\n", (char *)buffer);
-                // printResponse(buffer);
-			// }
+				printf(" Length of Data received: %d\n", receive_length);
+				printf(" Data : %s\n", (char *)buffer);
+                printResponse(buffer);
+			}
+            free(request);
 		}
 		else
 			printf("Invalid request!\n");
 	}
-
-	free(r);
 
 	return 0;
 }
