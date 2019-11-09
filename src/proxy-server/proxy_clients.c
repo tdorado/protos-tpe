@@ -39,6 +39,7 @@ client_t create_client(client_list_t client_list, const int fd){
     client->external_transformation_state = PROCESS_NOT_INITIALIZED;
     client->external_transformation_read_fd = -1;
     client->external_transformation_write_fd = -1;
+    client->parser_state = init_parser_state();
 
     client->next = NULL;
 
@@ -95,7 +96,7 @@ void remove_client(client_list_t client_list, client_t client){
     free_buffer(client->client_read_buffer);
     free_buffer(client->client_write_buffer);
     free_buffer(client->origin_server_buffer);
-
+    free(client->parser_state);
     free(client);
 }
 
@@ -194,7 +195,7 @@ int set_external_transformation_fds(client_list_t client_list, client_t client, 
             client->external_transformation_state = PROCESS_INITIALIZED;
         }
     }
-    if((settings->transformations && client->client_state == RETR_OK) || client->client_state == RETR_TRANSFORMING || client->client_state == REMOVING_LAST_LINE) {
+    if((settings->transformations && client->client_state == RETR_OK) || client->client_state == RETR_TRANSFORMING) {
         if (client->external_transformation_read_fd != -1 && buffer_can_write(client->client_write_buffer)) {
             FD_SET(client->external_transformation_read_fd, read_fds);
         }
@@ -273,23 +274,19 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
             metrics->bytes_transfered += bytes_read;
         }
 
-        if ((settings->transformations && client->client_state == RETR_OK) || client->client_state == REMOVING_LAST_LINE || client->client_state == RETR_TRANSFORMING) {
+        if ((settings->transformations && client->client_state == RETR_OK) || client->client_state == RETR_TRANSFORMING) {
             if (client->external_transformation_state == PROCESS_INITIALIZED) {
                 if (FD_ISSET(client->external_transformation_read_fd, read_fds)) {
 
-                    bytes_read = read_from_fd(&client->external_transformation_read_fd, client->client_write_buffer);
+                    bytes_read = read_and_parse_from_fd(client->external_transformation_read_fd, client->client_write_buffer, client->parser_state);
 
-                    if (bytes_read == -1) {
-                        perror("Error reading from transformation process");
-                        return;
-                    }
-                    else if (bytes_read == 0) {
-                        /* Transformation wants to disconnect. */
+                    if (bytes_read == 0) {
                         close(client->external_transformation_read_fd);
                         close(client->external_transformation_write_fd);
                         client->external_transformation_read_fd = -1;
                         client->external_transformation_write_fd = -1;
                         client->external_transformation_state = PROCESS_NOT_INITIALIZED;
+                        reset_parser_state(client->parser_state);
 
                         write_to_fd(&client->client_fd, client->client_write_buffer);
                         send_message_to_fd(&client->client_fd, "\r\n.\r\n", 5);
@@ -299,20 +296,13 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
 
                 if (client->client_state == RETR_OK) {
                     move_response_line(client->origin_server_buffer, client->client_write_buffer);
-                    client->client_state = REMOVING_LAST_LINE;
-                    remove_crlf_dot_crlf(client->origin_server_buffer);
-                }
-
-                if (client->client_state == REMOVING_LAST_LINE) {
-                    if (remove_crlf_dot_crlf(client->origin_server_buffer)) {
-                        client->client_state = RETR_TRANSFORMING;
-                    }
+                    client->client_state = RETR_TRANSFORMING;
                 }
                 if (!buffer_can_read(client->origin_server_buffer)) {
                     close(client->external_transformation_write_fd);
                 }
                 if (FD_ISSET(client->external_transformation_write_fd, write_fds)) {
-                    write_to_fd(&client->external_transformation_write_fd, client->origin_server_buffer);
+                    write_and_parse_to_fd(client->external_transformation_write_fd, client->origin_server_buffer, client->parser_state);
                 }
             }
         }

@@ -11,6 +11,7 @@
 #include "constants.h"
 #include "buffer.h"
 #include "utils.h"
+#include "pop_parser.h"
 
 #define BUFFER_SIZE 2048
 
@@ -27,7 +28,6 @@ typedef enum client_states{
     LOGGED_IN,
     RETR_REQUEST,
     RETR_OK,
-    REMOVING_LAST_LINE,
     RETR_TRANSFORMING,
 } client_state_t;
 
@@ -61,6 +61,7 @@ struct client{
     external_transformation_state_t external_transformation_state;
     int external_transformation_read_fd;
     int external_transformation_write_fd;
+    parser_state_t parser_state;
 
     client_t prev;
     client_t next;
