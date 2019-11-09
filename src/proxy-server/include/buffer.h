@@ -61,10 +61,12 @@ bool buffer_can_read(buffer_t b);
 /** retorna true si se pueden escribir bytes en el buffer */
 bool buffer_can_write(buffer_t b);
 
-buffer_t initialize_buffer(const size_t bytes);
+buffer_t init_buffer(const size_t bytes);
 
 void buffer_move(buffer_t src, buffer_t dst);
 
 void free_buffer(buffer_t buffer);
+
+void print_buffer(buffer_t buffer);
 
 #endif

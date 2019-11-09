@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <time.h>
+
 #include "include/logs.h"
 
 void log_message(bool error, char * message) {

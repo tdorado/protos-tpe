@@ -1,20 +1,28 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#define DEFAULT_CMD "cat"
-#define DEFAULT_ERROR_FILE "/dev/null"
-#define DEFAULT_LOCAL_ADDR "::"
-#define DEFAULT_LOCAL_PORT 1110
-#define DEFAULT_MANAGEMENT_ADDR "127.0.0.1"
-#define DEFAULT_MANAGEMENT_PORT 9090
-#define DEFAULT_MEDIA_TYPES ""
-#define DEFAULT_SERVER_PORT 110
-#define DEFAULT_REPLACE_MESSAGE "Parte reemplazada."
-#define POP3_FILTER_VERSION "1.0.0"
-
-#define TIMEOUT_NOT_LOGGED 180
-#define TIMEOUT_LOGGED 600
-#define BUFFER_SIZE 2048
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <errno.h>
+#include <netdb.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/sctp.h>
+#include <netinet/in.h>
 
 #define READ_END 0
 #define WRITE_END 1

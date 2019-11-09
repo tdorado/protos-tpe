@@ -1,5 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "include/settings.h"
-#include "include/constants.h"
 
 void print_usage() {
     printf("USAGE: ./pop3filter [POSIX style options] <origin-server-address> \n"
@@ -49,13 +55,8 @@ bool valid_digit(char * digit) {
 }
 
 bool valid_address(char * address) {
+    //VER COMO HACER BIEN
     return true;
-    struct sockaddr_in6 sa;
-
-    if (inet_pton(AF_INET6, address, &(sa.sin6_addr))){
-        return true;
-    }
-    return false;
 }
 
 bool valid_port(char * port) {
@@ -227,4 +228,8 @@ int input_parser(const int argc, char ** argv, settings_t settings) {
     }
 
     return 0;
+}
+
+void free_settings(settings_t settings){
+    free(settings);
 }

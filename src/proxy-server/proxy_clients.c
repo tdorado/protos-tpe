@@ -1,5 +1,5 @@
-#include "include/pop_clients.h"
-#include "include/origin_server.h"
+#include "include/proxy_clients.h"
+#include "include/origin_server_socket.h"
 #include "include/external_transformation.h"
 
 client_list_t init_client_list(){
@@ -27,13 +27,13 @@ client_t create_client(client_list_t client_list, const int fd){
 
     client->client_state = CONNECTED;
     client->client_fd = fd;
-    client->client_read_buffer = initialize_buffer(BUFFER_SIZE);
-    client->client_write_buffer = initialize_buffer(BUFFER_SIZE);
+    client->client_read_buffer = init_buffer(BUFFER_SIZE);
+    client->client_write_buffer = init_buffer(BUFFER_SIZE);
     client->logged = false;
 
     client->origin_server_state = NOT_RESOLVED;
     client->origin_server_fd = -1;
-    client->origin_server_buffer = initialize_buffer(BUFFER_SIZE);
+    client->origin_server_buffer = init_buffer(BUFFER_SIZE);
     client->received_greeting = false;
 
     client->external_transformation_state = PROCESS_NOT_INITIALIZED;
@@ -109,10 +109,10 @@ void free_client_list(client_list_t client_list){
 }
 
 
-void accept_new_client(client_list_t client_list, const int server_fd, struct sockaddr_in6 server_addr, socklen_t server_addr_len, settings_t settings, metrics_t metrics){
+void accept_new_client(client_list_t client_list, const int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics){
     int new_client_fd = -1;
 
-    if ((new_client_fd = accept(server_fd, (struct sockaddr *)&server_addr, (socklen_t *)&server_addr_len)) < 0){
+    if ((new_client_fd = accept(proxy_fd, (struct sockaddr *)&server_addr, server_addr_len)) < 0){
         perror("Error accepting new client");
         return;
     }
@@ -128,15 +128,13 @@ void accept_new_client(client_list_t client_list, const int server_fd, struct so
     metrics->total_connections++;
 }
 
-int check_client_fds(client_t client, client_list_t client_list, int *max_fd, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics){
+int set_client_fds(client_t client, client_list_t client_list, int *max_fd, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics){
     
     if (settings->transformations){
         if (check_external_transformation_fds(client_list, client, settings, read_fds, write_fds, metrics) == ERROR_TRANSFORMATION){
             return ERROR_TRANSFORMATION;
         }
     }
-
-    *max_fd = max(*max_fd, client->client_fd, client->origin_server_fd, client->external_transformation_read_fd, client->external_transformation_write_fd);
 
     if (client->client_fd > 0 && client->received_greeting) {
         // Did the client write to us?
@@ -171,6 +169,8 @@ int check_client_fds(client_t client, client_list_t client_list, int *max_fd, fd
             FD_SET(client->origin_server_fd, write_fds);
         }
     }
+
+    *max_fd = max_of_five(*max_fd, client->client_fd, client->origin_server_fd, client->external_transformation_read_fd, client->external_transformation_write_fd);
 
     return 0;
 }

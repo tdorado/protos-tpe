@@ -4,9 +4,9 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
-#include "include/origin_server.h"
+#include "include/origin_server_socket.h"
 
-static void *resolve_origin_server_thread(void *arguments);
+static void *resolve_origin_server_thread(void *args);
 
 int resolve_origin_server(client_t client, settings_t settings) {
     client->origin_server_state = RESOLVING_ORIGIN_SERVER;

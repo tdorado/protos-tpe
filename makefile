@@ -1,9 +1,6 @@
-UTILS_DIR = src/utils
-UTILS_SOURCES = $(UTILS_DIR)/buffer $(UTILS_DIR)/utils
-
 PROXY_NAME = pop3filter
 PROXY_DIR = src/proxy-server
-PROXY_SOURCES = $(PROXY_DIR)/main $(PROXY_DIR)/settings $(PROXY_DIR)/logs $(PROXY_DIR)/external_transformation $(PROXY_DIR)/admin_socket $(PROXY_DIR)/metrics $(PROXY_DIR)/origin_server $(PROXY_DIR)/pop_clients $(PROXY_DIR)/proxy_socket $(PROXY_DIR)/server_socket $(PROXY_DIR)/error_file 
+PROXY_SOURCES = $(PROXY_DIR)/main $(PROXY_DIR)/settings $(PROXY_DIR)/logs $(PROXY_DIR)/external_transformation $(PROXY_DIR)/admin_socket $(PROXY_DIR)/metrics $(PROXY_DIR)/origin_server_socket $(PROXY_DIR)/proxy_clients $(PROXY_DIR)/proxy_socket $(PROXY_DIR)/error_file $(PROXY_DIR)/buffer $(PROXY_DIR)/utils
 
 CC_C = gcc
 CFLAGS = -Wall
@@ -19,6 +16,6 @@ clean:
 	@rm -f $(PROXY_SOURCES) $(PROXY_SOURCES:=.o)
 
 proxy-server:
-	$(CC_C) $(CFLAGS) $(SCTPFLAGS) $(PTHREADFLAG) $(DEBUGFLAGS) $(PROXY_SOURCES:=.c) $(UTILS_SOURCES:=.c) -o $(PROXY_NAME) -lrt
+	$(CC_C) $(CFLAGS) $(SCTPFLAGS) $(PTHREADFLAG) $(DEBUGFLAGS) $(PROXY_SOURCES:=.c) -o $(PROXY_NAME) -lrt
 	
 .PHONY: all

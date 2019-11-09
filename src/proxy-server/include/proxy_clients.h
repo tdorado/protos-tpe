@@ -1,5 +1,5 @@
-#ifndef POP_CLIENTS_H
-#define POP_CLIENTS_H
+#ifndef PROXY_CLIENTS_H
+#define PROXY_CLIENTS_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,8 +9,10 @@
 #include "settings.h"
 #include "metrics.h"
 #include "constants.h"
-#include "../../utils/include/buffer.h"
-#include "../../utils/include/utils.h"
+#include "buffer.h"
+#include "utils.h"
+
+#define BUFFER_SIZE 2048
 
 enum origin_server_states{
     ERROR_ORIGIN_SERVER = -1,
@@ -83,8 +85,8 @@ client_list_t init_client_list();
 client_t create_client(client_list_t client_list, const int fd);
 void remove_client(client_list_t client_list, client_t client);
 void free_client_list(client_list_t client_list);
-void accept_new_client(client_list_t client_list, const int server_fd, struct sockaddr_in6 server_addr, socklen_t server_addr_len, settings_t settings, metrics_t metrics);
-int check_client_fds(client_t client, client_list_t client_list, int *max_fd, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics);
+void accept_new_client(client_list_t client_list, const int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics);
+int set_client_fds(client_t client, client_list_t client_list, int *max_fd, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics);
 void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics);
 void interpret_request(client_t client);
 int interpret_response(buffer_t buff);

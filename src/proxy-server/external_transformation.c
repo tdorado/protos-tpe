@@ -60,7 +60,5 @@ int start_external_transformation_process(settings_t settings, client_t client) 
         client->external_transformation_write_fd = pipeFatherToChild[WRITE_END];
     }
 
-    printf("TRANSFORMATION CREADA\n");
-
     return PROCESS_INITIALIZED;
 }

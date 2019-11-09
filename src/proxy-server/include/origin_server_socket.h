@@ -1,8 +1,11 @@
-#ifndef ORIGIN_SERVER
-#define ORIGIN_SERVER
+#ifndef ORIGIN_SERVER_SOCKET_H
+#define ORIGIN_SERVER_SOCKET_H
 
-#include "pop_clients.h"
+#include <stdint.h>
+#include "proxy_clients.h"
 #include "settings.h"
+
+typedef struct thread_args * thread_args_t;
 
 struct thread_args{
     client_t client;
@@ -10,8 +13,6 @@ struct thread_args{
     char *addr;
     uint16_t port;
 };
-
-typedef struct thread_args * thread_args_t;
 
 int resolve_origin_server(client_t client, settings_t settings);
 
