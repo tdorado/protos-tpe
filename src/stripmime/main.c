@@ -40,19 +40,14 @@ int main(void) {
     if(check_mime(filter_mime, &slash_position) == FAIL)
         fprintf(stderr, "El mime de FILTER_MEDIAS está mal definido \n");
     char * mime_to_filter = check_pop3_headers();
-    printf("\n%s\n", mime_to_filter);
-    //printf("\n%s\n", mime_type);
-    /*
-    if(strcmp(mime_type, getenv(ENV_VARIABLES[0]))) {
+    if(strcmp(mime_to_filter, getenv(ENV_VARIABLES[0])) == 0) {
         printf(getenv(ENV_VARIABLES[1]));
         printf("\r\n.\r\n");
     }
-
     else  {
         while((c=getchar()) != EOF)
             putchar(c);
     }
-    */
     
 }
 
@@ -86,9 +81,11 @@ char * check_pop3_headers() {
     int header_found = FALSE;
     char * mime = malloc(127);
     while(!header_found) {
-        chars_read = scanf("Content-Type: %127s\r\n", mime);
+        chars_read = scanf("Content-Type: %127s", mime);
         if(chars_read > 0) {
             printf("Content-Type: %s\r\n", mime);
+            getchar();
+            getchar();
             skip_to_body();
             return mime;
         }
@@ -117,8 +114,10 @@ int skip_to_body() {
     int found_body = FALSE;
     while( (c=getchar()) != EOF && !found_body) {
         putchar(c);
-        if(c == '\r' && (c =getchar()) == '\n')
+        if(c == '\r' && (c =getchar()) == '\n') {
+            printf("\r\n");
             found_body = TRUE;
+        }
         else
             skip_to_new_line();
     }
