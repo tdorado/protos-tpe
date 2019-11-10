@@ -24,6 +24,12 @@ void reset_parser_state(parser_state_t parser_state) {
     parser_state->in_ps.last_char = 0;
 }
 
+void free_parser_state (parser_state_t parser_state) {
+    free(parser_state->out_ps);
+    free(parser_state->in_ps);
+    free(parser_state);
+}
+
 ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_state) {
     char c;
     ssize_t ret = 0;

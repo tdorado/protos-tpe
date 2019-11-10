@@ -92,7 +92,7 @@ void buffer_compact(buffer_t b) {
 }
 
 buffer_t init_buffer(const size_t bytes) {
-    uint8_t *data = (uint8_t *)malloc(bytes*sizeof(uint8_t));
+    uint8_t * data = (uint8_t *)malloc(bytes*sizeof(uint8_t));
     buffer_t buffer = (buffer_t)malloc(sizeof(*buffer));
 
     if (data == NULL || buffer == NULL) {
@@ -101,6 +101,9 @@ buffer_t init_buffer(const size_t bytes) {
     }
 
     buffer_init(buffer, bytes, data);
+
+    // is this necesary?
+    // free(data);
 
     return buffer;
 }

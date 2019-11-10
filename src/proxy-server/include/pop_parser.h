@@ -32,5 +32,6 @@ parser_state_t init_parser_state();
 void reset_parser_state(parser_state_t parser_state);
 ssize_t read_and_parse_from_fd(int fd, buffer_t buffer, parser_state_t parser_state);
 ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_state);
+void free_parser_state(parser_state_t parser_state);
 
 #endif

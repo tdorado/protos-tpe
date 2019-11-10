@@ -94,7 +94,7 @@ void remove_client(client_list_t client_list, client_t client) {
     free_buffer(client->client_read_buffer);
     free_buffer(client->client_write_buffer);
     free_buffer(client->origin_server_buffer);
-    free(client->parser_state);
+    free_parser_state(client->parser_state);
     free(client);
 }
 

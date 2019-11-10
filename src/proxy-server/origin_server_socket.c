@@ -40,7 +40,7 @@ int resolve_origin_server(client_t client, settings_t settings) {
     return 1;
 }
 
-static void *resolve_origin_server_thread(void *args) {
+static void * resolve_origin_server_thread(void *args) {
     thread_args_t thread_args = (thread_args_t)args;
 
     struct addrinfo hints;
@@ -56,7 +56,7 @@ static void *resolve_origin_server_thread(void *args) {
         pthread_exit(NULL);
     }
 
-    struct addrinfo *rp;
+    struct addrinfo * rp;
     int origin_server_fd;
     socklen_t origin_server_addr_len;
     struct sockaddr_in * origin_server_addr;
