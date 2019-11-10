@@ -18,8 +18,15 @@
 
 const char * ENV_VARIABLES[] = {"FILTER_MEDIAS", "FILTER_MSG"};
 
+struct content_type {
+    char * name;
+    char * boundary;
+};
+
 int check_variables();
-int check_mime(char *);
+int check_mime(char *, int *);
+char * check_pop3_headers();
+int skip_to_new_line();
 
 int main(void) {
     if(check_variables() == FAIL) {
@@ -28,7 +35,7 @@ int main(void) {
     char * filter_mime = getenv(ENV_VARIABLES[0]);
     int slash_position = -1;
     if(check_mime(filter_mime, &slash_position) == FAIL)
-        fprintf(stderr, "El mime para filtrar está mal definido");
+        fprintf(stderr, "El mime de FILTER_MEDIAS está mal definido \n");
     char * mime_to_filter = NULL;
     
 }
@@ -46,31 +53,37 @@ int check_variables() {
 int check_mime(char * mime, int * slash_position) {
     int slash_flag = FALSE;
     for(int i = 0; mime[i] != '\0'; i++) {
-        if(mime[i] == '/')
+        if(mime[i] == '/') {
             if(slash_flag == TRUE)
                 return FAIL;
             *slash_position = i;
             slash_flag = TRUE;
+        }
     }
     if(slash_flag = 1)
         return SUCCESS;
     return FAIL;
 }
 
-int check_pop3_headers() {
+char * check_pop3_headers() {
     int finished_head = FALSE;
     int head_position = 0;
+    int c;
     while( (c = getchar()) != EOF && !finished_head) {
         putchar(c);
         if( c == CONTENT_TYPE[head_position])
             head_position++;
+        else if( head_position = 0 && c == '\n') {
+            finished_head = TRUE;
+        }
         else {
             skip_to_new_line();
             head_position = 0;
         }
         if(head_position == CONTENT_TYPE_LENGTH) {
-
+            printf("Find header!!!");
         }
+    }
 }
 
 int skip_to_new_line() {
