@@ -40,7 +40,10 @@ int main(void) {
     if(check_mime(filter_mime, &slash_position) == FAIL)
         fprintf(stderr, "El mime de FILTER_MEDIAS está mal definido \n");
     char * mime_to_filter = check_pop3_headers();
-    if(strcmp(mime_to_filter, getenv(ENV_VARIABLES[0])) == 0) {
+    if(strncmp(mime_to_filter, "multipart/", 10) == 0) {
+        printf("MULTIPARTE");
+    }
+    else if(strcmp(mime_to_filter, getenv(ENV_VARIABLES[0])) == 0) {
         printf(getenv(ENV_VARIABLES[1]));
         printf("\r\n.\r\n");
     }
