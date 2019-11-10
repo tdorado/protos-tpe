@@ -164,7 +164,7 @@ int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *wr
         resolve_origin_server(client, settings);
     }
     else if (client->origin_server_state == ERROR_ORIGIN_SERVER) {
-        send_message_to_fd(&client->client_fd, ERR_ORIGIN_SERVER_CONNECTION, ERR_ORIGIN_SERVER_CONNECTION_LEN);
+        send_message_to_fd(client->client_fd, ERR_ORIGIN_SERVER_CONNECTION, ERR_ORIGIN_SERVER_CONNECTION_LEN);
         remove_client(client_list, client);
         metrics->concurrent_connections--;
         return ERROR_ORIGIN_SERVER;
@@ -186,7 +186,7 @@ int set_external_transformation_fds(client_list_t client_list, client_t client, 
     if (settings->transformations){
         if ( client->external_transformation_state == PROCESS_NOT_INITIALIZED ) {
             if (start_external_transformation_process(settings, client) == ERROR_TRANSFORMATION) {
-                send_message_to_fd(&client->client_fd, ERR_TRANSFORMATION, ERR_TRANSFORMATION_LEN);
+                send_message_to_fd(client->client_fd, ERR_TRANSFORMATION, ERR_TRANSFORMATION_LEN);
                 remove_client(client_list, client);
                 metrics->concurrent_connections--;;
                 return ERROR_TRANSFORMATION;
@@ -212,7 +212,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
 
     /* Client wrote to the pop3filter. */
     if (FD_ISSET(client->client_fd, read_fds)) {
-        bytes_read = read_from_fd(&client->client_fd, client->client_read_buffer);
+        bytes_read = read_from_fd(client->client_fd, client->client_read_buffer);
 
         /* User wants to disconnet. */
         if (bytes_read == 0) {
@@ -228,17 +228,17 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
 
     /* pop3filter can write to the client. */
     if (FD_ISSET(client->client_fd, write_fds)) {
-        write_to_fd(&client->client_fd, client->client_write_buffer);
+        write_to_fd(client->client_fd, client->client_write_buffer);
     }
 
     if (client->origin_server_state == RESOLVED_TO_ORIGIN_SERVER) {
         /* pop3filter can write to the origin server. */
         if (FD_ISSET(client->origin_server_fd, write_fds)) {
-            write_to_fd(&client->origin_server_fd, client->client_read_buffer);
+            write_until_enter_to_fd(client->origin_server_fd, client->client_read_buffer);
         }
         /* Origin server wrote to the pop3filter. */
         if (FD_ISSET(client->origin_server_fd, read_fds)) {
-            bytes_read = read_from_fd(&client->origin_server_fd, client->origin_server_buffer);
+            bytes_read = read_from_fd(client->origin_server_fd, client->origin_server_buffer);
 
             if (bytes_read == 0) {
                 /* Origin server wants to disconnect. */
@@ -258,12 +258,12 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
             }
             else{
                 if (interpret_response(client->origin_server_buffer) == OK_RESPONSE) {
-                    send_message_to_fd(&client->client_fd, OK_WELCOME, OK_WELCOME_LEN);
+                    send_message_to_fd(client->client_fd, OK_WELCOME, OK_WELCOME_LEN);
                     buffer_reset(client->origin_server_buffer);
                     client->received_greeting = true;
                 }
                 else{
-                    send_message_to_fd(&client->client_fd, ERR_ORIGIN_SERVER_CONNECTION, ERR_ORIGIN_SERVER_CONNECTION_LEN);
+                    send_message_to_fd(client->client_fd, ERR_ORIGIN_SERVER_CONNECTION, ERR_ORIGIN_SERVER_CONNECTION_LEN);
                     remove_client(client_list, client);
                     metrics->concurrent_connections--;
                 }
@@ -301,8 +301,8 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                         client->external_transformation_state = PROCESS_NOT_INITIALIZED;
                         reset_parser_state(client->parser_state);
 
-                        write_to_fd(&client->client_fd, client->client_write_buffer);
-                        send_message_to_fd(&client->client_fd, CRLF_DOT_CRLF, CRLF_DOT_CRLF_LEN);
+                        write_to_fd(client->client_fd, client->client_write_buffer);
+                        send_message_to_fd(client->client_fd, CRLF_DOT_CRLF, CRLF_DOT_CRLF_LEN);
                         client->client_state = LOGGED_IN;
                     }
                 }

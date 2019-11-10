@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define CAPA_BUFFER 1024
+
 #define DEFAULT_CMD "cat"
 #define DEFAULT_ERROR_FILE "/dev/null"
 #define DEFAULT_LOCAL_ADDR "0.0.0.0"
@@ -33,9 +35,9 @@ struct settings{
     char *capa_text;
 };
 
+settings_t init_settings();
 void print_usage();
 void print_version();
-void init_settings(settings_t settings);
 bool valid_digit(char * digit);
 bool valid_address(char * address);
 bool valid_port(char * port);

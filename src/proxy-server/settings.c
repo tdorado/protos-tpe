@@ -28,20 +28,6 @@ void print_version() {
     printf("POP3 Proxy Filter %s\n", POP3_FILTER_VERSION);
 }
 
-void init_settings(settings_t settings) {
-    settings->origin_server_port = DEFAULT_SERVER_PORT;
-    settings->management_addr = DEFAULT_MANAGEMENT_ADDR;
-    settings->management_port = DEFAULT_MANAGEMENT_PORT;
-    settings->local_addr = DEFAULT_LOCAL_ADDR;
-    settings->local_port = DEFAULT_LOCAL_PORT;
-    settings->replace_message = DEFAULT_REPLACE_MESSAGE;
-    settings->media_types = DEFAULT_MEDIA_TYPES;
-    settings->cmd = DEFAULT_CMD;
-    settings->error_file = DEFAULT_ERROR_FILE;
-    settings->transformations = true;
-    settings->pipe_lining_supported = false;
-}
-
 bool valid_digit(char * digit) {
     while (*digit) {
         if (*digit >= '0' && *digit <= '9') {
@@ -231,5 +217,33 @@ int input_parser(const int argc, char ** argv, settings_t settings) {
 }
 
 void free_settings(settings_t settings){
+    free(settings->capa_text);
     free(settings);
+}
+
+settings_t init_settings(){
+    settings_t ret = (settings_t)malloc(sizeof(*ret));
+    if(ret == NULL){
+        perror("Error creating settings");
+        exit(EXIT_FAILURE);
+    }
+
+    ret->origin_server_port = DEFAULT_SERVER_PORT;
+    ret->management_addr = DEFAULT_MANAGEMENT_ADDR;
+    ret->management_port = DEFAULT_MANAGEMENT_PORT;
+    ret->local_addr = DEFAULT_LOCAL_ADDR;
+    ret->local_port = DEFAULT_LOCAL_PORT;
+    ret->replace_message = DEFAULT_REPLACE_MESSAGE;
+    ret->media_types = DEFAULT_MEDIA_TYPES;
+    ret->cmd = DEFAULT_CMD;
+    ret->error_file = DEFAULT_ERROR_FILE;
+    ret->transformations = true;
+    ret->pipe_lining_supported = false;
+    ret->capa_text = (char *)malloc(CAPA_BUFFER);
+    if(ret->capa_text == NULL){
+        perror("Error creating settings");
+        exit(EXIT_FAILURE);
+    }
+
+    return ret;
 }

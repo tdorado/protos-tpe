@@ -35,7 +35,7 @@ void init_server_config(int argc, char ** argv){
         exit(EXIT_FAILURE);
     }
 
-    settings = malloc(sizeof(*settings));
+    settings = init_settings();
     
     if (input_parser(argc, argv, settings) < 0) {
         exit(EXIT_FAILURE);

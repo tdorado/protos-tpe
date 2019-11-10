@@ -13,34 +13,47 @@ int max_of_three(int n1, int n2, int n3){
     return MAX(MAX(n1, n2), n3);
 }
 
-ssize_t read_from_fd(int *fd, buffer_t buffer) {
+ssize_t read_from_fd(int fd, buffer_t buffer) {
     uint8_t *ptr;
-    ssize_t n;
-    size_t count = 0;
+    size_t len;
+    ssize_t ret;
 
-    ptr = buffer_write_ptr(buffer, &count);
-    n = read(*fd, ptr, count);
-    buffer_write_adv(buffer, n);
+    ptr = buffer_write_ptr(buffer, &len);
+    ret = read(fd, ptr, len);
+    buffer_write_adv(buffer, ret);
 
-    return n;
+    return ret;
 }
 
-ssize_t write_to_fd(int *fd, buffer_t buffer) {
+ssize_t write_to_fd(int fd, buffer_t buffer) {
     uint8_t *ptr;
-    ssize_t n;
-    size_t count = 0;
+    size_t len;
+    ssize_t ret;
 
-    ptr = buffer_read_ptr(buffer, &count);
-    n = write(*fd, ptr, count);
-    buffer_read_adv(buffer, n);
+    ptr = buffer_read_ptr(buffer, &len);
+    ret = write(fd, ptr, len);
+    buffer_read_adv(buffer, ret);
 
-    return n;
+    return ret;
 }
 
-ssize_t send_capa_message(const int *fd) {
-    return write(*fd, "CAPA\r\n", 6);
+ssize_t send_message_to_fd(const int fd, const char *message, const size_t messageLength) {
+    return write(fd, message, messageLength);
 }
 
-ssize_t send_message_to_fd(const int *fd, const char *message, const size_t messageLength) {
-    return write(*fd, message, messageLength);
+ssize_t write_until_enter_to_fd(int fd, buffer_t buffer){
+    uint8_t *ptr;
+    size_t len;
+    ssize_t ret = 0;
+
+    ptr = buffer_read_ptr(buffer, &len);
+    while( ptr[ret] != '\n' && ret < len){
+        ret++;
+    }
+    ret++;
+    
+    ret = write(fd, ptr, ret);
+    buffer_read_adv(buffer, ret);
+
+    return ret;
 }

@@ -3,6 +3,10 @@
 
 parser_state_t init_parser_state(){
     parser_state_t ret = (parser_state_t)malloc(sizeof(*ret));
+    if(ret == NULL){
+        perror("Error creating parser state for client");
+        return NULL;
+    }
 
     reset_parser_state(ret);
     
