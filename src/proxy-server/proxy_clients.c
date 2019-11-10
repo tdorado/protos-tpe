@@ -20,6 +20,8 @@ client_list_t init_client_list() {
 client_t create_client(client_list_t client_list, const int fd) {
     client_t client = (client_t)malloc(sizeof(*client));
 
+    printf("\nInitializing client...\n");
+
     if(client == NULL) {
         perror("Error creating client");
         return NULL;
@@ -56,10 +58,14 @@ client_t create_client(client_list_t client_list, const int fd) {
 
     client_list->qty++;
 
+    printf("\nInitialization successful\n");
+
     return client;
 }
 
 void remove_client(client_list_t client_list, client_t client) {
+    printf("\nRemoving client...\n");
+
     if (client == client_list->first) {
         if(client->next != NULL) {
             client->next->prev = NULL;
@@ -96,6 +102,8 @@ void remove_client(client_list_t client_list, client_t client) {
     free_buffer(client->origin_server_buffer);
     free_parser_state(client->parser_state);
     free(client);
+
+    printf("\nRemoval successful\n");
 }
 
 void free_client_list(client_list_t client_list) {
@@ -111,6 +119,8 @@ void free_client_list(client_list_t client_list) {
 void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics) {
     int new_client_fd = -1;
 
+    printf("\nAdding client...\n");
+
     if((new_client_fd = accept(proxy_fd, (struct sockaddr *)&server_addr, server_addr_len)) < 0) {
         perror("Error adding client");
         return;
@@ -119,21 +129,26 @@ void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_i
 
     client_t client = create_client(client_list, new_client_fd);
     if(client == NULL) {
+        perror("Error adding client");
         close(new_client_fd);
         return;
     }
 
     metrics->concurrent_connections++;
     metrics->total_connections++;
+
+    printf("\nSuccessfully added\n");
 }
 
 int set_client_fds(client_t client, client_list_t client_list, int * max_fd, fd_set * read_fds, fd_set * write_fds, settings_t settings, metrics_t metrics) {
     if (set_external_transformation_fds(client_list, client, settings, read_fds, write_fds, metrics) == ERROR_TRANSFORMATION_PROCESS) {
+        perror("Error on external transformation");
         return -1;
     }
     set_client_fd(client, read_fds, write_fds);
 
     if(set_origin_server_fd(client_list, read_fds, write_fds, client, settings, metrics) == ERROR_ORIGIN_SERVER) {
+        perror("Error on origin server");
         return -1;
     }
 
@@ -177,6 +192,7 @@ int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *wr
 }
 
 int set_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set *read_fds, fd_set *write_fds, metrics_t metrics) {
+    printf("\nSetting external transformation\n");
     if (settings->transformations){
         if ( client->external_transformation_state == PROCESS_NOT_INITIALIZED ) {
             if (start_external_transformation_process(settings, client) == ERROR_TRANSFORMATION_PROCESS) {
@@ -197,7 +213,7 @@ int set_external_transformation_fds(client_list_t client_list, client_t client, 
             FD_SET(client->external_transformation_write_fd, write_fds);
         }
     }
-
+    printf("\nSuccessful transformation setted\n");
     return 0;
 }
 

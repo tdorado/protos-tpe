@@ -8,6 +8,8 @@
 int init_proxy_socket(struct sockaddr_in6 *server_addr, socklen_t *server_addr_len, settings_t settings) {
     int proxy_fd = -1, flags = -1;
 
+    printf("\nCreating server socket...\n");
+
     memset(server_addr, 0, sizeof(*server_addr));
 
     if ((proxy_fd = socket(AF_INET6, SOCK_STREAM, 0)) == -1){
@@ -50,6 +52,8 @@ int init_proxy_socket(struct sockaddr_in6 *server_addr, socklen_t *server_addr_l
     }
 
     *server_addr_len = sizeof(*server_addr);
+
+    printf("\nSuccessfully created\n");
 
     return proxy_fd;
 }
