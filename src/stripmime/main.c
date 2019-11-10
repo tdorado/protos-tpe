@@ -5,6 +5,8 @@
 #define ENV_VARIABLES_QUANTITY 2
 #define FAIL -1
 #define SUCCESS 1
+#define TRUE 1
+#define FALSE 0
 
 const char * ENV_VARIABLES[] = {"FILTER_MEDIAS", "FILTER_MSG"};
 
@@ -31,12 +33,12 @@ int check_variables() {
 }
 
 int check_mime(char * mime) {
-    int slash_flag = 0;
+    int slash_flag = FALSE;
     for(int i = 0; mime[i] != '\0'; i++) {
         if(mime[i] = '/')
-            if(slash_flag == 1)
+            if(slash_flag == TRUE)
                 return FAIL;
-            slash_flag = 1;
+            slash_flag = TRUE;
     }
     if(slash_flag = 1)
         return SUCCESS;
