@@ -172,7 +172,7 @@ int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *wr
             FD_SET(client->origin_server_fd, read_fds);
         }
         
-        if (buffer_can_read(client->client_read_buffer)) {
+        if (buffer_can_read(client->client_read_buffer) && client->client_state != RETR_OK && client->client_state != RETR_TRANSFORMING) {
             FD_SET(client->origin_server_fd, write_fds);
         }
     }
