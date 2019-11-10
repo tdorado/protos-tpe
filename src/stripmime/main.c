@@ -30,6 +30,7 @@ int skip_to_new_line();
 int skip_to_body();
 
 int main(void) {
+    int c;
     char * mime_type = NULL;
     if(check_variables() == FAIL) {
         return FAIL;
@@ -38,9 +39,20 @@ int main(void) {
     int slash_position = -1;
     if(check_mime(filter_mime, &slash_position) == FAIL)
         fprintf(stderr, "El mime de FILTER_MEDIAS está mal definido \n");
-    char * mime_to_filter = NULL;
-    mime_type = check_pop3_headers();
-    printf("\n %s \n", mime_type);
+    char * mime_to_filter = check_pop3_headers();
+    printf("\n%s\n", mime_to_filter);
+    //printf("\n%s\n", mime_type);
+    /*
+    if(strcmp(mime_type, getenv(ENV_VARIABLES[0]))) {
+        printf(getenv(ENV_VARIABLES[1]));
+        printf("\r\n.\r\n");
+    }
+
+    else  {
+        while((c=getchar()) != EOF)
+            putchar(c);
+    }
+    */
     
 }
 
@@ -70,36 +82,21 @@ int check_mime(char * mime, int * slash_position) {
 }
 
 char * check_pop3_headers() {
-    int finished_head = FALSE;
-    int head_position = 0;
-    int c;
-    char * content = NULL;
-    int content_length = 0;
-    while( (c = getchar()) != EOF && !finished_head) {
-        putchar(c);
-        if( c == CONTENT_TYPE[head_position]){
-            head_position++;
-        }
-        else if( head_position = 0 && c == '\n') {
-            finished_head = TRUE;
+    int chars_read = 0;
+    int header_found = FALSE;
+    char * mime = malloc(127);
+    while(!header_found) {
+        chars_read = scanf("Content-Type: %127s\r\n", mime);
+        if(chars_read > 0) {
+            printf("Content-Type: %s\r\n", mime);
+            skip_to_body();
+            return mime;
         }
         else {
             skip_to_new_line();
-            head_position = 0;
         }
-        if(head_position == CONTENT_TYPE_LENGTH) {
-            while( (c = getchar()) != '\n') {
-                putchar(c);
-                if( content_length % BLOCK == 0)
-                    content = realloc(content, content_length + BLOCK);
-                content[content_length] = c;
-                content_length++;
-            }
-            if(content_length % BLOCK == 0)
-                content = realloc(content, content_length + BLOCK);
-            content[content_length] = '\0';
-            skip_to_body();
-            return content;
+        if(chars_read == EOF) {
+            return NULL;
         }
     }
     return NULL;
