@@ -37,6 +37,7 @@ int main(void) {
     if(check_mime(filter_mime, &slash_position) == FAIL)
         fprintf(stderr, "El mime de FILTER_MEDIAS está mal definido \n");
     char * mime_to_filter = NULL;
+    check_pop3_headers();
     
 }
 
@@ -71,8 +72,9 @@ char * check_pop3_headers() {
     int c;
     while( (c = getchar()) != EOF && !finished_head) {
         putchar(c);
-        if( c == CONTENT_TYPE[head_position])
+        if( c == CONTENT_TYPE[head_position]){
             head_position++;
+        }
         else if( head_position = 0 && c == '\n') {
             finished_head = TRUE;
         }
@@ -88,11 +90,8 @@ char * check_pop3_headers() {
 
 int skip_to_new_line() {
     int c;
-    int got_new_line = FALSE;
-    while( (c = getchar()) != EOF && !got_new_line ) {
+    while( (c = getchar()) != EOF && c != '\n' ) {
         putchar(c);
-        if( c == '\n') 
-            got_new_line == TRUE;
     }
-    return got_new_line;
+    return c=='\n' ? SUCCESS : FAIL;
 }
