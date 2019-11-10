@@ -1,26 +1,18 @@
 #include "admin_client.h"
 
 uint8_t *parse_command(char* buffer) {
-    uint8_t *command = NULL;
     switch(TOUPPER(buffer[0])) {
         case 'L': //login logout
-            command = parse_login_or_logout(buffer);
-            break;
+            return parse_login_or_logout(buffer);
         case 'G': //Get
-            command = parse_get(buffer);
-            break; 
+            return parse_get(buffer);
         case 'S': //set
-            command = parse_set(buffer);
-            break;
+            return parse_set(buffer);
         case 'R': //rm
-            command = parse_rm(buffer);
-            break;
+            return parse_rm(buffer);
         default:
-            printf("Va a devolver null en default\n");
-            return command;
+            return NULL;
     }
-    printf("Va a devolver: %s %x\n", (char*)command, command[0]);
-    return command;
 }
 
 uint8_t *parse_login_or_logout(char *buffer) {
@@ -174,10 +166,8 @@ int main(int argc, char *argv[]) {
 		fgets(buffer, BUFFER_MAX, stdin); 
 		buffer[strcspn(buffer, "\r\n")] = 0;
         uint8_t *request = parse_command(buffer);
-		if (request != NULL)
-		{
+		if (request != NULL) {
             datalen = strlen((char*)request) + 1;
-            printf("A punto de mandar por sctp\n");
 			send_status = sctp_sendmsg(admin_socket, (void *)request, (size_t)datalen, NULL, 0, 0, 0, 0, 0, 0);
 			if (send_status == -1)
 			{
@@ -186,6 +176,7 @@ int main(int argc, char *argv[]) {
 			}
 			else
 				printf("Successfully sent %d bytes data to server\n", send_status);
+                
 			receive_length = sctp_recvmsg(admin_socket, buffer, sizeof(buffer), (struct sockaddr *)NULL, 0, &sndrcv_info, &flags);
 
 			if (receive_length == -1)
@@ -198,8 +189,7 @@ int main(int argc, char *argv[]) {
 			{
 				buffer[receive_length] = '\0';
 
-				printf(" Length of Data received: %d\n", receive_length);
-				printf(" Data : %s\n", (char *)buffer);
+				printf("Response: \n %s\n", (char *)buffer);
 			}
             free(request);
 		}

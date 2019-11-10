@@ -1,6 +1,6 @@
 PROXY_NAME = pop3filter
 PROXY_DIR = src/proxy-server
-PROXY_SOURCES = $(PROXY_DIR)/main $(PROXY_DIR)/settings $(PROXY_DIR)/logs $(PROXY_DIR)/external_transformation $(PROXY_DIR)/admin_socket $(PROXY_DIR)/metrics $(PROXY_DIR)/origin_server_socket $(PROXY_DIR)/proxy_clients $(PROXY_DIR)/proxy_socket $(PROXY_DIR)/error_file $(PROXY_DIR)/buffer $(PROXY_DIR)/utils $(PROXY_DIR)/pop_parser
+PROXY_SOURCES = $(PROXY_DIR)/main $(PROXY_DIR)/settings $(PROXY_DIR)/logs $(PROXY_DIR)/external_transformation $(PROXY_DIR)/admin_socket $(PROXY_DIR)/metrics $(PROXY_DIR)/origin_server_socket $(PROXY_DIR)/proxy_clients $(PROXY_DIR)/proxy_socket $(PROXY_DIR)/error_file $(PROXY_DIR)/buffer $(PROXY_DIR)/utils $(PROXY_DIR)/pop_parser $(PROXY_DIR)/admin_thread
 
 ADMIN_CLIENT_NAME = adminclient
 ADMIN_CLIENT_DIR = src/admin-client

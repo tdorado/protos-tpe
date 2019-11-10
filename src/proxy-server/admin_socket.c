@@ -19,6 +19,7 @@
 #define BUFFER_MAX 2048
 #define MAX_CONCURRENT_CONECTIONS 10
 #define MAX_INT_DIGITS 10
+#define TIMEOUT 180
 
 int create_sctp_socket() {
     int admin_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
@@ -96,7 +97,7 @@ int init_admin_socket(struct sockaddr_in *server_addr, socklen_t *server_addr_le
 void resolve_admin_client(int admin_socket, fd_set *readFDs, struct sockaddr_in *admin_addr, socklen_t *admin_addr_len, settings_t settings, metrics_t metrics) {
     if (FD_ISSET(admin_socket, readFDs))
     {
-        resolve_sctp_client(admin_socket, admin_addr, admin_addr_len, settings, metrics);
+        resolve_admin_socket(admin_socket, admin_addr, admin_addr_len, settings, metrics);
     }
 }
 
@@ -107,7 +108,7 @@ void set_admin_fd(const int admin_fd, int *max_fd, fd_set *read_fds){
     }
 }
 
-void resolve_sctp_client(int admin_socket, struct sockaddr_in *admin_addr, int admin_addr_len, settings_t settings, metrics_t metrics) {
+void resolve_sctp_client(int admin_socket, struct sockaddr_in *admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics) {
     int flags = 0;
     __uint8_t admin_received_msg[BUFFER_MAX];
     char *proxy_response_msg = malloc(BUFFER_MAX * sizeof(char));
@@ -117,45 +118,48 @@ void resolve_sctp_client(int admin_socket, struct sockaddr_in *admin_addr, int a
 
     int msg_reveived_len;
 
+    time_t first_time = time(NULL);
+
     bool auth = false;
 
-    int connSock = accept(admin_socket, (struct sockaddr *)NULL, (unsigned int *)NULL);
-
-    msg_reveived_len = sctp_recvmsg(connSock, admin_received_msg, BUFFER_MAX, (struct sockaddr *)NULL, 0, &sndrcv_info, &flags);
-    printf("A punto de entrar? \n");
-    if (msg_reveived_len == -1) {
-        printf("Error in sctp_recvmsg()\n");
-        perror("sctp_recvmsg()");
-    } else {
-        printf("Recibio algo\n");
-        printf("Esta autenticado? %d\n", auth);
-        if (!auth && (admin_received_msg[0] == LOGIN_REQUEST || admin_received_msg[0] == LOGOUT_REQUEST)) {
-            auth = parseLoginOrLogout(admin_received_msg);
-            if (auth) {
-                strcpy(proxy_response_msg, "Login succesful");
-            } else if (admin_received_msg[0] == LOGOUT_REQUEST) {
-                strcpy(proxy_response_msg, "Logout succesful");
+    int connection_socket = accept(admin_socket, (struct sockaddr *)admin_addr, admin_addr_len);
+    while(1) {
+        if (time(NULL) - first_time >= TIMEOUT) close(connection_socket);
+        msg_reveived_len = sctp_recvmsg(connection_socket, admin_received_msg, BUFFER_MAX, (struct sockaddr *)NULL, 0, &sndrcv_info, &flags);
+        if (msg_reveived_len == -1) {
+            printf("Error in sctp_recvmsg()\n");
+            perror("sctp_recvmsg()");
+            break;
+        } else {
+            if (!auth && (admin_received_msg[0] == LOGIN_REQUEST || admin_received_msg[0] == LOGOUT_REQUEST)) {
+                auth = parseLoginOrLogout(admin_received_msg);
+                if (auth) {
+                    strcpy(proxy_response_msg, "Login succesful");
+                } else if (admin_received_msg[0] == LOGOUT_REQUEST) {
+                    strcpy(proxy_response_msg, "Logout succesful");
+                } else {
+                    strcpy(proxy_response_msg, "Forbidden");
+                }
+            } else if (auth) {
+                proxy_response_msg = parse_request(admin_received_msg, settings, metrics);
             } else {
                 strcpy(proxy_response_msg, "Forbidden");
             }
-        } else if (auth) {
-            proxy_response_msg = parse_request(admin_received_msg, settings, metrics);
-        } else {
-            strcpy(proxy_response_msg, "Forbidden");
         }
-    }
 
-    if (msg_reveived_len != 0) {
-        ret = sctp_sendmsg(connSock, (void *)proxy_response_msg, (size_t)BUFFER_MAX, NULL, 0, 0, 0, 0, 0, 0);
-        if (ret == -1) {
-            printf("Error in sctp_sendmsg()\n");
-            perror("sctp_sendmsg()");
+        if (msg_reveived_len != 0) {
+            ret = sctp_sendmsg(connection_socket, (void *)proxy_response_msg, (size_t)BUFFER_MAX, NULL, 0, 0, 0, 0, 0, 0);
+            if (ret == -1) {
+                printf("Error in sctp_sendmsg()\n");
+                perror("sctp_sendmsg()");
+                break;
+            }
+            else {
+                printf("Successfully sent %d bytes data to admin\n", ret);
+            }
         }
-        else {
-            printf("Successfully sent %d bytes data to admin\n", ret);
-        }
-        free(proxy_response_msg);
     }
+    free(proxy_response_msg);
 }
 
 bool parseLoginOrLogout(__uint8_t *admin_received_msg) {
@@ -227,71 +231,75 @@ char *buildGetResponseWithString(char *data, char *initial_msg) {
 
 
 char *parse_set(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics) {
-    char *response = "TODO SET";
+    char *response = "TODO MAKE RESPONSE";
     switch(admin_received_msg[0]) {
         case CMD:
-            size_t new_cmd_len = strlen((char *) admin_received_msg+1);
-            char *new_cmd = malloc((new_cmd_len + 1) * sizeof(char));
-            strcpy(new_cmd, admin_received_msg+1);
-            char *old_cmd = settings->cmd;
-            settings->cmd = new_cmd;
-            free(old_cmd);
+            handle_set_cmd(admin_received_msg, settings);
             break;
         case MTYPES:
-            char *old_mtypes = settings->media_types; 
-            char *new_mtypes = filter_repetitions_mtypes(old_mtypes, admin_received_msg+2);
-            settings->media_types = new_mtypes;
+            handle_set_mtypes(admin_received_msg+1, settings);
             break;
     }
     return response;
-    
 }
 
-char *filter_repetitions_mtypes(char *current_mtypes, char *new_mtypes) {
-    char *filtered_mtypes = malloc(strlen(new_mtypes) +1);
-    char current_mtype[100];
-    int count_filtered_mtypes = 0;
-    int j = 0;
-    for (int i = 0; i <= strlen(new_mtypes) ; i++) {
-        current_mtype[j++] = current_mtypes[i];
-        if (current_mtypes[i] == ',' || current_mtypes[i] == '\0') {
-            if (strstr(current_mtypes, current_mtype) != NULL) {
-            } else {
-                strncpy(filtered_mtypes, current_mtype, j);
-            }
-            filtered_mtypes += j;
-            j = 0;
-        }
-    }
-    filtered_mtypes[count_filtered_mtypes+1] = '\0';
-    char *new_current_mtypes = malloc(count_filtered_mtypes+1+strlen(current_mtypes));
-    strcpy(new_current_mtypes, current_mtypes);
-    strcat(new_current_mtypes, filter_repetitions_mtypes);
-    free(filtered_mtypes);
-    free(current_mtypes);
-    return new_current_mtypes;
+void handle_set_mtypes(__uint8_t *admin_received_msg, settings_t settings) {
+    char *old_mtypes = settings->media_types; 
+    char *new_mtypes = malloc(strlen(((char *)admin_received_msg))+1);
+    strcpy(new_mtypes, (char *)admin_received_msg);
+    settings->media_types = new_mtypes;
 }
+
+void handle_set_cmd(__uint8_t *admin_received_msg, settings_t settings) {
+    size_t new_cmd_len = strlen((char *) admin_received_msg+1);
+    char *new_cmd = malloc((new_cmd_len + 1) * sizeof(char));
+    strcpy(new_cmd, admin_received_msg+1);
+    char *old_cmd = settings->cmd;
+    settings->cmd = new_cmd;
+}
+
+// char *filter_repetitions_mtypes(char *current_mtypes, char *new_mtypes) { //nth
+//             filtered_mtypes += j;
+//             j = 0;
+//         }
+//     }
+//     filtered_mtypes[count_filtered_mtypes+1] = '\0';
+//     char *new_current_mtypes = malloc(count_filtered_mtypes+1+strlen(current_mtypes));
+//     strcpy(new_current_mtypes, current_mtypes);
+//     strcat(new_current_mtypes, filter_repetitions_mtypes);
+//     free(filtered_mtypes);
+//     free(current_mtypes);
+//     return new_current_mtypes;
+// }
 
 char *parse_rm(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics) {
     char *response = "TODO RM";
     switch(admin_received_msg[0]) {
         case MTYPES:
-            // char *old_mtypes = settings->media_types; 
-            // char *new_mtypes = rm_mtypes(old_mtypes, admin_received_msg+2);
-            // settings->media_types = new_mtypes;
+            handle_rm_mtypes(admin_received_msg, settings);
             break;
     }
     return response;
 }
 
+void handle_rm_mtypes(__uint8_t *admin_received_msg, settings_t settings) {
+    char *old_mtypes = settings->media_types; 
+    char *new_mtypes = rm_mtypes(old_mtypes, admin_received_msg+2);
+    settings->media_types = new_mtypes;
+}
+
 char *rm_mtypes(char *current_mtypes, char *mtypes_to_rm) {
+    char *new_mtypes = malloc(strlen(current_mtypes) + 1); // que haya de mas
+    char mtype[100];
     int j = 0;
     for (int i = 0 ; i <= strlen(current_mtypes) ; i++) {
-        if (current_mtypes[i]) {
-
-        } else {
-
-        }
+        mtype[j++] = current_mtypes[i];
+        if (current_mtypes[i] == ',' || current_mtypes[i] == '\0') {
+            if (strstr(mtype, mtypes_to_rm) == NULL) {
+                strncpy(new_mtypes, mtype, j+1);
+            } 
+            j = 0;
+        } 
     }
-    return NULL;
+    return new_mtypes;
 }
