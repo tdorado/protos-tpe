@@ -51,5 +51,7 @@ char *buildMetricsResponse(int data, char *initial_msg);
 char *buildGetResponseWithString(char *data, char *initial_msg);
 char *parse_set(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics);
 char *parse_rm(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics);
+char *filter_repetitions_mtypes(char *current_mtypes, char *new_mtypes);
+char *rm_mtypes(char *current_mtypes, char *mtypes_to_rm);
 
 #endif

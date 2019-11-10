@@ -55,18 +55,18 @@ static char *SET_CMD = "SET CMD";  // SET CMD <CMD>
 // RM
 static char *RM_MTYPES = "RM MTYPES"; // rm mtypes paramsQty [params]
 
-__uint8_t *parseCommand(char *buffer);
-__uint8_t *parseLoginOrLogout(char *buffer);
-__uint8_t *parseLogin(char *buffer, size_t login_size);
-__uint8_t *parseLogout(void);
-__uint8_t *parseGet(char *buffer);
-__uint8_t *parseSet(char *buffer);
-__uint8_t *parseRm(char *buffer);
-__uint8_t *getGETRequest(operations operation);
-__uint8_t *getSETMtypesRequest(char *buffer);
-__uint8_t *getSETCmdRequest(char *buffer);
-int validParamsQty(char *mtypesParams, __uint8_t mtypesQty);
-void replaceSpacesWithCommas(__uint8_t *buffer);
+uint8_t *parse_command(char *buffer);
+uint8_t *parse_login_or_logout(char *buffer);
+uint8_t *parse_login(char *buffer, size_t login_size);
+uint8_t *parse_logout(void);
+uint8_t *parse_get(char *buffer);
+uint8_t *parse_set(char *buffer);
+uint8_t *parse_rm(char *buffer);
+uint8_t *get_GET_request(operations operation);
+uint8_t *get_SET_mtypes_request(char *buffer);
+uint8_t *get_SET_cmd_request(char *buffer);
+int valid_params_qty(char *mtypes_params, uint8_t mtypes_qty);
+void replace_spaces_with_commas(uint8_t *buffer);
 
 int strncasecmp(const char *s1, const char *s2, size_t n);
 void bzero(void *s, size_t n);

@@ -3,34 +3,34 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include "adminClient.h"
+#include "admin_client.h"
 
 // In order to run test, you should comment main function in adminClient.c 
 
-__uint8_t *getSETCmdRequest(char *buffer);
-__uint8_t *getSETMtypesRequest(char *buffer);
-__uint8_t *getGETRequest(operations operation);
+uint8_t *get_SET_cmd_request(char *buffer);
+uint8_t *get_SET_mtypes_request(char *buffer);
+uint8_t *get_GET_request(operations operation);
 
-__uint8_t *parseLogin(char *buffer, size_t login_size);
-__uint8_t *parseLogout();
-__uint8_t *parseGet(char *buffer);
-__uint8_t *parseSet(char *buffer);
-__uint8_t *parseRm(char *buffer);
+uint8_t *parse_login(char *buffer, size_t login_size);
+uint8_t *parse_logout();
+uint8_t *parse_get(char *buffer);
+uint8_t *parse_set(char *buffer);
+uint8_t *parse_rm(char *buffer);
 
-__uint8_t *parseCommand(char *buffer);
-__uint8_t *parseLoginOrLogout(char *buffer);
+uint8_t *parseCommand(char *buffer);
+uint8_t *parse_login_or_logout(char *buffer);
 
-int validParamsQty(char *mtypesParams, __uint8_t mtypesQty);
+int valid_params_qty(char *mtypesParams, uint8_t mtypesQty);
 
 static char *TEST_SUCCESS = "Test succeeded! :) \n";
 static char *TEST_FAILED = "Test failed! :( \n";
 
-void testValidParamsQtyWithValidAmountOfParams() {
-    printf("Running test: testValidParamsQtyWithValidAmountOfParams\n");
+void testvalid_params_qtyWithValidAmountOfParams() {
+    printf("Running test: testvalid_params_qtyWithValidAmountOfParams\n");
     char *params = "param1 param2 param3";
-    __uint8_t paramsQty = 3;
-    // printf("Calling function validParamsQty with %s and %d\n", params, paramsQty);
-    int result = validParamsQty(params, paramsQty);
+    uint8_t paramsQty = 3;
+    // printf("Calling function valid_params_qty with %s and %d\n", params, paramsQty);
+    int result = valid_params_qty(params, paramsQty);
     if (result == 1) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -38,12 +38,12 @@ void testValidParamsQtyWithValidAmountOfParams() {
     }
 }
 
-void testValidParamsQtyWithInvalidAmountOfParams() {
-    printf("Running test: testValidParamsQtyWithValidAmountOfParams\n");
+void testvalid_params_qtyWithInvalidAmountOfParams() {
+    printf("Running test: testvalid_params_qtyWithValidAmountOfParams\n");
     char *params = "param1 param2";
-    __uint8_t paramsQty = 3;
-    // printf("Calling function validParamsQty with %s and %d\n", params, paramsQty);
-    int result = validParamsQty(params, paramsQty);
+    uint8_t paramsQty = 3;
+    // printf("Calling function valid_params_qty with %s and %d\n", params, paramsQty);
+    int result = valid_params_qty(params, paramsQty);
     if (result == 0) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -51,10 +51,10 @@ void testValidParamsQtyWithInvalidAmountOfParams() {
     }
 }
 
-void testGetSETCmdRequestWithValidBuffer() {
-    printf("Running test: testGetSETCmdRequestWithValidBuffer\n");
+void testget_SET_cmd_requestWithValidBuffer() {
+    printf("Running test: testget_SET_cmd_requestWithValidBuffer\n");
     char *validBuffer = "set cmd superBigFunCommand";
-    __uint8_t *result = getSETCmdRequest(validBuffer);
+    uint8_t *result = get_SET_cmd_request(validBuffer);
     if (result != NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -63,10 +63,10 @@ void testGetSETCmdRequestWithValidBuffer() {
 
 }
 
-void testGetSETCmdRequestWithInvalidBuffer() {
-    printf("Running test: testGetSETCmdRequestWithInvalidBuffer\n");
+void testget_SET_cmd_requestWithInvalidBuffer() {
+    printf("Running test: testget_SET_cmd_requestWithInvalidBuffer\n");
     char *invalidBuffer = "set cmd super Big Fun Command >";
-    __uint8_t *result = getSETCmdRequest(invalidBuffer);
+    uint8_t *result = get_SET_cmd_request(invalidBuffer);
     if (result == NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -74,10 +74,10 @@ void testGetSETCmdRequestWithInvalidBuffer() {
     }
 }
 
-void testGetSETMtypesRequestWithValidBuffer() {
-    printf("Running test: testGetSETMtypesRequestWithValidBuffer\n");
+void testget_SET_mtypes_requestWithValidBuffer() {
+    printf("Running test: testget_SET_mtypes_requestWithValidBuffer\n");
     char *validBuffer = "set mtypes 4 mtype1 mtype2 mtype3 mtype4";
-    __uint8_t *result = getSETMtypesRequest(validBuffer);
+    uint8_t *result = get_SET_mtypes_request(validBuffer);
     if (result != NULL && result[0] == SET_REQUEST && result[1] == 
         MTYPES && result[2] == 4 && !strcmp(result+3, "mtype1,mtype2,mtype3,mtype4")) {
         printf("%s\n", TEST_SUCCESS);
@@ -86,10 +86,10 @@ void testGetSETMtypesRequestWithValidBuffer() {
     }
 }
 
-void testGetSETMtypesRequestWithInvalidBuffer() {
-    printf("Running test: testGetSETMtypesRequestWithInvalidBuffer\n");
+void testget_SET_mtypes_requestWithInvalidBuffer() {
+    printf("Running test: testget_SET_mtypes_requestWithInvalidBuffer\n");
     char *validBuffer = "set mtypes 4 mtype1 mtype2 mtype3";
-    __uint8_t *result = getSETMtypesRequest(validBuffer);
+    uint8_t *result = get_SET_mtypes_request(validBuffer);
     if (result == NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -97,9 +97,9 @@ void testGetSETMtypesRequestWithInvalidBuffer() {
     }
 }
 
-void testGetGETRequestWithOperation() {
-    printf("Running test: testGetGETRequestWithOperation\n");
-    __uint8_t *result = getGETRequest(ACCESSES);
+void testget_GET_requestWithOperation() {
+    printf("Running test: testget_GET_requestWithOperation\n");
+    uint8_t *result = get_GET_request(ACCESSES);
     int assumptions = result[0] == GET_REQUEST && result[1] == ACCESSES && result[2] == '\0' ;
     if (assumptions) { 
         printf("%s\n", TEST_SUCCESS);
@@ -108,10 +108,10 @@ void testGetGETRequestWithOperation() {
     }
 }
 
-void testParseLoginWithValidBufferAndLoginSize() {
-    printf("Running test: testParseLoginWithValidBufferAndLoginSize\n");
+void testparse_loginWithValidBufferAndLoginSize() {
+    printf("Running test: testparse_loginWithValidBufferAndLoginSize\n");
     char *validBuffer = "login tokenazo";
-    __uint8_t *result = parseLogin(validBuffer, strlen(LOGIN));
+    uint8_t *result = parse_login(validBuffer, strlen(LOGIN));
     int assumptions = result != NULL && result[0] == LOGIN_REQUEST && !strcmp((char *)result+1, "tokenazo");
     if (assumptions) {
         printf("%s\n", TEST_SUCCESS);
@@ -120,10 +120,10 @@ void testParseLoginWithValidBufferAndLoginSize() {
     }
 }
 
-void testParseLoginWithInvalidBufferAndLoginSize() {
-    printf("Running test: testParseLoginWithInvalidBufferAndLoginSize\n");
+void testparse_loginWithInvalidBufferAndLoginSize() {
+    printf("Running test: testparse_loginWithInvalidBufferAndLoginSize\n");
     char *validBuffer = "login tokenazo peroPiola";
-    __uint8_t *result = parseLogin(validBuffer, strlen(LOGIN));
+    uint8_t *result = parse_login(validBuffer, strlen(LOGIN));
     if (result == NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -131,9 +131,9 @@ void testParseLoginWithInvalidBufferAndLoginSize() {
     }
 }
 
-void testParseLogout() {
-    printf("Running test: testParseLogout\n");
-    __uint8_t *result = parseLogout();
+void testparse_logout() {
+    printf("Running test: testparse_logout\n");
+    uint8_t *result = parse_logout();
     if (result != NULL && result[0] == LOGOUT_REQUEST && result[1] == '\0') {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -141,10 +141,10 @@ void testParseLogout() {
     }
 }
 
-void testParseGetAccesses() {
-    printf("Running test: testParseGetAccesses\n");
+void testparse_getAccesses() {
+    printf("Running test: testparse_getAccesses\n");
     char *buffer = "get accesses";
-    __uint8_t *result = parseGet(buffer);
+    uint8_t *result = parse_get(buffer);
     if (result != NULL && result[0] == GET_REQUEST && result[1] == ACCESSES) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -152,10 +152,10 @@ void testParseGetAccesses() {
     }
 }
     
-void testParseGetBytes() {
-    printf("Running test: testParseGetBytes\n");
+void testparse_getBytes() {
+    printf("Running test: testparse_getBytes\n");
     char *buffer = "get bytes";
-    __uint8_t *result = parseGet(buffer);
+    uint8_t *result = parse_get(buffer);
     if (result != NULL && result[0] == GET_REQUEST && result[1] == BYTES) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -163,10 +163,10 @@ void testParseGetBytes() {
     }
 }
 
-void testParseGetConcurrent() {
-    printf("Running test: testParseGetConcurrent\n");
+void testparse_getConcurrent() {
+    printf("Running test: testparse_getConcurrent\n");
     char *buffer = "get concurrent";
-    __uint8_t *result = parseGet(buffer);
+    uint8_t *result = parse_get(buffer);
     if (result != NULL && result[0] == GET_REQUEST && result[1] == CONCURRENT) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -174,10 +174,10 @@ void testParseGetConcurrent() {
     }
 }
 
-void testParseGetMtypes() {
-    printf("Running test: testParseGetMtypes\n");
+void testparse_getMtypes() {
+    printf("Running test: testparse_getMtypes\n");
     char *buffer = "get mtypes";
-    __uint8_t *result = parseGet(buffer);
+    uint8_t *result = parse_get(buffer);
     if (result != NULL && result[0] == GET_REQUEST && result[1] == MTYPES) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -185,10 +185,10 @@ void testParseGetMtypes() {
     }
 }
 
-void testParseGetCmd() {
-    printf("Running test: testParseGetCmd\n");
+void testparse_getCmd() {
+    printf("Running test: testparse_getCmd\n");
     char *buffer = "get cmd";
-    __uint8_t *result = parseGet(buffer);
+    uint8_t *result = parse_get(buffer);
     if (result != NULL && result[0] == GET_REQUEST && result[1] == CMD) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -196,10 +196,10 @@ void testParseGetCmd() {
     }
 }
 
-void testParseGetWithInvalidBuffer() {
-    printf("Running test: testParseGetAccesses\n");
+void testparse_getWithInvalidBuffer() {
+    printf("Running test: testparse_getAccesses\n");
     char *buffer = "get CUALQUIERcoSA";
-    __uint8_t *result = parseGet(buffer);
+    uint8_t *result = parse_get(buffer);
     if (result == NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -207,10 +207,10 @@ void testParseGetWithInvalidBuffer() {
     }
 }
 
-void testParseSetWithMtypes() {
-    printf("Running test: testParseSetWithMtypes\n");
+void testparse_setWithMtypes() {
+    printf("Running test: testparse_setWithMtypes\n");
     char *buffer = "set mtypes 2 asd asd";
-    __uint8_t *result = parseSet(buffer);
+    uint8_t *result = parse_set(buffer);
     if (result != NULL && result[0] == SET_REQUEST && result[1] == MTYPES) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -218,10 +218,10 @@ void testParseSetWithMtypes() {
     }
 }
 
-void testParseSetWithCmd() {
-    printf("Running test: testParseSetWithCmd\n");
+void testparse_setWithCmd() {
+    printf("Running test: testparse_setWithCmd\n");
     char *buffer = "set cmd commandzo";
-    __uint8_t *result = parseSet(buffer);
+    uint8_t *result = parse_set(buffer);
     if (result != NULL && result[0] == SET_REQUEST && result[1] == CMD) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -229,10 +229,10 @@ void testParseSetWithCmd() {
     }
 }
 
-void testParseSetWithInvalidBuffer() {
-    printf("Running test: testParseSetWithInvalidBuffer\n");
+void testparse_setWithInvalidBuffer() {
+    printf("Running test: testparse_setWithInvalidBuffer\n");
     char *buffer = "set set 2 asd asd";
-    __uint8_t *result = parseSet(buffer);
+    uint8_t *result = parse_set(buffer);
     if (result == NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -240,10 +240,10 @@ void testParseSetWithInvalidBuffer() {
     }
 }
 
-void testParseRmMtypes() {
-    printf("Running test: testParseRmMtypes\n");
+void testparse_rmMtypes() {
+    printf("Running test: testparse_rmMtypes\n");
     char *buffer = "rm mtypes 3 este elOtro esteOtro";
-    __uint8_t *result = parseRm(buffer);
+    uint8_t *result = parse_rm(buffer);
     int firstAssumption = result != NULL && result[0] == RM_REQUEST && result[1] == MTYPES;
     int secondAssumption = result[2] == 3 && !strcmp(result+3, "este,elOtro,esteOtro");
     if (firstAssumption && secondAssumption) {
@@ -253,10 +253,10 @@ void testParseRmMtypes() {
     }
 }
 
-void testParseRmWithInvalidBuffer() {
-    printf("Running test: testParseRmWithInvalidBuffer\n");
+void testparse_rmWithInvalidBuffer() {
+    printf("Running test: testparse_rmWithInvalidBuffer\n");
     char *buffer = "rm 2 asd asd";
-    __uint8_t *result = parseRm(buffer);
+    uint8_t *result = parse_rm(buffer);
     if (result == NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -265,10 +265,10 @@ void testParseRmWithInvalidBuffer() {
 }
 
 
-void testParseLoginOrLogoutWithLogin() {
-    printf("Running test: testParseLoginOrLogoutWithLogin\n");
+void testparse_login_or_logoutWithLogin() {
+    printf("Running test: testparse_login_or_logoutWithLogin\n");
     char *buffer = "login tokenazo";
-    __uint8_t *result = parseLoginOrLogout(buffer);
+    uint8_t *result = parse_login_or_logout(buffer);
     if (result != NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -276,10 +276,10 @@ void testParseLoginOrLogoutWithLogin() {
     }
 }
 
-void testParseLoginOrLogoutWithLogout() {
-    printf("Running test: testParseLoginOrLogoutWithLogout\n");
+void testparse_login_or_logoutWithLogout() {
+    printf("Running test: testparse_login_or_logoutWithLogout\n");
     char *buffer = "logout";
-    __uint8_t *result = parseLoginOrLogout(buffer);
+    uint8_t *result = parse_login_or_logout(buffer);
     if (result != NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -287,10 +287,10 @@ void testParseLoginOrLogoutWithLogout() {
     }
 }
 
-void testParseLoginOrLogoutWithInvalidCommand() {
-    printf("Running test: testParseLoginOrLogoutWithInvalidCommand\n");
+void testparse_login_or_logoutWithInvalidCommand() {
+    printf("Running test: testparse_login_or_logoutWithInvalidCommand\n");
     char *buffer = "login alksdja asd";
-    __uint8_t *result = parseLoginOrLogout(buffer);
+    uint8_t *result = parse_login_or_logout(buffer);
     if (result == NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -301,7 +301,7 @@ void testParseLoginOrLogoutWithInvalidCommand() {
 void testParseCommandWithInvalidCommand() {
     printf("Running test: testParseCommandWithInvalidCommand\n");
     char *buffer = "login alksdja asd";
-    __uint8_t *result = parseCommand(buffer);
+    uint8_t *result = parseCommand(buffer);
     if (result == NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -312,7 +312,7 @@ void testParseCommandWithInvalidCommand() {
 void testParseCommandWithValidCommand() {
     printf("Running test: testParseCommandWithValidCommand\n");
     char *buffer = "login alksdja";
-    __uint8_t *result = parseCommand(buffer);
+    uint8_t *result = parseCommand(buffer);
     if (result != NULL) {
         printf("%s\n", TEST_SUCCESS);
     } else {
@@ -322,62 +322,62 @@ void testParseCommandWithValidCommand() {
 }
 
 int main(int argc, char *argv[]){
-    testValidParamsQtyWithValidAmountOfParams();
+    testvalid_params_qtyWithValidAmountOfParams();
     printf("\n");
-    testValidParamsQtyWithInvalidAmountOfParams();
-    printf("\n");
-
-    testGetSETCmdRequestWithValidBuffer();
-    printf("\n");
-    testGetSETCmdRequestWithInvalidBuffer();
+    testvalid_params_qtyWithInvalidAmountOfParams();
     printf("\n");
 
-    testGetSETMtypesRequestWithValidBuffer();
+    testget_SET_cmd_requestWithValidBuffer();
     printf("\n");
-    testGetSETMtypesRequestWithInvalidBuffer();
+    testget_SET_cmd_requestWithInvalidBuffer();
     printf("\n");
 
-    testGetGETRequestWithOperation();
+    testget_SET_mtypes_requestWithValidBuffer();
+    printf("\n");
+    testget_SET_mtypes_requestWithInvalidBuffer();
+    printf("\n");
+
+    testget_GET_requestWithOperation();
     printf("\n");
     
-    testParseLoginWithValidBufferAndLoginSize();
+    testparse_loginWithValidBufferAndLoginSize();
     printf("\n");
-    testParseLoginWithInvalidBufferAndLoginSize();
-    printf("\n");
-
-    testParseLogout();
+    testparse_loginWithInvalidBufferAndLoginSize();
     printf("\n");
 
-    testParseGetAccesses();
-    printf("\n");
-    testParseGetBytes();
-    printf("\n");
-    testParseGetConcurrent();
-    printf("\n");
-    testParseGetMtypes();
-    printf("\n");
-    testParseGetCmd();
-    printf("\n");
-    testParseGetWithInvalidBuffer();
+    testparse_logout();
     printf("\n");
 
-    testParseSetWithMtypes();
+    testparse_getAccesses();
     printf("\n");
-    testParseSetWithCmd();
+    testparse_getBytes();
     printf("\n");
-    testParseSetWithInvalidBuffer();
+    testparse_getConcurrent();
+    printf("\n");
+    testparse_getMtypes();
+    printf("\n");
+    testparse_getCmd();
+    printf("\n");
+    testparse_getWithInvalidBuffer();
     printf("\n");
 
-    testParseRmMtypes();
+    testparse_setWithMtypes();
     printf("\n");
-    testParseRmWithInvalidBuffer();
+    testparse_setWithCmd();
+    printf("\n");
+    testparse_setWithInvalidBuffer();
     printf("\n");
 
-    testParseLoginOrLogoutWithLogin();
+    testparse_rmMtypes();
     printf("\n");
-    testParseLoginOrLogoutWithLogout();
+    testparse_rmWithInvalidBuffer();
     printf("\n");
-    testParseLoginOrLogoutWithInvalidCommand();
+
+    testparse_login_or_logoutWithLogin();
+    printf("\n");
+    testparse_login_or_logoutWithLogout();
+    printf("\n");
+    testparse_login_or_logoutWithInvalidCommand();
     printf("\n");
 
     testParseCommandWithInvalidCommand();

@@ -230,20 +230,68 @@ char *parse_set(__uint8_t *admin_received_msg, settings_t settings, metrics_t me
     char *response = "TODO SET";
     switch(admin_received_msg[0]) {
         case CMD:
+            size_t new_cmd_len = strlen((char *) admin_received_msg+1);
+            char *new_cmd = malloc((new_cmd_len + 1) * sizeof(char));
+            strcpy(new_cmd, admin_received_msg+1);
+            char *old_cmd = settings->cmd;
+            settings->cmd = new_cmd;
+            free(old_cmd);
             break;
         case MTYPES:
+            char *old_mtypes = settings->media_types; 
+            char *new_mtypes = filter_repetitions_mtypes(old_mtypes, admin_received_msg+2);
+            settings->media_types = new_mtypes;
             break;
     }
     return response;
     
 }
 
+char *filter_repetitions_mtypes(char *current_mtypes, char *new_mtypes) {
+    char *filtered_mtypes = malloc(strlen(new_mtypes) +1);
+    char current_mtype[100];
+    int count_filtered_mtypes = 0;
+    int j = 0;
+    for (int i = 0; i <= strlen(new_mtypes) ; i++) {
+        current_mtype[j++] = current_mtypes[i];
+        if (current_mtypes[i] == ',' || current_mtypes[i] == '\0') {
+            if (strstr(current_mtypes, current_mtype) != NULL) {
+            } else {
+                strncpy(filtered_mtypes, current_mtype, j);
+            }
+            filtered_mtypes += j;
+            j = 0;
+        }
+    }
+    filtered_mtypes[count_filtered_mtypes+1] = '\0';
+    char *new_current_mtypes = malloc(count_filtered_mtypes+1+strlen(current_mtypes));
+    strcpy(new_current_mtypes, current_mtypes);
+    strcat(new_current_mtypes, filter_repetitions_mtypes);
+    free(filtered_mtypes);
+    free(current_mtypes);
+    return new_current_mtypes;
+}
+
 char *parse_rm(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics) {
     char *response = "TODO RM";
     switch(admin_received_msg[0]) {
         case MTYPES:
+            // char *old_mtypes = settings->media_types; 
+            // char *new_mtypes = rm_mtypes(old_mtypes, admin_received_msg+2);
+            // settings->media_types = new_mtypes;
             break;
     }
     return response;
-    
+}
+
+char *rm_mtypes(char *current_mtypes, char *mtypes_to_rm) {
+    int j = 0;
+    for (int i = 0 ; i <= strlen(current_mtypes) ; i++) {
+        if (current_mtypes[i]) {
+
+        } else {
+
+        }
+    }
+    return NULL;
 }
