@@ -238,7 +238,7 @@ int input_parser(const int argc, char ** argv, settings_t settings) {
 }
 
 void free_settings(settings_t settings){
-    free(settings->capa_text);
+    free(settings->cmd);
     free(settings);
 }
 
@@ -264,11 +264,6 @@ settings_t init_settings(){
     strcpy(ret->cmd, DEFAULT_CMD);
     ret->error_file = DEFAULT_ERROR_FILE;
     ret->transformations = true;
-    ret->capa_text = (char *)malloc(CAPA_BUFFER);
-    if(ret->capa_text == NULL){
-        perror("Error creating settings");
-        exit(EXIT_FAILURE);
-    }
 
     return ret;
 }

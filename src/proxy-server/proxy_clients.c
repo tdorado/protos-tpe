@@ -30,6 +30,7 @@ client_t create_client(client_list_t client_list, const int fd){
     client->client_read_buffer = init_buffer(BUFFER_SIZE);
     client->client_write_buffer = init_buffer(BUFFER_SIZE);
     client->command_received_len = 0;
+    client->logged = false;
 
     client->origin_server_state = NOT_RESOLVED_ORIGIN_SERVER;
     client->origin_server_fd = -1;
@@ -229,6 +230,9 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
             else if (strncasecmp((char *)client->client_read_buffer->read, "pass", 4) == 0) {
                 client->client_state = PASS_REQUEST;
             }
+            else if (strncasecmp((char *)client->client_read_buffer->read, "capa", 4) == 0) {
+                client->client_state = CAPA_REQUEST;
+            }
         }
         else{
             int aux = 0;
@@ -243,6 +247,9 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                 }
                 else if (strncasecmp(client->command_received, "pass", 4) == 0) {
                     client->client_state = PASS_REQUEST;
+                }
+                else if (strncasecmp(client->command_received, "capa", 4) == 0) {
+                    client->client_state = CAPA_REQUEST;
                 }
                 client->command_received_len = 0;
             }
@@ -272,9 +279,31 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                 if (get_response(client->origin_server_buffer) == OK_RESPONSE) {
                     if (client->client_state == PASS_REQUEST) {
                         client->client_state = LOGGED_IN;
+                        client->logged = true;
                     }
                     else if(client->client_state == RETR_REQUEST){
                         client->client_state = RETR_OK;
+                    }
+                    else if(client->client_state == CAPA_REQUEST){
+                        if(client->logged){
+                            client->client_state = LOGGED_IN;
+                        }
+                        else{
+                            client->client_state = NOT_LOGGED_IN;
+                        }
+                        char aux[bytes_read + 13];
+                        for(int i = 0; i < bytes_read; i++){
+                            aux[i] = buffer_read(client->origin_server_buffer);
+                        }
+                        buffer_reset(client->origin_server_buffer);
+                        aux[bytes_read] = '\0';
+                        if(strstr(aux, "PIPELINING") == NULL){
+                            strcpy(aux + bytes_read - 3, "PIPELINING\r\n.\r\n");
+                            bytes_read += 12;
+                        }
+                        for(int i = 0; i < bytes_read; i++){
+                            buffer_write(client->origin_server_buffer, aux[i]);
+                        }
                     }
                 }
             }

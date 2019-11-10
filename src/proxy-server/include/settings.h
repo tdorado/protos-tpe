@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define CAPA_BUFFER 1024
 #define CMD_BUFFER 1024
 
 #define DEFAULT_CMD "cat"
@@ -32,7 +31,6 @@ struct settings{
     char *cmd;
     char *error_file;
     bool transformations;
-    char *capa_text;
 };
 
 settings_t init_settings();
