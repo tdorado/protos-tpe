@@ -120,7 +120,7 @@ int skip_to_body() {
     int found_body = FALSE;
     while( (c=getchar()) != EOF && !found_body) {
         putchar(c);
-        if(c == '\n')
+        if(c == '\r' && (c =getchar()) == '\n')
             found_body = TRUE;
         else
             skip_to_new_line();
