@@ -29,6 +29,8 @@ client_t create_client(client_list_t client_list, const int fd) {
     client->client_fd = fd;
     client->client_read_buffer = init_buffer(BUFFER_SIZE);
     client->client_write_buffer = init_buffer(BUFFER_SIZE);
+    client->command_received_len = 0;
+    client->logged = false;
 
     client->origin_server_state = NOT_RESOLVED_ORIGIN_SERVER;
     client->origin_server_fd = -1;
@@ -126,7 +128,7 @@ void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_i
 }
 
 int set_client_fds(client_t client, client_list_t client_list, int * max_fd, fd_set * read_fds, fd_set * write_fds, settings_t settings, metrics_t metrics) {
-    if(set_external_transformation_fds(client_list, client, settings, read_fds, write_fds, metrics) == ERROR_TRANSFORMATION) {
+    if (set_external_transformation_fds(client_list, client, settings, read_fds, write_fds, metrics) == ERROR_TRANSFORMATION_PROCESS) {
         return -1;
     }
     set_client_fd(client, read_fds, write_fds);
@@ -142,14 +144,10 @@ int set_client_fds(client_t client, client_list_t client_list, int * max_fd, fd_
 
 void set_client_fd(client_t client, fd_set *read_fds, fd_set *write_fds){
     if (client->client_fd > 0 && client->received_greeting) {
-        // Did the client write to us?
-        // This writes the client request to the clientRead buffer
-        // clientRead it's because we are READING from the client
         if (buffer_can_write(client->client_read_buffer)) {
             FD_SET(client->client_fd, read_fds);
         }
 
-        /* Can we write to the client? */
         if (buffer_can_read(client->client_write_buffer)) {
             FD_SET(client->client_fd, write_fds);
         }
@@ -167,12 +165,11 @@ int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *wr
         return ERROR_ORIGIN_SERVER;
     }
     else if (client->origin_server_state == RESOLVED_TO_ORIGIN_SERVER && client->origin_server_fd > 0) {
-        /* Did the server write to us? */
         if (buffer_can_write(client->origin_server_buffer)) {
             FD_SET(client->origin_server_fd, read_fds);
         }
 
-        if (buffer_can_read(client->client_read_buffer)) {
+        if (buffer_can_read(client->client_read_buffer) && client->client_state != RETR_OK && client->client_state != RETR_TRANSFORMING) {
             FD_SET(client->origin_server_fd, write_fds);
         }
     }
@@ -182,11 +179,11 @@ int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *wr
 int set_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set *read_fds, fd_set *write_fds, metrics_t metrics) {
     if (settings->transformations){
         if ( client->external_transformation_state == PROCESS_NOT_INITIALIZED ) {
-            if (start_external_transformation_process(settings, client) == ERROR_TRANSFORMATION) {
+            if (start_external_transformation_process(settings, client) == ERROR_TRANSFORMATION_PROCESS) {
                 send_message_to_fd(client->client_fd, ERR_TRANSFORMATION, ERR_TRANSFORMATION_LEN);
                 remove_client(client_list, client);
                 metrics->concurrent_connections--;;
-                return ERROR_TRANSFORMATION;
+                return ERROR_TRANSFORMATION_PROCESS;
             }
             client->external_transformation_state = PROCESS_INITIALIZED;
         }
@@ -204,57 +201,111 @@ int set_external_transformation_fds(client_list_t client_list, client_t client, 
     return 0;
 }
 
+pop_response_t get_response(buffer_t buffer) {
+    if (*(buffer->read) == '+') {
+        return OK_RESPONSE;
+    }
+    return ERR_RESPONSE;
+}
+
 void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics) {
     int bytes_read;
 
-    /* Client wrote to the pop3filter. */
     if (FD_ISSET(client->client_fd, read_fds)) {
         bytes_read = read_from_fd(client->client_fd, client->client_read_buffer);
 
-        /* User wants to disconnet. */
         if (bytes_read == 0) {
             remove_client(client_list, client);
             metrics->concurrent_connections--;
             return;
         }
 
-        interpret_request(client);
+        if(bytes_read >= 4){
+            if (strncasecmp((char *)client->client_read_buffer->read, "retr", 4) == 0 && client->client_state == LOGGED_IN) {
+                client->client_state = RETR_REQUEST;
+            }
+            else if (strncasecmp((char *)client->client_read_buffer->read, "pass", 4) == 0) {
+                client->client_state = PASS_REQUEST;
+            }
+            else if (strncasecmp((char *)client->client_read_buffer->read, "capa", 4) == 0) {
+                client->client_state = CAPA_REQUEST;
+            }
+        }
+        else{
+            int aux = 0;
+            while(client->command_received_len < 4 && aux < bytes_read ){
+                client->command_received[client->command_received_len] = *((char*)client->client_read_buffer->read + aux);
+                aux++;
+                client->command_received_len++;
+            }
+            if(client->command_received_len == 4){
+                if (strncasecmp(client->command_received, "retr", 4) == 0 && client->client_state == LOGGED_IN) {
+                    client->client_state = RETR_REQUEST;
+                }
+                else if (strncasecmp(client->command_received, "pass", 4) == 0) {
+                    client->client_state = PASS_REQUEST;
+                }
+                else if (strncasecmp(client->command_received, "capa", 4) == 0) {
+                    client->client_state = CAPA_REQUEST;
+                }
+                client->command_received_len = 0;
+            }
+        }
 
         metrics->bytes_transfered += bytes_read;
     }
 
-    /* pop3filter can write to the client. */
     if (FD_ISSET(client->client_fd, write_fds)) {
         write_to_fd(client->client_fd, client->client_write_buffer);
     }
 
     if (client->origin_server_state == RESOLVED_TO_ORIGIN_SERVER) {
-        /* pop3filter can write to the origin server. */
         if (FD_ISSET(client->origin_server_fd, write_fds)) {
             write_until_enter_to_fd(client->origin_server_fd, client->client_read_buffer);
         }
-        /* Origin server wrote to the pop3filter. */
+
         if (FD_ISSET(client->origin_server_fd, read_fds)) {
             bytes_read = read_from_fd(client->origin_server_fd, client->origin_server_buffer);
 
             if (bytes_read == 0) {
-                /* Origin server wants to disconnect. */
                 remove_client(client_list, client);
                 metrics->concurrent_connections--;
             }
 
             if(client->received_greeting){
-                if (interpret_response(client->origin_server_buffer) == OK_RESPONSE) {
+                if (get_response(client->origin_server_buffer) == OK_RESPONSE) {
                     if (client->client_state == PASS_REQUEST) {
                         client->client_state = LOGGED_IN;
+                        client->logged = true;
                     }
                     else if(client->client_state == RETR_REQUEST){
                         client->client_state = RETR_OK;
                     }
+                    else if(client->client_state == CAPA_REQUEST){
+                        if(client->logged){
+                            client->client_state = LOGGED_IN;
+                        }
+                        else{
+                            client->client_state = NOT_LOGGED_IN;
+                        }
+                        char aux[bytes_read + 13];
+                        for(int i = 0; i < bytes_read; i++){
+                            aux[i] = buffer_read(client->origin_server_buffer);
+                        }
+                        buffer_reset(client->origin_server_buffer);
+                        aux[bytes_read] = '\0';
+                        if(strstr(aux, "PIPELINING") == NULL){
+                            strcpy(aux + bytes_read - 3, "PIPELINING\r\n.\r\n");
+                            bytes_read += 12;
+                        }
+                        for(int i = 0; i < bytes_read; i++){
+                            buffer_write(client->origin_server_buffer, aux[i]);
+                        }
+                    }
                 }
             }
             else{
-                if (interpret_response(client->origin_server_buffer) == OK_RESPONSE) {
+                if (get_response(client->origin_server_buffer) == OK_RESPONSE) {
                     send_message_to_fd(client->client_fd, OK_WELCOME, OK_WELCOME_LEN);
                     buffer_reset(client->origin_server_buffer);
                     client->received_greeting = true;
@@ -272,7 +323,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
         if ((settings->transformations && client->client_state == RETR_OK) || client->client_state == RETR_TRANSFORMING) {
             if (client->external_transformation_state == PROCESS_INITIALIZED) {
                 if (client->client_state == RETR_OK) {
-                    /* Send response line to client write buffer */
+                    // Send response line to client write buffer
                     uint8_t c;
                     while (buffer_can_read(client->origin_server_buffer) && (c = buffer_read(client->origin_server_buffer)) != '\r') {
                         buffer_write(client->client_write_buffer, c);
@@ -306,26 +357,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
             }
         }
         else{
-            buffer_move(client->origin_server_buffer, client->client_write_buffer);
+            buffer_copy(client->origin_server_buffer, client->client_write_buffer);
         }
     }
-}
-
-void interpret_request(client_t client) {
-    if (client->client_read_buffer->write - client->client_read_buffer->read >= 4) {
-        char * command = (char *)client->client_read_buffer->read;
-
-        if (strncasecmp(command, "retr", 4) == 0 && client->client_state == LOGGED_IN) {
-            client->client_state = RETR_REQUEST;
-        } else if (strncasecmp(command, "pass", 4) == 0) {
-            client->client_state = PASS_REQUEST;
-        }
-    }
-}
-
-int interpret_response(buffer_t buff) {
-    if (*(buff->read) == '+') {
-        return OK_RESPONSE;
-    }
-    return ERR_RESPONSE;
 }

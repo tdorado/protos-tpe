@@ -35,18 +35,20 @@ typedef enum client_states{
     NOT_LOGGED_IN,
     PASS_REQUEST,
     LOGGED_IN,
+    CAPA_REQUEST,
+    CAPA_OK,
     RETR_REQUEST,
     RETR_OK,
     RETR_TRANSFORMING,
 } client_state_t;
 
 typedef enum pop_reponses{
-    OK_RESPONSE,
-    ERR_RESPONSE
-} pop_reponse_t;
+    ERR_RESPONSE,
+    OK_RESPONSE
+} pop_response_t;
 
 typedef enum external_transformation_states{
-    ERROR_TRANSFORMATION = -1,
+    ERROR_TRANSFORMATION_PROCESS = -1,
     PROCESS_NOT_INITIALIZED,
     PROCESS_INITIALIZED,
 } external_transformation_state_t;
@@ -59,10 +61,12 @@ struct client{
     int client_fd;
     buffer_t client_read_buffer;
     buffer_t client_write_buffer;
+    bool logged;
+    char command_received[4];
+    size_t command_received_len;
 
     origin_server_state_t origin_server_state;
     int origin_server_fd;
-    struct sockaddr_in6 origin_server_addr;
     buffer_t origin_server_buffer;
     bool received_greeting;
 
@@ -93,7 +97,6 @@ void set_client_fd(client_t client, fd_set * read_fds, fd_set * write_fds);
 int set_origin_server_fd(client_list_t client_list, fd_set * read_fds, fd_set * write_fds, client_t client, settings_t settings, metrics_t metrics);
 int set_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set * read_fds, fd_set * write_fds, metrics_t metrics);
 void resolve_client(client_t client, client_list_t client_list, fd_set * read_fds, fd_set * write_fds, settings_t settings, metrics_t metrics);
-void interpret_request(client_t client);
-int interpret_response(buffer_t buff);
+pop_response_t get_response(buffer_t buffer);
 
 #endif

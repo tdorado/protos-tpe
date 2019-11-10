@@ -6,6 +6,15 @@
 #include <signal.h>
 #include "include/origin_server_socket.h"
 
+typedef struct thread_args * thread_args_t;
+
+struct thread_args {
+    client_t client;
+    pthread_t p_id;
+    char *origin_server_addr;
+    uint16_t origin_server_port;
+};
+
 static void * resolve_origin_server_thread(void * args);
 
 int resolve_origin_server(client_t client, settings_t settings) {
@@ -18,8 +27,8 @@ int resolve_origin_server(client_t client, settings_t settings) {
 
     thread_args->client = client;
     thread_args->p_id = pthread_self();
-    thread_args->addr = settings->origin_server_addr;
-    thread_args->port = settings->origin_server_port;
+    thread_args->origin_server_addr = settings->origin_server_addr;
+    thread_args->origin_server_port = settings->origin_server_port;
 
     pthread_t thread;
 
@@ -36,70 +45,103 @@ static void *resolve_origin_server_thread(void *args) {
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC; // We want IPv4 and IPv6 addresses
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
     struct addrinfo *res;
 
-    int result = getaddrinfo(thread_args->addr, NULL, &hints, &res);
-
-    if (result != 0) {
+    if (getaddrinfo(thread_args->origin_server_addr, NULL, &hints, &res) != 0) {
         thread_args->client->origin_server_state = ERROR_ORIGIN_SERVER;
         pthread_kill(thread_args->p_id, SIGUSR1);
         pthread_exit(NULL);
     }
 
-    /*
-    * getaddrinfo() returns a list of address structures.
-    * Try each address until we successfully connect(2).
-    * If socket(2) (or connect(2)) fails, we (close the socket
-    * and) try the next address.
-    */
     struct addrinfo *rp;
-    int socketFD;
-    /* Setting defaults for IPv4 */
-    int originServerDomain = AF_INET;
-    unsigned int addrlen = sizeof(struct sockaddr_in);
-    struct sockaddr_in *saddr;
+    int origin_server_fd;
+    socklen_t origin_server_addr_len;
+    struct sockaddr_in * origin_server_addr;
 
     for (rp = res; rp != NULL; rp = rp->ai_next) {
-        saddr = (struct sockaddr_in *)rp->ai_addr;
-        saddr->sin_port = htons(thread_args->port);
+        origin_server_addr = (struct sockaddr_in *)rp->ai_addr;
+        origin_server_addr->sin_port = htons(thread_args->origin_server_port);
 
-        if (saddr->sin_family == AF_INET6) {
-            originServerDomain = AF_INET6;
-            addrlen = sizeof(struct sockaddr_in6);
+        if (origin_server_addr->sin_family == AF_INET6) {
+            origin_server_addr_len = sizeof(struct sockaddr_in6);
+        }
+        else{
+            origin_server_addr_len = sizeof(struct sockaddr_in);
         }
 
-        if ((socketFD = socket(originServerDomain, SOCK_STREAM, 0)) == -1) {
-            continue;
-        }
+        origin_server_fd = socket(origin_server_addr->sin_family, SOCK_STREAM, 0);
 
-        if (connect(socketFD, (struct sockaddr *)saddr, addrlen) == -1) {
+        if (connect(origin_server_fd, (struct sockaddr *)origin_server_addr, origin_server_addr_len) == -1) {
             perror("Error connecting to Origin Server");
         } else {
-            thread_args->client->origin_server_fd = socketFD;
+            thread_args->client->origin_server_fd = origin_server_fd;
             thread_args->client->origin_server_state = RESOLVED_TO_ORIGIN_SERVER;
             break;
         }
 
-        /* Solamente llega acá si falló con el actual rp. Vuelve a intentar con el próximo */
-        close(socketFD);
+        close(origin_server_fd);
     }
 
     if (rp == NULL) {
-        /* No address succeeded */
         perror("Error connecting to Origin Server\n");
         thread_args->client->origin_server_state = ERROR_ORIGIN_SERVER;
         pthread_kill(thread_args->p_id, SIGUSR1);
         pthread_exit(NULL);
     }
 
-    /* No longer needed */
     freeaddrinfo(res);
 
     pthread_kill(thread_args->p_id, SIGUSR1);
-    pthread_exit(EXIT_SUCCESS);
-    printf("prueba\n");
+    pthread_exit(NULL);
     return NULL;
+}
+
+void verify_origin_server_valid(settings_t settings) {
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    struct addrinfo *res;
+
+    if (getaddrinfo(settings->origin_server_addr, NULL, &hints, &res) != 0) {
+        fprintf(stderr, "Invalid <origin-server-address> argument. \n");
+        exit(EXIT_FAILURE);
+    }
+
+    struct addrinfo *rp;
+    int origin_server_fd;
+    socklen_t origin_server_addr_len;
+    struct sockaddr_in * origin_server_addr;
+
+    for (rp = res; rp != NULL; rp = rp->ai_next) {
+        origin_server_addr = (struct sockaddr_in *)rp->ai_addr;
+        origin_server_addr->sin_port = htons(settings->origin_server_port);
+
+        if (origin_server_addr->sin_family == AF_INET6) {
+            origin_server_addr_len = sizeof(struct sockaddr_in6);
+        } else {
+            origin_server_addr_len = sizeof(struct sockaddr_in);
+        }
+
+        origin_server_fd = socket(origin_server_addr->sin_family, SOCK_STREAM, 0);
+
+        if (connect(origin_server_fd, (struct sockaddr *)origin_server_addr, origin_server_addr_len) != -1) {
+            break;
+        }
+
+        close(origin_server_fd);
+    }
+
+    if (rp == NULL) {
+        fprintf(stderr, "Invalid <origin-server-address> argument. \n");
+        freeaddrinfo(res);
+        exit(EXIT_FAILURE);
+    }
+
+    close(origin_server_fd);
+    freeaddrinfo(res);
 }

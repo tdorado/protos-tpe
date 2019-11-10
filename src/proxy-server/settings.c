@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 
 #include "include/settings.h"
@@ -41,8 +42,14 @@ bool valid_digit(char * digit) {
 }
 
 bool valid_address(char * address) {
-    //VER COMO HACER BIEN
-    return true;
+    struct sockaddr_in6 sa6;
+    struct sockaddr_in sa;
+    if (strcmp(address, "loopback") == 0 || strcmp(address, "any") == 0){
+        return true;
+    }
+    else{
+        return inet_pton(AF_INET6, address, &(sa6.sin6_addr)) == 1 || inet_pton(AF_INET, address, &(sa.sin_addr)) == 1;
+    }
 }
 
 bool valid_port(char * port) {
@@ -84,9 +91,20 @@ bool valid_error_file(char * error_file){
     return S_ISREG(st.st_mode);
 }
 
+bool valid_executable(char * command){
+    struct stat st;
+    if (stat(command, &st) == 0 && st.st_mode & S_IXUSR){
+        /* executable and with permitions*/
+        return true;
+    }
+    /* not executable */
+    return false;
+}
+
 int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
     int c;
     bool flag_error = false;
+    char * aux;
 
     init_settings(settings);
 
@@ -138,7 +156,16 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                 }
                 break;
             case 't':
-                settings->cmd = optarg;
+                aux = (char *)optarg;
+                if(valid_executable(optarg)){
+                    if(aux[0] != '.'){
+                        /* No empieza con ./ se lo agrego */
+                        sprintf(settings->cmd, "./%s", aux);
+                    }
+                }
+                else {
+                    strcpy(settings->cmd, aux);
+                }
                 break;
             case 'e':
                 if (valid_error_file(optarg)){
@@ -169,13 +196,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
     }
 
     if (optind == argc - 1 && !flag_error) {
-        if (valid_address(argv[optind])) {
-            settings->origin_server_addr = argv[optind];
-        }
-        else{
-            perror("Invalid <origin-server-address> argument. \n");
-            flag_error = true;
-        }
+        settings->origin_server_addr = argv[optind];
     }
     else if (!flag_error) {
         perror("Expected <origin-server-address> argument after options. \n");
@@ -217,7 +238,7 @@ int input_parser(const int argc, char ** argv, settings_t settings) {
 }
 
 void free_settings(settings_t settings){
-    free(settings->capa_text);
+    free(settings->cmd);
     free(settings);
 }
 
@@ -235,15 +256,14 @@ settings_t init_settings(){
     ret->local_port = DEFAULT_LOCAL_PORT;
     ret->replace_message = DEFAULT_REPLACE_MESSAGE;
     ret->media_types = DEFAULT_MEDIA_TYPES;
-    ret->cmd = DEFAULT_CMD;
-    ret->error_file = DEFAULT_ERROR_FILE;
-    ret->transformations = true;
-    ret->pipe_lining_supported = false;
-    ret->capa_text = (char *)malloc(CAPA_BUFFER);
-    if(ret->capa_text == NULL){
+    ret->cmd = (char *)malloc(CMD_BUFFER);
+    if(ret->cmd == NULL){
         perror("Error creating settings");
         exit(EXIT_FAILURE);
     }
+    strcpy(ret->cmd, DEFAULT_CMD);
+    ret->error_file = DEFAULT_ERROR_FILE;
+    ret->transformations = true;
 
     return ret;
 }
