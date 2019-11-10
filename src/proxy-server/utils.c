@@ -47,6 +47,7 @@ ssize_t write_until_enter_to_fd(int fd, buffer_t buffer){
     ssize_t ret = 0;
 
     ptr = buffer_read_ptr(buffer, &len);
+    len--;
     while( ptr[ret] != '\n' && ret < len){
         ret++;
     }

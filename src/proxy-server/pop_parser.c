@@ -25,8 +25,6 @@ void reset_parser_state(parser_state_t parser_state) {
 }
 
 void free_parser_state (parser_state_t parser_state) {
-    free(parser_state->out_ps);
-    free(parser_state->in_ps);
     free(parser_state);
 }
 
