@@ -27,8 +27,10 @@ int check_variables();
 int check_mime(char *, int *);
 char * check_pop3_headers();
 int skip_to_new_line();
+int skip_to_body();
 
 int main(void) {
+    char * mime_type = NULL;
     if(check_variables() == FAIL) {
         return FAIL;
     }
@@ -37,7 +39,8 @@ int main(void) {
     if(check_mime(filter_mime, &slash_position) == FAIL)
         fprintf(stderr, "El mime de FILTER_MEDIAS está mal definido \n");
     char * mime_to_filter = NULL;
-    check_pop3_headers();
+    mime_type = check_pop3_headers();
+    printf("\n %s \n", mime_type);
     
 }
 
@@ -70,6 +73,8 @@ char * check_pop3_headers() {
     int finished_head = FALSE;
     int head_position = 0;
     int c;
+    char * content = NULL;
+    int content_length = 0;
     while( (c = getchar()) != EOF && !finished_head) {
         putchar(c);
         if( c == CONTENT_TYPE[head_position]){
@@ -83,9 +88,21 @@ char * check_pop3_headers() {
             head_position = 0;
         }
         if(head_position == CONTENT_TYPE_LENGTH) {
-            printf("Find header!!!");
+            while( (c = getchar()) != '\n') {
+                putchar(c);
+                if( content_length % BLOCK == 0)
+                    content = realloc(content, content_length + BLOCK);
+                content[content_length] = c;
+                content_length++;
+            }
+            if(content_length % BLOCK == 0)
+                content = realloc(content, content_length + BLOCK);
+            content[content_length] = '\0';
+            skip_to_body();
+            return content;
         }
     }
+    return NULL;
 }
 
 int skip_to_new_line() {
@@ -93,5 +110,24 @@ int skip_to_new_line() {
     while( (c = getchar()) != EOF && c != '\n' ) {
         putchar(c);
     }
+    if(c == '\n')
+        putchar('\n');
     return c=='\n' ? SUCCESS : FAIL;
+}
+
+int skip_to_body() {
+    int c;
+    int found_body = FALSE;
+    while( (c=getchar()) != EOF && !found_body) {
+        putchar(c);
+        if(c == '\n')
+            found_body = TRUE;
+        else
+            skip_to_new_line();
+    }
+    return found_body;
+}
+
+int print_normal_replacement(char * replace_text) {
+    printf(replace_text);
 }
