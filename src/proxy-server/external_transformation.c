@@ -25,7 +25,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
 
     if (flagsFatherToChild == -1 || flagsChildToFather == -1) {
         perror("Error setting external transformation pipes");
-        return ERROR_TRANSFORMATION;
+        return ERROR_TRANSFORMATION_PROCESS;
     }
 
     char * argv[4];
@@ -37,7 +37,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     pid_t p_id;
     if((p_id = fork()) == -1) {
         perror("Error creating external transformation process.");
-        return ERROR_TRANSFORMATION;
+        return ERROR_TRANSFORMATION_PROCESS;
     }
     else if(p_id == 0) {
         close(pipeFatherToChild[WRITE_END]);

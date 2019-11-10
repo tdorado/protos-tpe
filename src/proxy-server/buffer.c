@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "include/buffer.h"
 
@@ -91,19 +92,20 @@ void buffer_compact(buffer_t b) {
 }
 
 buffer_t init_buffer(const size_t bytes) {
-    uint8_t *data = (uint8_t *)calloc(bytes, sizeof(uint8_t));
-    buffer_t b = (buffer_t)malloc(sizeof(*b));
-    if (data == NULL || b == NULL) {
-        perror("Error initializing the buffer");
+    uint8_t *data = (uint8_t *)malloc(bytes*sizeof(uint8_t));
+    buffer_t buffer = (buffer_t)malloc(sizeof(*buffer));
+
+    if (data == NULL || buffer == NULL) {
+        perror("Error initializing a buffer");
         exit(EXIT_FAILURE);
     }
 
-    buffer_init(b, bytes, data);
+    buffer_init(buffer, bytes, data);
 
-    return b;
+    return buffer;
 }
 
-void buffer_move(buffer_t src, buffer_t dst) {
+void buffer_copy(buffer_t src, buffer_t dst) {
     while (buffer_can_read(src) && buffer_can_write(dst)) {
         buffer_write(dst, buffer_read(src));
     }

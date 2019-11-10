@@ -25,10 +25,10 @@ void reset_parser_state(parser_state_t parser_state){
 }
 
 ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_state) {
-    int ret = 0;
+    char c;
+    ssize_t ret = 0;
     bool puts_c = true;
     bool reads = true;
-    char c;
     while(reads && buffer_can_read(buffer)){
         c = buffer_read(buffer);
         switch(c){
@@ -99,8 +99,8 @@ ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_sta
 
 ssize_t read_and_parse_from_fd(int fd, buffer_t buffer, parser_state_t parser_state) {
     char c;
-    int n;
-    int ret = 0;
+    ssize_t n;
+    ssize_t ret = 0;
     bool writes = true, puts_dot;
     if(buffer_can_write(buffer) && parser_state->in_ps.last_char != 0){
         buffer_write(buffer, parser_state->in_ps.last_char);

@@ -238,7 +238,6 @@ settings_t init_settings(){
     ret->cmd = DEFAULT_CMD;
     ret->error_file = DEFAULT_ERROR_FILE;
     ret->transformations = true;
-    ret->pipe_lining_supported = false;
     ret->capa_text = (char *)malloc(CAPA_BUFFER);
     if(ret->capa_text == NULL){
         perror("Error creating settings");

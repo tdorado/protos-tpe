@@ -31,7 +31,6 @@ struct settings{
     char *cmd;
     char *error_file;
     bool transformations;
-    bool pipe_lining_supported;
     char *capa_text;
 };
 

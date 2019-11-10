@@ -2,7 +2,6 @@
 #define BUFFER_H
 
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 
@@ -63,7 +62,7 @@ bool buffer_can_write(buffer_t b);
 
 buffer_t init_buffer(const size_t bytes);
 
-void buffer_move(buffer_t src, buffer_t dst);
+void buffer_copy(buffer_t src, buffer_t dst);
 
 void free_buffer(buffer_t buffer);
 
