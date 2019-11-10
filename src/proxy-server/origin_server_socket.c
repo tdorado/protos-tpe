@@ -6,7 +6,7 @@
 #include <signal.h>
 #include "include/origin_server_socket.h"
 
-static void *resolve_origin_server_thread(void *args);
+static void * resolve_origin_server_thread(void * args);
 
 int resolve_origin_server(client_t client, settings_t settings) {
     client->origin_server_state = RESOLVING_ORIGIN_SERVER;
@@ -49,7 +49,7 @@ static void *resolve_origin_server_thread(void *args) {
         pthread_exit(NULL);
     }
 
-    /* 
+    /*
     * getaddrinfo() returns a list of address structures.
     * Try each address until we successfully connect(2).
     * If socket(2) (or connect(2)) fails, we (close the socket
@@ -77,8 +77,7 @@ static void *resolve_origin_server_thread(void *args) {
 
         if (connect(socketFD, (struct sockaddr *)saddr, addrlen) == -1) {
             perror("Error connecting to Origin Server");
-        }
-        else {
+        } else {
             thread_args->client->origin_server_fd = socketFD;
             thread_args->client->origin_server_state = RESOLVED_TO_ORIGIN_SERVER;
             break;
@@ -98,7 +97,7 @@ static void *resolve_origin_server_thread(void *args) {
 
     /* No longer needed */
     freeaddrinfo(res);
-    
+
     pthread_kill(thread_args->p_id, SIGUSR1);
     pthread_exit(EXIT_SUCCESS);
     printf("prueba\n");

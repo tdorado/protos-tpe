@@ -29,14 +29,14 @@ int main(int argc, char ** argv) {
     return start_server();
 }
 
-void init_server_config(int argc, char ** argv){
-    
+void init_server_config(int argc, char ** argv) {
+
     if (set_up_signals() != 0) {
         exit(EXIT_FAILURE);
     }
 
     settings = init_settings();
-    
+
     if (input_parser(argc, argv, settings) < 0) {
         exit(EXIT_FAILURE);
     }
@@ -48,8 +48,8 @@ void init_server_config(int argc, char ** argv){
 
 }
 
-int start_server(){
-    
+int start_server() {
+
     struct sockaddr_in6 server_addr;
     socklen_t server_addr_len;
     //struct sockaddr_in admin_addr;
@@ -78,18 +78,17 @@ int start_server(){
     sigset_t emptyset;
     sigemptyset(&emptyset);
 
-    while(true){
-        if(!set_fds(&max_fd, &read_fds, &write_fds, client_list, settings, metrics)){
+    while(true) {
+        if(!set_fds(&max_fd, &read_fds, &write_fds, client_list, settings, metrics)) {
             res = pselect(max_fd + 1, &read_fds, &write_fds, NULL, NULL, &emptyset);
 
-            if(res == -1 && errno != EINTR){
+            if(res == -1 && errno != EINTR) {
                 perror("Error on pselect");
                 exit(EXIT_FAILURE);
-            }
-            else{
+            } else {
                 errno = 0;
             }
-            
+
             resolve_connections(proxy_fd, server_addr, &server_addr_len, admin_fd, &read_fds, &write_fds, client_list, settings, metrics);
         }
     }
@@ -97,8 +96,8 @@ int start_server(){
     return 1;
 }
 
-bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics){
-        
+bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics) {
+
     FD_ZERO(read_fds);
     FD_ZERO(write_fds);
 
@@ -109,8 +108,8 @@ bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t 
 
     client_t client = client_list->first;
 
-    while(client != NULL){
-        if(set_client_fds(client, client_list, max_fd, read_fds, write_fds, settings, metrics) == -1){
+    while(client != NULL) {
+        if(set_client_fds(client, client_list, max_fd, read_fds, write_fds, settings, metrics) == -1) {
             return true;
         }
         client = client->next;
@@ -119,8 +118,8 @@ bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t 
     return false;
 }
 
-void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, int admin_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics){
-    
+void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, int admin_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics) {
+
     resolve_proxy_client(proxy_fd, read_fds, client_list, server_addr, server_addr_len, settings, metrics);
     //resolve_admin_client(admin_fd, read_fds, &admin_addr, admin_addr_len, settings, metrics);
 
@@ -132,7 +131,7 @@ void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_
 }
 
 static void signal_action_handler(const int signal_number) {
-    switch(signal_number){
+    switch(signal_number) {
         case SIGINT:
             printf("\nSIGINT catched.\n");
             turn_off_proxy();
@@ -153,7 +152,7 @@ static void signal_action_handler(const int signal_number) {
 }
 
 static void thread_handler(const int signal_number) {
-    
+
 }
 
 int set_up_signals(void) {

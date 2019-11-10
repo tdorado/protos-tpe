@@ -2,10 +2,10 @@
 #include "include/origin_server_socket.h"
 #include "include/external_transformation.h"
 
-client_list_t init_client_list(){
+client_list_t init_client_list() {
     client_list_t client_list = (client_list_t)malloc(sizeof(*client_list));
 
-    if(client_list == NULL){
+    if(client_list == NULL) {
         perror("Error creating client list");
         exit(EXIT_FAILURE);
     }
@@ -17,10 +17,10 @@ client_list_t init_client_list(){
     return client_list;
 }
 
-client_t create_client(client_list_t client_list, const int fd){
+client_t create_client(client_list_t client_list, const int fd) {
     client_t client = (client_t)malloc(sizeof(*client));
 
-    if(client == NULL){
+    if(client == NULL) {
         perror("Error creating client");
         return NULL;
     }
@@ -42,12 +42,11 @@ client_t create_client(client_list_t client_list, const int fd){
 
     client->next = NULL;
 
-    if (client_list->qty == 0){
+    if (client_list->qty == 0) {
         client_list->first = client;
         client_list->last = client;
         client->prev = NULL;
-    }
-    else{
+    } else {
         client_list->last->next = client;
         client->prev = client_list->last;
         client_list->last = client;
@@ -58,37 +57,35 @@ client_t create_client(client_list_t client_list, const int fd){
     return client;
 }
 
-void remove_client(client_list_t client_list, client_t client){
-    if (client == client_list->first){
-        if(client->next != NULL){
+void remove_client(client_list_t client_list, client_t client) {
+    if (client == client_list->first) {
+        if(client->next != NULL) {
             client->next->prev = NULL;
         }
         client_list->first = client->next;
-    }
-    else if (client == client_list->last){
+    } else if (client == client_list->last) {
         client->prev->next = NULL;
         client_list->last = client->prev;
-    }
-    else{
+    } else {
         client->prev->next = client->next;
         client->next->prev = client->prev;
     }
 
     client_list->qty--;
 
-    if (client->client_fd != -1){
+    if (client->client_fd != -1) {
         close(client->client_fd);
     }
 
-    if (client->origin_server_fd != -1){
+    if (client->origin_server_fd != -1) {
         close(client->origin_server_fd);
     }
 
-    if (client->external_transformation_read_fd != -1){
+    if (client->external_transformation_read_fd != -1) {
         close(client->external_transformation_read_fd);
     }
 
-    if (client->external_transformation_write_fd != -1){
+    if (client->external_transformation_write_fd != -1) {
         close(client->external_transformation_write_fd);
     }
 
@@ -99,9 +96,9 @@ void remove_client(client_list_t client_list, client_t client){
     free(client);
 }
 
-void free_client_list(client_list_t client_list){
+void free_client_list(client_list_t client_list) {
     client_t client = client_list->first;
-    while(client != NULL){
+    while(client != NULL) {
         remove_client(client_list, client);
         client = client->next;
     }
@@ -109,17 +106,17 @@ void free_client_list(client_list_t client_list){
 }
 
 
-void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics){
+void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics) {
     int new_client_fd = -1;
 
-    if ((new_client_fd = accept(proxy_fd, (struct sockaddr *)&server_addr, server_addr_len)) < 0){
+    if((new_client_fd = accept(proxy_fd, (struct sockaddr *)&server_addr, server_addr_len)) < 0) {
         perror("Error adding client");
         return;
     }
 
 
     client_t client = create_client(client_list, new_client_fd);
-    if (client == NULL){
+    if(client == NULL) {
         close(new_client_fd);
         return;
     }
@@ -128,13 +125,13 @@ void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_i
     metrics->total_connections++;
 }
 
-int set_client_fds(client_t client, client_list_t client_list, int *max_fd, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics){
-    if (set_external_transformation_fds(client_list, client, settings, read_fds, write_fds, metrics) == ERROR_TRANSFORMATION){
+int set_client_fds(client_t client, client_list_t client_list, int * max_fd, fd_set * read_fds, fd_set * write_fds, settings_t settings, metrics_t metrics) {
+    if(set_external_transformation_fds(client_list, client, settings, read_fds, write_fds, metrics) == ERROR_TRANSFORMATION) {
         return -1;
     }
     set_client_fd(client, read_fds, write_fds);
 
-    if (set_origin_server_fd(client_list, read_fds, write_fds, client, settings, metrics) == ERROR_ORIGIN_SERVER){
+    if(set_origin_server_fd(client_list, read_fds, write_fds, client, settings, metrics) == ERROR_ORIGIN_SERVER) {
         return -1;
     }
 
@@ -174,7 +171,7 @@ int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *wr
         if (buffer_can_write(client->origin_server_buffer)) {
             FD_SET(client->origin_server_fd, read_fds);
         }
-        
+
         if (buffer_can_read(client->client_read_buffer)) {
             FD_SET(client->origin_server_fd, write_fds);
         }
@@ -280,7 +277,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                     while (buffer_can_read(client->origin_server_buffer) && (c = buffer_read(client->origin_server_buffer)) != '\r') {
                         buffer_write(client->client_write_buffer, c);
                     }
-                    buffer_write(client->client_write_buffer, buffer_read(client->origin_server_buffer));                    
+                    buffer_write(client->client_write_buffer, buffer_read(client->origin_server_buffer));
                     client->client_state = RETR_TRANSFORMING;
                 }
                 if (!buffer_can_read(client->origin_server_buffer)) {
@@ -292,7 +289,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                 if (FD_ISSET(client->external_transformation_read_fd, read_fds)) {
 
                     bytes_read = read_and_parse_from_fd(client->external_transformation_read_fd, client->client_write_buffer, client->parser_state);
-                    
+
                     if (bytes_read == 0) {
                         close(client->external_transformation_read_fd);
                         close(client->external_transformation_write_fd);
@@ -320,8 +317,7 @@ void interpret_request(client_t client) {
 
         if (strncasecmp(command, "retr", 4) == 0 && client->client_state == LOGGED_IN) {
             client->client_state = RETR_REQUEST;
-        }
-        else if (strncasecmp(command, "pass", 4) == 0) {
+        } else if (strncasecmp(command, "pass", 4) == 0) {
             client->client_state = PASS_REQUEST;
         }
     }

@@ -5,39 +5,39 @@
 
 #include "include/buffer.h"
 
-inline void buffer_reset(buffer_t b){
+inline void buffer_reset(buffer_t b) {
     b->read = b->data;
     b->write = b->data;
 }
 
-void buffer_init(buffer_t b, const size_t n, uint8_t *data){
+void buffer_init(buffer_t b, const size_t n, uint8_t * data) {
     b->data = data;
     buffer_reset(b);
     b->limit = b->data + n;
 }
 
-inline bool buffer_can_write(buffer_t b){
+inline bool buffer_can_write(buffer_t b) {
     return b->limit - b->write > 0;
 }
 
-inline uint8_t * buffer_write_ptr(buffer_t b, size_t *nbyte){
+inline uint8_t * buffer_write_ptr(buffer_t b, size_t * nbyte) {
     assert(b->write <= b->limit);
     *nbyte = b->limit - b->write;
     return b->write;
 }
 
-inline bool buffer_can_read(buffer_t b){
+inline bool buffer_can_read(buffer_t b) {
     return b->write - b->read > 0;
 }
 
-inline uint8_t * buffer_read_ptr(buffer_t b, size_t *nbyte){
+inline uint8_t * buffer_read_ptr(buffer_t b, size_t * nbyte) {
     assert(b->read <= b->write);
     *nbyte = b->write - b->read;
     return b->read;
 }
 
-inline void buffer_write_adv(buffer_t b, const ssize_t bytes){
-    if (bytes > -1){
+inline void buffer_write_adv(buffer_t b, const ssize_t bytes) {
+    if (bytes > -1) {
         b->write += (size_t)bytes;
         assert(b->write <= b->limit);
     }
@@ -109,7 +109,7 @@ void buffer_move(buffer_t src, buffer_t dst) {
     }
 }
 
-void free_buffer(buffer_t buffer){
+void free_buffer(buffer_t buffer) {
     free(buffer->data);
     free(buffer);
 }
