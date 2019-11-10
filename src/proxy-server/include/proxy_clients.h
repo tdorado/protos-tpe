@@ -64,7 +64,6 @@ struct client{
 
     origin_server_state_t origin_server_state;
     int origin_server_fd;
-    struct sockaddr_in6 origin_server_addr;
     buffer_t origin_server_buffer;
     bool received_greeting;
 
