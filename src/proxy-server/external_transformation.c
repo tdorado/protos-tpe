@@ -11,7 +11,7 @@
 int start_external_transformation_process(settings_t settings, client_t client) {
     int pipeFatherToChild[2] = {-1, -1};
     int pipeChildToFather[2] = {-1, -1};
-    
+
     if ( pipe(pipeFatherToChild) == -1 || pipe(pipeChildToFather) == -1 ){
         perror("Error creating pipes of external transformation process.");
         return -1;
@@ -46,7 +46,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
         dup2(pipeChildToFather[WRITE_END], STDOUT_FILENO);
 
         redirect_stderr(settings);
-        
+
         int exec_ret = execve("/bin/bash", argv, NULL);
 
         if (exec_ret == -1){
@@ -58,7 +58,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     else {
         close(pipeFatherToChild[READ_END]);
         close(pipeChildToFather[WRITE_END]);
-        
+
         client->external_transformation_read_fd = pipeChildToFather[READ_END];
         client->external_transformation_write_fd = pipeFatherToChild[WRITE_END];
     }

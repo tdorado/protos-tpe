@@ -14,6 +14,6 @@ metrics_t init_metrics() {
   return ret;
 }
 
-void free_metrics(metrics_t metrics){
+void free_metrics(metrics_t metrics) {
     free(metrics);
 }

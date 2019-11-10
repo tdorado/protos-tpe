@@ -8,14 +8,14 @@
 
 typedef struct thread_args * thread_args_t;
 
-struct thread_args{
+struct thread_args {
     client_t client;
     pthread_t p_id;
     char *origin_server_addr;
     uint16_t origin_server_port;
 };
 
-static void *resolve_origin_server_thread(void *args);
+static void * resolve_origin_server_thread(void * args);
 
 int resolve_origin_server(client_t client, settings_t settings) {
     client->origin_server_state = RESOLVING_ORIGIN_SERVER;
@@ -40,7 +40,7 @@ int resolve_origin_server(client_t client, settings_t settings) {
     return 1;
 }
 
-static void *resolve_origin_server_thread(void *args) {
+static void * resolve_origin_server_thread(void *args) {
     thread_args_t thread_args = (thread_args_t)args;
 
     struct addrinfo hints;
@@ -56,7 +56,7 @@ static void *resolve_origin_server_thread(void *args) {
         pthread_exit(NULL);
     }
 
-    struct addrinfo *rp;
+    struct addrinfo * rp;
     int origin_server_fd;
     socklen_t origin_server_addr_len;
     struct sockaddr_in * origin_server_addr;
@@ -76,8 +76,7 @@ static void *resolve_origin_server_thread(void *args) {
 
         if (connect(origin_server_fd, (struct sockaddr *)origin_server_addr, origin_server_addr_len) == -1) {
             perror("Error connecting to Origin Server");
-        }
-        else {
+        } else {
             thread_args->client->origin_server_fd = origin_server_fd;
             thread_args->client->origin_server_state = RESOLVED_TO_ORIGIN_SERVER;
             break;
@@ -94,13 +93,13 @@ static void *resolve_origin_server_thread(void *args) {
     }
 
     freeaddrinfo(res);
-    
+
     pthread_kill(thread_args->p_id, SIGUSR1);
     pthread_exit(NULL);
     return NULL;
 }
 
-void verify_origin_server_valid(settings_t settings){
+void verify_origin_server_valid(settings_t settings) {
     struct addrinfo hints;
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
@@ -124,8 +123,7 @@ void verify_origin_server_valid(settings_t settings){
 
         if (origin_server_addr->sin_family == AF_INET6) {
             origin_server_addr_len = sizeof(struct sockaddr_in6);
-        }
-        else{
+        } else {
             origin_server_addr_len = sizeof(struct sockaddr_in);
         }
 
