@@ -5,9 +5,17 @@ asdasdasd
 213
 as
 --hola
-Content-Type: text/plain
+Content-Type: multipart/otra; boundary=ole
+
 
 asdasdasdasd
+
+--ole
+Content-Type: text/plain
+
+remplazame
+
+--ole--
 
 --hola--
 asdasdasd
