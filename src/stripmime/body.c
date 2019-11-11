@@ -29,7 +29,8 @@ int handle_attributes(content_type_header_t);
 int main(void) {
     content_type_header_t content_type = malloc(sizeof(content_type_header));
     headers(content_type);
-    printf("%s\n", content_type->content_type);
+    //printf("%s\n", content_type->content_type);
+    //printf("%s\n", content_type->boundary);
     free(content_type);
 }
 
@@ -52,6 +53,7 @@ int headers(content_type_header_t content_type) {
                 if( c == ';') {
                     putchar(c);
                     handle_attributes(content_type);
+                    return SUCCESS;
                 }
                 else if( c == '\r' && (c = getchar()) == '\n') {
                     printf("\r\n");
