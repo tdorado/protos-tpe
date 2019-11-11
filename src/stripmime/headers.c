@@ -17,6 +17,7 @@
 typedef struct content_type_header {
     char content_type[MAX_CONTENT_TYPE];
     char boundary[MAX_BOUNDARY_TYPE];
+    int boundary_length;
 } content_type_header;
 
 typedef struct content_type_header * content_type_header_t;
@@ -25,14 +26,13 @@ int headers();
 int skip_line();
 int skip_to_body();
 int handle_attributes(content_type_header_t);
-int manage_multipart(content_type_header_t, char *);
-
+int manage_multipart(content_type_header_t, char *, char *);
 
 int main(void) {
     content_type_header_t content_type = malloc(sizeof(content_type_header));
     headers(content_type);
     if(strcmp(content_type->content_type, "multipart/")) {
-        manage_multipart(content_type, "text/plain");
+        manage_multipart(content_type, "text/plain", "Confiscado");
     }
     free(content_type);
 }
@@ -106,23 +106,82 @@ int skip_to_body() {
 int handle_attributes(content_type_header_t content_type) {
     int c;
     c = getchar();
-    scanf(" boundary=%s", content_type->boundary);
+    int boundary_length = scanf(" boundary=%s", content_type->boundary);
+    content_type->boundary_length = boundary_length;
     printf(" boundary=%s\r\n", content_type->boundary);
     getchar();
     getchar();
 }
 
-int manage_multipart(content_type_header_t content_type, char * replace_mime) {
+int search_start_boundary(char * boundary) {
     int c;
-    char start_boundary[MAX_BOUNDARY_TYPE + 2];
-    start_boundary[0] = '\0';
-    strcat(start_boundary, "--");
-    strcat(start_boundary, content_type->boundary);
-    char finish_boundary[MAX_BOUNDARY_TYPE + 4];
-    finish_boundary[0] = '\0';
-    strcat(finish_boundary, "--");
-    strcat(finish_boundary, content_type->boundary);
-    strcat(finish_boundary, "--");
-    printf("%s\n", start_boundary);
-    printf("%s\n", finish_boundary);
+    int first = 0;
+    int boundary_position = 0;
+    while( (c = getchar()) != EOF ) {
+        putchar(c);
+        switch(c) {
+            case '-' :
+                if(first == 0)
+                    first++;
+                else if(first > 0) {
+                    while( (c = getchar()) == boundary[boundary_position]) {
+                        putchar(c);
+                        boundary++;
+                    }
+                    if( c == '\r' && boundary[boundary_position] == '\0'){
+                        getchar();
+                        putchar('\n');
+                        return SUCCESS;
+                    }
+                }
+                break;
+            default:
+                boundary_position = 0;
+        }
+    }
+    return FAIL;
+}
+
+int delete_till_finish_boundary(char * boundary) {
+    int c;
+    int first = 0;
+    int boundary_position = 0;
+    while( (c = getchar()) != EOF ) {
+        switch(c) {
+            case '-' :
+                if(first == 0)
+                    first++;
+                else if(first > 0) {
+                    while( (c = getchar()) == boundary[boundary_position]) {
+                        boundary_position++;
+                    }
+                    if( c == '-' && boundary[boundary_position] == '\0'){
+                        if( (c = getchar()) == '-' && (c=getchar() == '\r') && (c=getchar()) == '\n'){
+                            return SUCCESS;
+                        }
+                    }
+                    boundary_position = 0;
+                }
+                break;
+            default:
+                boundary_position = 0;
+        }
+    }
+    return FAIL;
+}
+
+int manage_multipart(content_type_header_t content_type, char * replace_mime, char * replace_text) {
+    search_start_boundary(content_type->boundary);
+    content_type_header_t new_content_type = malloc(sizeof(content_type_header));
+    headers(new_content_type);
+    if(strcmp(new_content_type->content_type, "multipart/") == 0) {
+        manage_multipart(new_content_type, replace_mime, replace_text);
+    }
+    else if(strcmp(new_content_type->content_type, replace_mime) == 0) {
+        printf("%s\r\n", replace_text);
+        delete_till_finish_boundary(content_type->boundary);
+        printf("--%s--\r\n", content_type->boundary);
+        manage_multipart(content_type, replace_mime, replace_text);
+    }
+    free(new_content_type);
 }
