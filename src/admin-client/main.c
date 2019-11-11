@@ -10,10 +10,34 @@ uint8_t *parse_command(char* buffer) {
             return parse_set(buffer);
         case 'R': //rm
             return parse_rm(buffer);
+        case 'E':
+            return parse_enable_transformation(buffer);
+        case 'D':
+            return parse_disable_transformation(buffer);
         default:
             return NULL;
     }
 }
+
+uint8_t *parse_enable_transformation(char *buffer) {
+    uint8_t *response = malloc(2); 
+    if (strncasecmp(buffer, ENABLE_TRANSFORMATION, strlen(ENABLE_TRANSFORMATION)) == 0) {
+        response[0] = ENABLE_TRANSFORMATION_REQUEST;
+        response[1] = '\0';
+        return response;
+    }
+    return NULL;
+} 
+
+uint8_t *parse_disable_transformation(char *buffer) {
+    uint8_t *response = malloc(2); 
+    if (strncasecmp(buffer, DISABLE_TRANSFORMATION, strlen(DISABLE_TRANSFORMATION)) == 0) {
+        response[0] = DISABLE_TRANSFORMATION_REQUEST;
+        response[1] = '\0';
+        return response;
+    }
+    return NULL;
+} 
 
 uint8_t *parse_login_or_logout(char *buffer) {
     if (strncasecmp(buffer, LOGIN, strlen(LOGIN)) == 0) {

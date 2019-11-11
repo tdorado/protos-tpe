@@ -9,13 +9,6 @@
 
 #include "include/admin_socket.h"
 
-/**                                            --
- * FALTA LOGICA PARA AUTENTICACION              |   PROBLEMA DE TOMAS DEL DOMINGO
- * COMO CARAJO MANEJAMOS SET Y RM?              |       quizás tenga que tocar las settings?
- * PODRIA EXTRAER LOS REQ,RESP, OPREATIONS      | --> me gusta la idea, commons?
- *                                             --
-*/
-
 #define BUFFER_MAX 2048
 #define MAX_CONCURRENT_CONECTIONS 10
 #define MAX_INT_DIGITS 10
@@ -181,16 +174,33 @@ char *parse_request(__uint8_t *admin_received_msg, settings_t settings, metrics_
     char *response = NULL;
     switch(admin_received_msg[0]) {
         case GET_REQUEST:
-            response = parse_get(admin_received_msg + 1, settings, metrics);
-            return response;
+            return parse_get(admin_received_msg + 1, settings, metrics);
         case SET_REQUEST:
-            response = parse_set(admin_received_msg + 1, settings, metrics);
-            return response;
+            return parse_set(admin_received_msg + 1, settings, metrics);
         case RM_REQUEST:
-            response = parse_rm(admin_received_msg + 1, settings, metrics);
-            return response;
+            return parse_rm(admin_received_msg + 1, settings, metrics);
+        case ENABLE_TRANSFORMATION_REQUEST:
+            return parse_enable_transformation(settings);
+        case DISABLE_TRANSFORMATION_REQUEST:
+            return parse_disable_transformation(settings);
     }
     return response;
+}
+
+char *parse_enable_transformation(settings_t settings) {
+    if (!settings->transformations) {
+        settings->transformations = true;
+        return "Transformations enable!";
+    }
+    return "Transformation are already enable!";
+}
+
+char *parse_disable_transformation(settings_t settings) {
+    if (settings->transformations) {
+        settings->transformations = false;
+        return "Transformations disable!";
+    }
+    return "Transformations are already disable!"; 
 }
 
 char *parse_get(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics) {

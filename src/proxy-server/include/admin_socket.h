@@ -14,7 +14,9 @@ typedef enum requestType {
     LOGOUT_REQUEST, 
     GET_REQUEST, 
     SET_REQUEST,
-    RM_REQUEST
+    RM_REQUEST,
+    ENABLE_TRANSFORMATION_REQUEST,
+    DISABLE_TRANSFORMATION_REQUEST
 } requestType;
 
 typedef enum operations {
@@ -30,7 +32,9 @@ typedef enum response_type { // is equivalent to request type, it kinda be dupli
     LOGOUT_RESPONSE,
     GET_RESPONSE,
     SET_RESPONSE,
-    RM_RESPONSE
+    RM_RESPONSE,
+    ENABLE_TRANSFORMATION_RESPONSE,
+    DISABLE_TRANSFORMATION_RESPONSE
 } response_type;
 
 int init_admin_socket(struct sockaddr_in *server_addr, socklen_t *server_addr_len, settings_t settings);
@@ -53,5 +57,7 @@ char *parse_set(__uint8_t *admin_received_msg, settings_t settings, metrics_t me
 char *parse_rm(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics);
 char *filter_repetitions_mtypes(char *current_mtypes, char *new_mtypes);
 char *rm_mtypes(char *current_mtypes, char *mtypes_to_rm);
+char *parse_enable_transformation(settings_t settings);
+char *parse_disable_transformation(settings_t settings);
 
 #endif

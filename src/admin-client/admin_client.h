@@ -21,7 +21,9 @@ typedef enum requestType {
     LOGOUT_REQUEST, 
     GET_REQUEST, 
     SET_REQUEST,
-    RM_REQUEST
+    RM_REQUEST,
+    ENABLE_TRANSFORMATION_REQUEST,
+    DISABLE_TRANSFORMATION_REQUEST
 } requestType;
 
 typedef enum operations {
@@ -37,7 +39,9 @@ typedef enum response_type { // is equivalent to request type, it kinda be dupli
     LOGOUT_RESPONSE,
     GET_RESPONSE,
     SET_RESPONSE,
-    RM_RESPONSE
+    RM_RESPONSE,
+    ENABLE_TRANSFORMATION_RESPONSE,
+    DISABLE_TRANSFORMATION_RESPONSE
 } response_type;
 
 // LOGIN LOGOUT
@@ -54,6 +58,9 @@ static char *SET_MTYPES = "SET MTYPES"; //set mtypes paramsQty [params]
 static char *SET_CMD = "SET CMD";  // SET CMD <CMD>
 // RM
 static char *RM_MTYPES = "RM MTYPES"; // rm mtypes paramsQty [params]
+// ENABLE/DISABLE TRANSFORMATION
+static char *ENABLE_TRANSFORMATION = "ENABLE TRANSFORMATIONS";
+static char *DISABLE_TRANSFORMATION = "DISABLE TRANSFORMATIONS";
 
 uint8_t *parse_command(char *buffer);
 uint8_t *parse_login_or_logout(char *buffer);
@@ -62,6 +69,8 @@ uint8_t *parse_logout(void);
 uint8_t *parse_get(char *buffer);
 uint8_t *parse_set(char *buffer);
 uint8_t *parse_rm(char *buffer);
+uint8_t *parse_enable_transformation(char *buffer);
+uint8_t *parse_disable_transformation(char *buffer);
 uint8_t *get_GET_request(operations operation);
 uint8_t *get_SET_mtypes_request(char *buffer);
 uint8_t *get_SET_cmd_request(char *buffer);
