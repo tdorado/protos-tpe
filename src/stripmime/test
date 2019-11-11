@@ -1,6 +1,6 @@
 Hola: chau
 Hola: bai
-Content-Type: text/plain
+Content-Type: text/plain; boundary=hola
 Chau: bai
 
 asdasdasd

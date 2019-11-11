@@ -6,15 +6,12 @@
 #define MAX_CONTENT_TYPE 127
 #define MAX_BOUNDARY_TYPE 70
 #define HEADER_TO_BODY_STRING "\r\n\r\n"
+#define BOUNDARY "boundary="
 #define SUCCESS 1
 #define FAIL -1
 #define TRUE 1
 #define FALSE 0
 
-
-int headers();
-int skip_line();
-int skip_to_body();
 
 typedef struct content_type_header {
     char content_type[MAX_CONTENT_TYPE];
@@ -22,6 +19,12 @@ typedef struct content_type_header {
 } content_type_header;
 
 typedef struct content_type_header * content_type_header_t;
+
+int headers();
+int skip_line();
+int skip_to_body();
+int handle_attributes(content_type_header_t);
+
 
 int main(void) {
     content_type_header_t content_type = malloc(sizeof(content_type_header));
@@ -46,7 +49,11 @@ int headers(content_type_header_t content_type) {
                     content_actual_length++;
                 }
                 content_type->content_type[content_actual_length] = '\0';
-                if( c == '\r' && (c = getchar()) == '\n') {
+                if( c == ';') {
+                    putchar(c);
+                    handle_attributes(content_type);
+                }
+                else if( c == '\r' && (c = getchar()) == '\n') {
                     printf("\r\n");
                     skip_to_body();
                     return SUCCESS;
@@ -88,4 +95,13 @@ int skip_to_body() {
     }
     fprintf(stderr, "Bad headers format");
     return FAIL;
+}
+
+int handle_attributes(content_type_header_t content_type) {
+    int c;
+    c = getchar();
+    scanf(" boundary=%s", content_type->boundary);
+    printf(" boundary=%s\r\n", content_type->boundary);
+    getchar();
+    getchar();
 }
