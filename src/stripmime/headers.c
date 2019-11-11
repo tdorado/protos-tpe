@@ -137,12 +137,15 @@ int search_boundary(char * boundary, int print) {
                         return FINAL_BOUNDARY;
                     }
                     else  {
-                        if(print) putchar(c);
+                        if(print) printf("--");
+                        for(int i = 0; i<boundary_position; i++){
+                            putchar(boundary[i]);
+                        }
                         boundary_position=0;
                     }
                 }
                 else
-                    putchar(c);
+                    if(print) printf("-%c", c);
                 break;
             default:
                 if(print) putchar(c);
@@ -171,7 +174,7 @@ int manage_multipart(content_type_header_t content_type, char * replace_mime, ch
             }
         }
         else if(response == FINAL_BOUNDARY) {
-            print = TRUE;
+            break;
         }
     }
     free(new_content_type);
