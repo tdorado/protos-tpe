@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define CONTENT_TYPE "Content-Type: "
 #define CONTENT_TYPE_LENGTH 14
@@ -24,13 +25,15 @@ int headers();
 int skip_line();
 int skip_to_body();
 int handle_attributes(content_type_header_t);
+int manage_multipart(content_type_header_t, char *);
 
 
 int main(void) {
     content_type_header_t content_type = malloc(sizeof(content_type_header));
     headers(content_type);
-    //printf("%s\n", content_type->content_type);
-    //printf("%s\n", content_type->boundary);
+    if(strcmp(content_type->content_type, "multipart/")) {
+        manage_multipart(content_type, "text/plain");
+    }
     free(content_type);
 }
 
@@ -107,4 +110,19 @@ int handle_attributes(content_type_header_t content_type) {
     printf(" boundary=%s\r\n", content_type->boundary);
     getchar();
     getchar();
+}
+
+int manage_multipart(content_type_header_t content_type, char * replace_mime) {
+    int c;
+    char start_boundary[MAX_BOUNDARY_TYPE + 2];
+    start_boundary[0] = '\0';
+    strcat(start_boundary, "--");
+    strcat(start_boundary, content_type->boundary);
+    char finish_boundary[MAX_BOUNDARY_TYPE + 4];
+    finish_boundary[0] = '\0';
+    strcat(finish_boundary, "--");
+    strcat(finish_boundary, content_type->boundary);
+    strcat(finish_boundary, "--");
+    printf("%s\n", start_boundary);
+    printf("%s\n", finish_boundary);
 }

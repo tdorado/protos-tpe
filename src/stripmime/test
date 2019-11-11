@@ -1,7 +1,18 @@
-Content-Type: text/plain; boundary=hola
+Content-Type: multipart/eo; boundary=hola
 Chau: bai
 
 asdasdasd
-asdasdasda
 asdasdasd
+asdasdasd
+23231
+213
+as
+--hola
+Content-Type: text/plain
+
+asdasdasdasd
+
+--hola--
+asdasdasd
+asda
 .
