@@ -13,7 +13,7 @@
 #define TRUE 1
 #define FALSE 0
 #define START_BOUNDARY 1
-#define FINAL_BOUNDARY 0
+#define FINAL_BOUNDARY 2
 
 
 typedef struct content_type_header {
@@ -29,7 +29,7 @@ int skip_line();
 int skip_to_body();
 int handle_attributes(content_type_header_t);
 int manage_multipart(content_type_header_t, char *, char *);
-int search_boundary(char * );
+int search_boundary(char *, int );
 
 int main(void) {
     content_type_header_t content_type = malloc(sizeof(content_type_header));
@@ -116,40 +116,36 @@ int handle_attributes(content_type_header_t content_type) {
     getchar();
 }
 
-int search_boundary(char * boundary) {
+int search_boundary(char * boundary, int print) {
     int c;
-    int first = 0;
     int boundary_position = 0;
     while( (c = getchar()) != EOF ) {
-        putchar(c);
         switch(c) {
             case '-' :
-                if(first == 0)
-                    first++;
-                else if(first > 0) {
-                    while( (c = getchar()) == boundary[boundary_position]) {
-                        putchar(c);
+                if((c = getchar()) == '-') {
+                    while( (c = getchar()) == boundary[boundary_position])
                         boundary_position++;
-                    }
-                    if( c == '\r' && boundary[boundary_position] == '\0'){
+                    if( c == '\r' && boundary[boundary_position] == '\0') {
                         getchar();
-                        putchar('\n');
+                        printf("--%s\r\n", boundary);
                         return START_BOUNDARY;
-                    } 
-                    else if( c == '-' && (c=getchar()) == '-' && boundary_position == '\0'){
-                        printf("--");
+                    }
+                    else if( c == '-' && (c=getchar()) == '-' && boundary[boundary_position] == '\0'){
                         getchar();
                         getchar();
-                        printf("\r\n");
+                        printf("--%s--\r\n", boundary);
                         return FINAL_BOUNDARY;
                     }
                     else  {
-                        putchar(c);
+                        if(print) putchar(c);
                         boundary_position=0;
                     }
                 }
+                else
+                    putchar(c);
                 break;
             default:
+                if(print) putchar(c);
                 boundary_position = 0;
         }
     }
@@ -158,15 +154,21 @@ int search_boundary(char * boundary) {
 
 int manage_multipart(content_type_header_t content_type, char * replace_mime, char * replace_text) {
     content_type_header_t new_content_type = malloc(sizeof(content_type_header));
-    while(search_boundary(content_type->boundary) != FINAL_BOUNDARY) {
-        headers(new_content_type);
-        if(strncmp(new_content_type->content_type, "multipart/", 10) == 0) {
-            manage_multipart(new_content_type, replace_mime, replace_text);
+    int response;
+    int print = TRUE;
+    while((response = search_boundary(content_type->boundary, print)) != EOF) {
+        if(response == START_BOUNDARY) {
+            headers(new_content_type);
+            if(strncmp(new_content_type->content_type, "multipart/", 10) == 0) {
+                manage_multipart(new_content_type, replace_mime, replace_text);
+            }
+            else if(strcmp(new_content_type->content_type, replace_mime) == 0) {
+                printf("%s\r\n", replace_text);
+                print = FALSE;
+            }
         }
-        else if(strcmp(new_content_type->content_type, replace_mime) == 0) {
-            printf("%s\r\n", replace_text);
-            search_boundary(content_type->boundary);
-            printf("--%s--\r\n", content_type->boundary);
+        else if(response == FINAL_BOUNDARY) {
+            print = TRUE;
         }
     }
     free(new_content_type);

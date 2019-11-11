@@ -1,26 +1,15 @@
-Content-Type: multipart/eo; boundary=hola
+Content-Type: multipart/eo; boundary=uno
 Chau: bai
 
-asdasdasd
-asdasdasd
-asdasdasd
-23231
-213
-as
---hola
-Content-Type: multipart/otra; boundary=ole
-
-
-asdasdasdasd
-
---ole
+Esto es sin nada
+--uno
 Content-Type: text/plain
 
-remplazame
+Esto es el primero
+--uno
+Content-Type: text/plain
 
---ole--
-
---hola--
-asdasdasd
-asda
+Esto es el segundo
+--uno--
+Esto es el final
 .
