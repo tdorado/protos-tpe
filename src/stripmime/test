@@ -10,6 +10,10 @@ Esto es el primero
 Content-Type: text/plain
 
 Esto es el segundo
+--uno
+Content-Type: application/exe
+
+Esto es el tercero
 --uno--
 Esto es el final
 .

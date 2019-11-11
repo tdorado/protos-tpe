@@ -166,6 +166,9 @@ int manage_multipart(content_type_header_t content_type, char * replace_mime, ch
                 printf("%s\r\n", replace_text);
                 print = FALSE;
             }
+            else {
+                print = TRUE;
+            }
         }
         else if(response == FINAL_BOUNDARY) {
             print = TRUE;
