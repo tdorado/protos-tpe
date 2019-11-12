@@ -61,8 +61,7 @@ inline uint8_t buffer_read(buffer_t b) {
     if (buffer_can_read(b)) {
         ret = *b->read;
         buffer_read_adv(b, 1);
-    }
-    else {
+    } else {
         ret = 0;
     }
     return ret;
@@ -78,12 +77,10 @@ inline void buffer_write(buffer_t b, uint8_t c) {
 void buffer_compact(buffer_t b) {
     if (b->data == b->read) {
         // nada por hacer
-    }
-    else if (b->read == b->write) {
+    } else if (b->read == b->write) {
         b->read = b->data;
         b->write = b->data;
-    }
-    else {
+    } else {
         const size_t n = b->write - b->read;
         memmove(b->data, b->read, n);
         b->read = b->data;
@@ -123,7 +120,7 @@ void free_buffer(buffer_t buffer) {
 void print_buffer(buffer_t buffer) {
     uint8_t * ptr = buffer->read;
 
-    while(ptr < buffer->write){
+    while(ptr < buffer->write) {
         putchar(*(ptr++));
     }
 

@@ -23,14 +23,14 @@
 #define ERR_ORIGIN_SERVER_CONNECTION "-ERR Origin server connection refused\r\n"
 #define ERR_ORIGIN_SERVER_CONNECTION_LEN 39
 
-typedef enum origin_server_states{
+typedef enum origin_server_states {
     ERROR_ORIGIN_SERVER = -1,
     RESOLVING_ORIGIN_SERVER,
     NOT_RESOLVED_ORIGIN_SERVER,
     RESOLVED_TO_ORIGIN_SERVER
 } origin_server_state_t;
 
-typedef enum client_states{
+typedef enum client_states {
     NOT_LOGGED_IN,
     PASS_REQUEST,
     LOGGED_IN,
@@ -41,12 +41,12 @@ typedef enum client_states{
     RETR_TRANSFORMING,
 } client_state_t;
 
-typedef enum pop_reponses{
+typedef enum pop_reponses {
     ERR_RESPONSE,
     OK_RESPONSE
 } pop_response_t;
 
-typedef enum external_transformation_states{
+typedef enum external_transformation_states {
     ERROR_TRANSFORMATION_PROCESS = -1,
     PROCESS_NOT_INITIALIZED,
     PROCESS_INITIALIZED,
@@ -54,8 +54,7 @@ typedef enum external_transformation_states{
 
 typedef struct client * client_t;
 
-struct client{
-
+struct client {
     client_state_t client_state;
     int client_fd;
     buffer_t client_read_buffer;
@@ -78,7 +77,7 @@ struct client{
     client_t next;
 };
 
-struct client_list{
+struct client_list {
     client_t first;
     client_t last;
     int qty;

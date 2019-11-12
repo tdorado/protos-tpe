@@ -55,9 +55,6 @@ void printf_help();
 state_t parse_command(char msg_received[BUFFER_MAX], char msg_to_send[BUFFER_MAX], int * to_send_len);
 bool print_first_response(char a);
 bool interpret_response(state_t state, char msg_received[BUFFER_MAX]);
-bool valid_digit(char * digit);
-bool valid_address(char * address);
-bool valid_port(char * port);
-void print_usage();
+
 
 #endif

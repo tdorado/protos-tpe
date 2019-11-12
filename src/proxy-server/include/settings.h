@@ -19,18 +19,18 @@
 
 typedef struct settings * settings_t;
 
-struct settings{
-    char *origin_server_addr;
+struct settings {
+    char * origin_server_addr;
     uint16_t origin_server_port;
-    char *management_addr;
+    char * management_addr;
     uint16_t management_port;
-    char *local_addr;
+    char * local_addr;
     uint16_t local_port;
-    char *replace_message;
-    char *media_types;
+    char * replace_message;
+    char * media_types;
     int mtypes;
-    char *cmd;
-    char *error_file;
+    char * cmd;
+    char * error_file;
     bool transformations;
     bool cmd_or_mtype_transformations; // false cmd, true mtype
 };

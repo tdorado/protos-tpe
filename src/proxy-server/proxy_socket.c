@@ -15,15 +15,14 @@ int init_proxy_socket(struct sockaddr_in6 *server_addr, socklen_t *server_addr_l
 
     memset(server_addr, 0, sizeof(*server_addr));
 
-    if ((proxy_fd = socket(AF_INET6, SOCK_STREAM, 0)) == -1){
+    if ((proxy_fd = socket(AF_INET6, SOCK_STREAM, 0)) == -1) {
         perror("Error creating server socket");
         exit(EXIT_FAILURE);
     }
 
     flags = fcntl(proxy_fd, F_GETFL);
 
-    if (fcntl(proxy_fd, F_SETFL, flags | O_NONBLOCK) == -1)
-    {
+    if (fcntl(proxy_fd, F_SETFL, flags | O_NONBLOCK) == -1) {
         perror("Error setting flags on server socket");
         exit(EXIT_FAILURE);
     }
@@ -32,19 +31,17 @@ int init_proxy_socket(struct sockaddr_in6 *server_addr, socklen_t *server_addr_l
 
     server_addr->sin6_family = AF_INET6;
 
-    if (strcmp(settings->local_addr, "loopback") == 0){
+    if (strcmp(settings->local_addr, "loopback") == 0) {
         server_addr->sin6_addr = in6addr_loopback;
-    }
-    else if (strcmp(settings->local_addr, "any") == 0){
+    } else if (strcmp(settings->local_addr, "any") == 0) {
         server_addr->sin6_addr = in6addr_any;
-    }
-    else{
+    } else {
         inet_pton(AF_INET6, settings->local_addr, &(server_addr->sin6_addr));
     }
 
     server_addr->sin6_port = htons(settings->local_port);
 
-    if (bind(proxy_fd, (struct sockaddr *)server_addr, sizeof(*server_addr)) < 0){
+    if (bind(proxy_fd, (struct sockaddr *)server_addr, sizeof(*server_addr)) < 0) {
         perror("Error binding server socket");
         exit(EXIT_FAILURE);
     }
@@ -61,7 +58,7 @@ int init_proxy_socket(struct sockaddr_in6 *server_addr, socklen_t *server_addr_l
     return proxy_fd;
 }
 
-void set_proxy_fd(const int proxy_fd, int *max_fd, fd_set *read_fds){
+void set_proxy_fd(const int proxy_fd, int *max_fd, fd_set *read_fds) {
     FD_SET(proxy_fd, read_fds);
     if (proxy_fd > *max_fd) {
         *max_fd = proxy_fd;

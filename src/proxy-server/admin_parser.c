@@ -52,7 +52,7 @@ void print_msg_received(char msg_received[BUFFER_MAX], int len){
     }
 }
 
-bool parse_msg_received(bool * logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings, metrics_t metrics){
+bool parse_msg_received(bool * logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings, metrics_t metrics) {
     bool ret = false;
     switch (*msg_received) {
         case LOGIN:
@@ -102,12 +102,12 @@ bool parse_msg_received(bool * logged, char msg_received[BUFFER_MAX], int msg_re
     return ret;
 }
 
-void parse_ok_response(char msg_response[BUFFER_MAX], int *msg_response_len){
+void parse_ok_response(char msg_response[BUFFER_MAX], int * msg_response_len) {
     msg_response[0] = OK;
     *msg_response_len = 1;
 }
 
-void parse_err_response(char msg_response[BUFFER_MAX], int *msg_response_len){
+void parse_err_response(char msg_response[BUFFER_MAX], int * msg_response_len) {
     msg_response[0] = ERR;
     *msg_response_len = 1;
 }
@@ -116,22 +116,20 @@ void parse_login(bool * logged, char msg_received[BUFFER_MAX], int msg_received_
     if(!(*logged) && msg_received_len == 9 && strncmp(msg_received + 1, "TOKENAZO", 8) == 0){
         parse_ok_response(msg_response, msg_response_len);
         *logged = true;
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
-void parse_logout(char msg_response[BUFFER_MAX], int * msg_response_len){
+void parse_logout(char msg_response[BUFFER_MAX], int * msg_response_len) {
     parse_ok_response(msg_response, msg_response_len);
 }
 
 void parse_concurrent_connections(bool * logged, char msg_response[BUFFER_MAX], int * msg_response_len, metrics_t metrics) {
-    if(*logged){
+    if(*logged) {
         parse_ok_response(msg_response, msg_response_len);
         parse_int_to_msg(metrics->concurrent_connections, msg_response, msg_response_len);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
@@ -140,8 +138,7 @@ void parse_total_connections(bool * logged, char msg_response[BUFFER_MAX], int *
     if(*logged){
         parse_ok_response(msg_response, msg_response_len);
         parse_int_to_msg(metrics->total_connections, msg_response, msg_response_len);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
@@ -150,107 +147,97 @@ void parse_bytes_transfered(bool * logged, char msg_response[BUFFER_MAX], int * 
     if(*logged){
         parse_ok_response(msg_response, msg_response_len);
         parse_int_to_msg(metrics->bytes_transfered, msg_response, msg_response_len);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
 void parse_get_mtypes(bool * logged, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings) {
-    if(*logged){
+    if(*logged) {
         parse_ok_response(msg_response, msg_response_len);
         *msg_response_len += strlen(settings->media_types) + 1;
         strcpy(msg_response + 1, settings->media_types);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
 void parse_get_cmd(bool * logged, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings) {
-    if(*logged){
+    if(*logged) {
         parse_ok_response(msg_response, msg_response_len);
         *msg_response_len += strlen(settings->cmd) + 1;
         strcpy(msg_response + 1, settings->cmd);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
 void parse_set_cmd(bool *logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings) {
-    if(*logged){
+    if(*logged) {
         strncpy(msg_received + 1, settings->cmd, msg_received_len);
         parse_ok_response(msg_response, msg_response_len);
         *msg_response_len += strlen(settings->cmd) + 1;
         strcpy(msg_response + 1, settings->cmd);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
 void parse_set_mtype(bool *logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings) {
-    if(*logged && valid_mtype_and_not_already_in(settings, msg_received + 1)){
+    if(*logged && valid_mtype_and_not_already_in(settings, msg_received + 1)) {
         parse_ok_response(msg_response, msg_response_len);
         *msg_response_len += strlen(settings->media_types) + 1;
         strcpy(msg_response + 1, settings->media_types);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
 void parse_rm_mtype(bool *logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings) {
-    if(*logged && rm_mtype(settings, msg_received + 1)){
+    if(*logged && rm_mtype(settings, msg_received + 1)) {
         parse_ok_response(msg_response, msg_response_len);
         *msg_response_len += strlen(settings->media_types) + 1;
         strcpy(msg_response + 1, settings->media_types);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
-void parse_enable_mtype_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings){
-    if(*logged && (!settings->cmd_or_mtype_transformations || !settings->transformations)){
+void parse_enable_mtype_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings) {
+    if(*logged && (!settings->cmd_or_mtype_transformations || !settings->transformations)) {
         settings->cmd_or_mtype_transformations = true;
         settings->transformations = true;
         parse_ok_response(msg_response, msg_response_len);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
-void parse_enable_cmd_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings){
-    if(*logged && ( settings->cmd_or_mtype_transformations || !settings->transformations)){
+void parse_enable_cmd_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings) {
+    if(*logged && ( settings->cmd_or_mtype_transformations || !settings->transformations)) {
         settings->cmd_or_mtype_transformations = false;
         settings->transformations = true;
         parse_ok_response(msg_response, msg_response_len);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
-void parse_disable_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings){
-    if(*logged && settings->cmd_or_mtype_transformations){
+void parse_disable_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings) {
+    if(*logged && settings->cmd_or_mtype_transformations) {
         settings->cmd_or_mtype_transformations = false;
         parse_ok_response(msg_response, msg_response_len);
-    }
-    else{
+    } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
 bool valid_mtype_and_not_already_in(settings_t settings, char * mtype) {
-    if(strstr(settings->media_types, mtype) == NULL && valid_media_type(mtype)){
-        if(settings->mtypes > 0){
+    if(strstr(settings->media_types, mtype) == NULL && valid_media_type(mtype)) {
+        if(settings->mtypes > 0) {
             strcat(settings->media_types, ",");
             strcat(settings->media_types, mtype);
-        }
-        else{
+        } else {
             strcpy(settings->media_types, mtype);
         }
         settings->mtypes++;
@@ -261,13 +248,12 @@ bool valid_mtype_and_not_already_in(settings_t settings, char * mtype) {
 
 bool rm_mtype(settings_t settings, char * mtype) {
     char * ptr;
-    if((ptr = strstr(settings->media_types, mtype)) != NULL){
-        if(settings->mtypes > 0){
+    if((ptr = strstr(settings->media_types, mtype)) != NULL) {
+        if(settings->mtypes > 0) {
             int l_mtype = strlen(mtype);
             int len_ptr = strlen(ptr);
             memcpy(ptr - 1, ptr + l_mtype, len_ptr - l_mtype);
-        }
-        else{
+        } else {
             settings->media_types[0] = 0;
         }
         settings->media_types--;
@@ -276,7 +262,7 @@ bool rm_mtype(settings_t settings, char * mtype) {
     return false;
 }
 
-void parse_int_to_msg(int number, char msg_response[BUFFER_MAX], int * msg_response_len){
+void parse_int_to_msg(int number, char msg_response[BUFFER_MAX], int * msg_response_len) {
     sprintf(msg_response + 1, "%d", number);
     *msg_response_len += strlen(msg_response + 1) + 1;
 }

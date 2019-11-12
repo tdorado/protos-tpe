@@ -162,7 +162,7 @@ int set_client_fds(client_t client, client_list_t client_list, int * max_fd, fd_
     return 0;
 }
 
-void set_client_fd(client_t client, fd_set *read_fds, fd_set *write_fds){
+void set_client_fd(client_t client, fd_set * read_fds, fd_set * write_fds){
     if (client->client_fd > 0 && client->received_greeting) {
         if (buffer_can_write(client->client_read_buffer)) {
             FD_SET(client->client_fd, read_fds);
@@ -174,17 +174,15 @@ void set_client_fd(client_t client, fd_set *read_fds, fd_set *write_fds){
     }
 }
 
-int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *write_fds, client_t client, settings_t settings, metrics_t metrics){
+int set_origin_server_fd(client_list_t client_list, fd_set * read_fds, fd_set * write_fds, client_t client, settings_t settings, metrics_t metrics){
     if (client->origin_server_state == NOT_RESOLVED_ORIGIN_SERVER) {
         resolve_origin_server(client, settings);
-    }
-    else if (client->origin_server_state == ERROR_ORIGIN_SERVER) {
+    } else if (client->origin_server_state == ERROR_ORIGIN_SERVER) {
         send_message_to_fd(client->client_fd, ERR_ORIGIN_SERVER_CONNECTION, ERR_ORIGIN_SERVER_CONNECTION_LEN);
         remove_client(client_list, client);
         metrics->concurrent_connections--;
         return ERROR_ORIGIN_SERVER;
-    }
-    else if (client->origin_server_state == RESOLVED_TO_ORIGIN_SERVER && client->origin_server_fd > 0) {
+    } else if (client->origin_server_state == RESOLVED_TO_ORIGIN_SERVER && client->origin_server_fd > 0) {
         if (buffer_can_write(client->origin_server_buffer)) {
             FD_SET(client->origin_server_fd, read_fds);
         }
@@ -196,7 +194,7 @@ int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *wr
     return 0;
 }
 
-int set_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set *read_fds, fd_set *write_fds, metrics_t metrics) {
+int set_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set * read_fds, fd_set * write_fds, metrics_t metrics) {
     if (settings->transformations){
         if ( client->external_transformation_state == PROCESS_NOT_INITIALIZED ) {
             if (start_external_transformation_process(settings, client) == ERROR_TRANSFORMATION_PROCESS) {
@@ -229,7 +227,7 @@ pop_response_t get_response(buffer_t buffer) {
     return ERR_RESPONSE;
 }
 
-void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds, fd_set *write_fds, settings_t settings, metrics_t metrics) {
+void resolve_client(client_t client, client_list_t client_list, fd_set * read_fds, fd_set * write_fds, settings_t settings, metrics_t metrics) {
     int bytes_read;
 
     if (FD_ISSET(client->client_fd, read_fds)) {
@@ -244,15 +242,12 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
         if(bytes_read >= 4){
             if (strncasecmp((char *)client->client_read_buffer->read, "retr", 4) == 0 && client->client_state == LOGGED_IN) {
                 client->client_state = RETR_REQUEST;
-            }
-            else if (strncasecmp((char *)client->client_read_buffer->read, "pass", 4) == 0) {
+            } else if (strncasecmp((char *)client->client_read_buffer->read, "pass", 4) == 0) {
                 client->client_state = PASS_REQUEST;
-            }
-            else if (strncasecmp((char *)client->client_read_buffer->read, "capa", 4) == 0) {
+            } else if (strncasecmp((char *)client->client_read_buffer->read, "capa", 4) == 0) {
                 client->client_state = CAPA_REQUEST;
             }
-        }
-        else{
+        } else {
             int aux = 0;
             while(client->command_received_len < 4 && aux < bytes_read ){
                 client->command_received[client->command_received_len] = *((char*)client->client_read_buffer->read + aux);
@@ -262,11 +257,9 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
             if(client->command_received_len == 4){
                 if (strncasecmp(client->command_received, "retr", 4) == 0 && client->client_state == LOGGED_IN) {
                     client->client_state = RETR_REQUEST;
-                }
-                else if (strncasecmp(client->command_received, "pass", 4) == 0) {
+                } else if (strncasecmp(client->command_received, "pass", 4) == 0) {
                     client->client_state = PASS_REQUEST;
-                }
-                else if (strncasecmp(client->command_received, "capa", 4) == 0) {
+                } else if (strncasecmp(client->command_received, "capa", 4) == 0) {
                     client->client_state = CAPA_REQUEST;
                 }
                 client->command_received_len = 0;
@@ -293,29 +286,25 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                 metrics->concurrent_connections--;
             }
 
-            if(client->received_greeting){
+            if(client->received_greeting) {
                 if (get_response(client->origin_server_buffer) == OK_RESPONSE) {
                     if (client->client_state == PASS_REQUEST) {
                         client->client_state = LOGGED_IN;
                         client->logged = true;
-                    }
-                    else if(client->client_state == RETR_REQUEST){
+                    } else if(client->client_state == RETR_REQUEST) {
                         if(settings->transformations){
                             client->client_state = RETR_OK;
-                        }
-                        else{
+                        } else {
                             client->client_state = LOGGED_IN;
                         }
-                    }
-                    else if(client->client_state == CAPA_REQUEST){
-                        if(client->logged){
+                    } else if(client->client_state == CAPA_REQUEST) {
+                        if(client->logged) {
                             client->client_state = LOGGED_IN;
-                        }
-                        else{
+                        } else {
                             client->client_state = NOT_LOGGED_IN;
                         }
                         char aux[bytes_read + 13];
-                        for(int i = 0; i < bytes_read; i++){
+                        for(int i = 0; i < bytes_read; i++) {
                             aux[i] = buffer_read(client->origin_server_buffer);
                         }
                         buffer_reset(client->origin_server_buffer);
@@ -324,19 +313,17 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                             strcpy(aux + bytes_read - 3, "PIPELINING\r\n.\r\n");
                             bytes_read += 12;
                         }
-                        for(int i = 0; i < bytes_read; i++){
+                        for(int i = 0; i < bytes_read; i++) {
                             buffer_write(client->origin_server_buffer, aux[i]);
                         }
                     }
                 }
-            }
-            else{
+            } else {
                 if (get_response(client->origin_server_buffer) == OK_RESPONSE) {
                     send_message_to_fd(client->client_fd, OK_WELCOME, OK_WELCOME_LEN);
                     buffer_reset(client->origin_server_buffer);
                     client->received_greeting = true;
-                }
-                else{
+                } else {
                     send_message_to_fd(client->client_fd, ERR_ORIGIN_SERVER_CONNECTION, ERR_ORIGIN_SERVER_CONNECTION_LEN);
                     remove_client(client_list, client);
                     metrics->concurrent_connections--;
@@ -381,8 +368,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                     }
                 }
             }
-        }
-        else{
+        } else {
             buffer_copy(client->origin_server_buffer, client->client_write_buffer);
         }
     }

@@ -6,6 +6,11 @@
 
 #include "include/admin_client_parser.h"
 
+bool valid_digit(char * digit);
+bool valid_address(char * address);
+bool valid_port(char * port);
+void print_usage();
+
 bool valid_digit(char * digit) {
     while (*digit) {
         if (*digit >= '0' && *digit <= '9') {

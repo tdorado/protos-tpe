@@ -13,11 +13,6 @@
 #include "include/admin_parser.h"
 #include "include/logs.h"
 
-int start_listen(int fd, int backlog);
-int set_socket_opt(int admin_socket, int level, int opt_name, void *opt_val, socklen_t opt_len);
-int binding(int admin_socket, struct sockaddr_in *server_addr, size_t server_addr_size);
-int create_sctp_socket();
-
 int create_sctp_socket() {
     int admin_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
     if (admin_fd == -1) {
@@ -49,7 +44,7 @@ int set_socket_opt(int admin_fd, int level, int opt_name, void *opt_val, socklen
 
 int start_listen(int fd, int max_connections) {
     int listen_fd = listen(fd, max_connections);
-    if (listen_fd == -1){
+    if (listen_fd == -1) {
         perror("Error on listen admin");
         close(fd);
         exit(EXIT_FAILURE);
@@ -63,18 +58,17 @@ int init_admin_socket(struct sockaddr_in *admin_addr, socklen_t *admin_addr_len,
 
     memset(admin_addr, 0, sizeof(*admin_addr));
 
-    admin_fd = create_sctp_socket(); 
+    admin_fd = create_sctp_socket();
 
     admin_addr->sin_family = AF_INET;
-    if (strcmp(settings->management_addr, "loopback") == 0){
+    if (strcmp(settings->management_addr, "loopback") == 0) {
         admin_addr->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    }
-    else if (strcmp(settings->management_addr, "any") == 0){
+    } else if (strcmp(settings->management_addr, "any") == 0) {
         admin_addr->sin_addr.s_addr = htonl(INADDR_ANY);
-    }
-    else{
+    } else {
         inet_pton(AF_INET, settings->management_addr, &(admin_addr->sin_addr));
     }
+
     admin_addr->sin_port = htons(settings->management_port);
 
     binding(admin_fd, admin_addr, sizeof(*admin_addr));
@@ -85,18 +79,18 @@ int init_admin_socket(struct sockaddr_in *admin_addr, socklen_t *admin_addr_len,
     init_msg.sinit_max_attempts = MAX_ATTEMPTS;
     set_socket_opt(admin_fd, IPPROTO_SCTP, SCTP_INITMSG, &init_msg, sizeof(init_msg));
 
-    start_listen(admin_fd, MAX_CONNECTIONS); 
+    start_listen(admin_fd, MAX_CONNECTIONS);
 
     return admin_fd;
 }
 
-void resolve_admin_client(int admin_fd, fd_set *readFDs, struct sockaddr_in *admin_addr, socklen_t *admin_addr_len, settings_t settings, metrics_t metrics) {
+void resolve_admin_client(int admin_fd, fd_set * readFDs, struct sockaddr_in * admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics) {
     if (FD_ISSET(admin_fd, readFDs)) {
         resolve_admin_fd_in_thread(admin_fd, admin_addr, admin_addr_len, settings, metrics);
     }
 }
 
-void set_admin_fd(const int admin_fd, int *max_fd, fd_set *read_fds){
+void set_admin_fd(const int admin_fd, int * max_fd, fd_set * read_fds) {
     FD_SET(admin_fd, read_fds);
     if (admin_fd > *max_fd) {
         *max_fd = admin_fd;
@@ -114,7 +108,7 @@ void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t
     bool stop = false;
 
     connection_fd = accept(admin_fd, (struct sockaddr *)admin_addr, admin_addr_len);
-    if (connection_fd == -1){
+    if (connection_fd == -1) {
         perror("Error accepting admin");
         return;
     }
@@ -124,8 +118,7 @@ void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t
         printf("Error in sctp_sendmsg()\n");
         perror("Error sending admin message");
         stop = true;
-    }
-    else {
+    } else {
         log_message(false, "Successfully sent data to admin");
     }
     while(!stop) {
@@ -145,8 +138,7 @@ void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t
                 printf("Error in sctp_sendmsg()\n");
                 perror("Error sending admin message");
                 break;
-            }
-            else {
+            } else {
                 log_message(false, "Successfully sent %d bytes data to admin");
             }
         }

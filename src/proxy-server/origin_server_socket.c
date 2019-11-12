@@ -35,7 +35,7 @@ int resolve_origin_server(client_t client, settings_t settings) {
 
     pthread_t thread;
 
-    if (pthread_create(&thread, NULL, resolve_origin_server_thread, (void *)thread_args) == -1){
+    if (pthread_create(&thread, NULL, resolve_origin_server_thread, (void *)thread_args) == -1) {
         perror("Error creating new thread");
         exit(EXIT_FAILURE);
     }
@@ -70,8 +70,7 @@ static void * resolve_origin_server_thread(void *args) {
 
         if (origin_server_addr->sin_family == AF_INET6) {
             origin_server_addr_len = sizeof(struct sockaddr_in6);
-        }
-        else{
+        } else {
             origin_server_addr_len = sizeof(struct sockaddr_in);
         }
 
