@@ -54,6 +54,7 @@ dkms.conf
 # POP3 Proxy Filter compiled
 pop3filter
 adminclient
+stripmime
 
 # Visual Studio Code
 .vscode
