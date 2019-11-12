@@ -20,8 +20,12 @@ DEBUGFLAGS = -g
 all: clean proxy-server admin-client stripmime
 
 clean:
-	@rm -f $(PROXY_NAME) $(PROXY_MAIN:=.o)
+	@rm -f $(PROXY_NAME)
 	@rm -f $(PROXY_SOURCES) $(PROXY_SOURCES:=.o)
+	@rm -f $(ADMIN_CLIENT_NAME)
+	@rm -f $(ADMIN_CLIENT_SOURCES) $(ADMIN_CLIENT_SOURCES:=.o)
+	@rm -f $(STRIPMIME_NAME)
+	@rm -f $(STRIPMIME_SOURCES) $(STRIPMIME_SOURCES:=.o)
 
 proxy-server:
 	$(CC_C) $(CFLAGS) $(DEBUGFLAGS) $(PROXY_SOURCES:=.c) -o $(PROXY_NAME) $(SCTPFLAGS) $(PTHREADFLAG) -lrt
