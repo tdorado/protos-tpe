@@ -182,7 +182,6 @@ void parse_set_cmd(bool *logged, char msg_received[BUFFER_MAX], int msg_received
 
 void parse_set_mtypes(bool *logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings) {
     if(*logged) {
-        printf("s = %s\n", msg_received +1);
         strncpy(settings->media_types, msg_received + 1, msg_received_len - 1);
         settings->media_types[msg_received_len] = 0;
         parse_ok_response(msg_response, msg_response_len);
