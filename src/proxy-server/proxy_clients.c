@@ -1,6 +1,7 @@
 #include "include/proxy_clients.h"
 #include "include/origin_server_socket.h"
 #include "include/external_transformation.h"
+#include "include/logs.h"
 
 client_list_t init_client_list() {
     client_list_t client_list = (client_list_t)malloc(sizeof(*client_list));
@@ -20,9 +21,10 @@ client_list_t init_client_list() {
 client_t create_client(client_list_t client_list, const int fd) {
     client_t client = (client_t)malloc(sizeof(*client));
 
-    printf("\nInitializing client...\n");
+    log_message(false, "Creating new client.");
 
     if(client == NULL) {
+        log_message(true, "Client not created");
         perror("Error creating client");
         return NULL;
     }
@@ -58,13 +60,13 @@ client_t create_client(client_list_t client_list, const int fd) {
 
     client_list->qty++;
 
-    printf("\nInitialization successful\n");
+    log_message(false, "Client created successfully.");
 
     return client;
 }
 
 void remove_client(client_list_t client_list, client_t client) {
-    printf("\nRemoving client...\n");
+    log_message(false, "Removing client.");
 
     if (client == client_list->first) {
         if(client->next != NULL) {
@@ -103,7 +105,7 @@ void remove_client(client_list_t client_list, client_t client) {
     free_parser_state(client->parser_state);
     free(client);
 
-    printf("\nRemoval successful\n");
+    log_message(false, "Removal of client successful.");
 }
 
 void free_client_list(client_list_t client_list) {
@@ -119,7 +121,7 @@ void free_client_list(client_list_t client_list) {
 void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len, settings_t settings, metrics_t metrics) {
     int new_client_fd = -1;
 
-    printf("\nAdding client...\n");
+    log_message(false, "Received new client connection... adding client");
 
     if((new_client_fd = accept(proxy_fd, (struct sockaddr *)&server_addr, server_addr_len)) < 0) {
         perror("Error adding client");
@@ -137,7 +139,7 @@ void add_client(client_list_t client_list, const int proxy_fd, struct sockaddr_i
     metrics->concurrent_connections++;
     metrics->total_connections++;
 
-    printf("\nSuccessfully added\n");
+    log_message(false, "Client successfully connected and added");
 }
 
 int set_client_fds(client_t client, client_list_t client_list, int * max_fd, fd_set * read_fds, fd_set * write_fds, settings_t settings, metrics_t metrics) {
@@ -192,15 +194,16 @@ int set_origin_server_fd(client_list_t client_list, fd_set *read_fds, fd_set *wr
 }
 
 int set_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set *read_fds, fd_set *write_fds, metrics_t metrics) {
-    printf("\nSetting external transformation\n");
     if (settings->transformations){
         if ( client->external_transformation_state == PROCESS_NOT_INITIALIZED ) {
             if (start_external_transformation_process(settings, client) == ERROR_TRANSFORMATION_PROCESS) {
                 send_message_to_fd(client->client_fd, ERR_TRANSFORMATION, ERR_TRANSFORMATION_LEN);
                 remove_client(client_list, client);
-                metrics->concurrent_connections--;;
+                metrics->concurrent_connections--;
+                log_message(true, "External transformation process not created.");
                 return ERROR_TRANSFORMATION_PROCESS;
             }
+            log_message(false, "External transformation process created correctly.");
             client->external_transformation_state = PROCESS_INITIALIZED;
         }
     }
@@ -213,7 +216,6 @@ int set_external_transformation_fds(client_list_t client_list, client_t client, 
             FD_SET(client->external_transformation_write_fd, write_fds);
         }
     }
-    printf("\nSuccessful transformation setted\n");
     return 0;
 }
 

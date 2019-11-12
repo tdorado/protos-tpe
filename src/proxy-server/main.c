@@ -136,26 +136,26 @@ void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_
 static void signal_action_handler(const int signal_number) {
     switch(signal_number) {
         case SIGINT:
-            printf("\nSIGINT catched.\n");
+            log_message(true, "SIGINT catched. Turning off proxy...");
             turn_off_proxy();
             break;
         case SIGSEGV:
-            printf("\nSIGSEGV catched.\n");
+            log_message(true, "SIGSEGV catched. Turning off proxy...");
             turn_off_proxy();
             break;
         case SIGTERM:
-            printf("\nSIGTERM catched.\n");
+            log_message(true, "SIGTERM catched. Turning off proxy...");
             turn_off_proxy();
             break;
         case SIGPIPE:
-            printf("\nSIGPIPE catched.\n");
+            log_message(true, "SIGPIPE catched. Turning off proxy...");
             turn_off_proxy();
             break;
     }
 }
 
 static void thread_handler(const int signal_number) {
-
+    log_message(false, "Origin server thread finished");
 }
 
 int set_up_signals(void) {
@@ -188,7 +188,7 @@ void turn_off_proxy() {
     free_client_list(client_list);
     free_settings(settings);
     free_metrics(metrics);
-    //close(admin_fd);
+    close(admin_fd);
     close(proxy_fd);
 
     exit(EXIT_FAILURE);

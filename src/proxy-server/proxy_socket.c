@@ -4,11 +4,12 @@
 #include <sys/select.h>
 
 #include "include/proxy_socket.h"
+#include "include/logs.h"
 
 int init_proxy_socket(struct sockaddr_in6 *server_addr, socklen_t *server_addr_len, settings_t settings) {
     int proxy_fd = -1, flags = -1;
 
-    printf("\nCreating server socket...\n");
+    log_message(false, "Creating proxy server socket.");
 
     memset(server_addr, 0, sizeof(*server_addr));
 
@@ -53,7 +54,7 @@ int init_proxy_socket(struct sockaddr_in6 *server_addr, socklen_t *server_addr_l
 
     *server_addr_len = sizeof(*server_addr);
 
-    printf("\nSuccessfully created\n");
+    log_message(false, "Proxy server socket created successfully.");
 
     return proxy_fd;
 }
