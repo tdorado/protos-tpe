@@ -13,6 +13,11 @@
 #include "include/admin_parser.h"
 #include "include/logs.h"
 
+int start_listen(int fd, int backlog);
+int set_socket_opt(int admin_socket, int level, int opt_name, void * opt_val, socklen_t opt_len);
+int binding(int admin_socket, struct sockaddr_in * server_addr, size_t server_addr_size);
+int create_sctp_socket();
+
 int create_sctp_socket() {
     int admin_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
     if (admin_fd == -1) {
