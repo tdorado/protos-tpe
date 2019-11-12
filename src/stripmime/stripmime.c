@@ -2,36 +2,63 @@
 
 #define ENV_VARIABLES_QUANTITY 2
 #define FILTER_MSG_DEFAULT "Confiscado"
+#define MAX_FILTER_MEDIAS 5
 
 const char * env_variables[]  = {"FILTER_MEDIAS", "FILTER_MSG"};
 
-int check_variables(char * my_env_variables[ENV_VARIABLES_QUANTITY]);
+int check_variables(char ** , char **);
+int contains_string(char * string, char * string_array);
 
 int main(void) {
-    char * my_env_variables[ENV_VARIABLES_QUANTITY];
-    check_variables(my_env_variables);
+    char * filter_medias;
+    char * filter_msg;
+    check_variables(&filter_medias, &filter_msg);
     content_type_header_t content_type = malloc(sizeof(content_type_header));
     stack_t stack = create_stack();
-    manage_body(stack, my_env_variables[0], my_env_variables[1]);
+    manage_body(stack, filter_medias, filter_msg);
     free(stack);
     free(content_type);
 }
 
-int check_variables(char * my_env_variables[ENV_VARIABLES_QUANTITY]) {
+int check_variables(char ** filter_medias, char ** filter_msg) {
     char * aux = getenv(env_variables[0]);
     if(aux == NULL) {
         fprintf(stderr, "La variable FILTER_MEDIAS no está definida");
     }
     else {
-        my_env_variables[0] = aux;
+        *filter_medias = aux;
         aux = getenv(env_variables[1]);
         if (aux == NULL) {
-            my_env_variables[1] =FILTER_MSG_DEFAULT;
+            *filter_msg = FILTER_MSG_DEFAULT;
         }
         else {
-            my_env_variables[1] = aux;
+            * filter_msg = aux;
         }
     }
+}
+
+int contains_string(char * string, char * string_array) {
+    int i = 0;
+    int j = 0;
+    while(string_array[i] != '\0') {
+        while( string[j] == string_array[i] && (string[j] != '\0' && string_array[i] != '\0')) {
+            i++;
+            j++;
+            if(string_array[i] == '/' && string_array[i+1] == '*') {
+                return TRUE;
+            }
+        }
+        if( string[j] == '\0' && (string_array[i] == '\0' || string_array[i] == ',')) {
+            return TRUE;
+        }
+        while(string_array[i] != ',' && string_array[i] != '\0') {
+            i++;
+        }
+        j=0;
+        if(string_array[i] == ',')
+            i++;
+    }
+    return FALSE;
 }
 
 int headers(content_type_header_t content_type, char * replace_mime) {
@@ -49,7 +76,7 @@ int headers(content_type_header_t content_type, char * replace_mime) {
                 }
                 content_type->content_type[content_actual_length] = '\0';
                 if( c == ';') {
-                    if (strcmp(content_type->content_type, replace_mime) == 0) {
+                    if (contains_string(content_type->content_type, replace_mime)) {
                         printf("text/plain");
                     }
                     else
@@ -59,7 +86,7 @@ int headers(content_type_header_t content_type, char * replace_mime) {
                     return SUCCESS;
                 }
                 else if( c == '\r' && (c = getchar()) == '\n') {
-                    if (strcmp(content_type->content_type, replace_mime) == 0) {
+                    if (contains_string(content_type->content_type, replace_mime)) {
                         printf("text/plain\r\n");
                     }
                     else
@@ -184,7 +211,7 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
             }
             print = TRUE;
         }
-        else if(strcmp(actual_content->content_type, replace_mime) == 0) {
+        else if(contains_string(actual_content->content_type, replace_mime)) {
             print = FALSE;
             printf("%s\n", replace_text);
         }

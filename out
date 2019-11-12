@@ -7,11 +7,11 @@ Message-ID: <20171105185910.5bec39ca@juan-virtual-machine>
 Mime-Version: 1.0
 
 --MP_/XAkM/CBycDJWEUGbQ_LLaw3
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Un png, un jpgeg
+Confiscado
 --MP_/XAkM/CBycDJWEUGbQ_LLaw3
 Content-Type: image/png
 Content-Transfer-Encoding: base64
@@ -83,7 +83,6 @@ Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment; filename=hola.txt
 
-hola mundo!
-
+Confiscado
 --MP_/XAkM/CBycDJWEUGbQ_LLaw3--
 
