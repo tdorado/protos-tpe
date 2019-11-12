@@ -1,11 +1,37 @@
 #include "include/stripmime.h"
 
+#define ENV_VARIABLES_QUANTITY 2
+#define FILTER_MSG_DEFAULT "Confiscado"
+
+const char * env_variables[]  = {"FILTER_MEDIAS", "FILTER_MSG"};
+
+int check_variables(char * my_env_variables[ENV_VARIABLES_QUANTITY]);
+
 int main(void) {
+    char * my_env_variables[ENV_VARIABLES_QUANTITY];
+    check_variables(my_env_variables);
     content_type_header_t content_type = malloc(sizeof(content_type_header));
     stack_t stack = create_stack();
-    manage_body(stack, "image/png", "Confiscado");
+    manage_body(stack, my_env_variables[0], my_env_variables[1]);
     free(stack);
     free(content_type);
+}
+
+int check_variables(char * my_env_variables[ENV_VARIABLES_QUANTITY]) {
+    char * aux = getenv(env_variables[0]);
+    if(aux == NULL) {
+        fprintf(stderr, "La variable FILTER_MEDIAS no está definida");
+    }
+    else {
+        my_env_variables[0] = aux;
+        aux = getenv(env_variables[1]);
+        if (aux == NULL) {
+            my_env_variables[1] =FILTER_MSG_DEFAULT;
+        }
+        else {
+            my_env_variables[1] = aux;
+        }
+    }
 }
 
 int headers(content_type_header_t content_type, char * replace_mime) {
