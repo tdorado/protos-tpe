@@ -1,13 +1,6 @@
 #include "include/stripmime.h"
 
-#define ENV_VARIABLES_QUANTITY 2
-#define FILTER_MSG_DEFAULT "Confiscado"
-#define MAX_FILTER_MEDIAS 5
-
 const char * env_variables[]  = {"FILTER_MEDIAS", "FILTER_MSG"};
-
-int check_variables(char ** , char **);
-int contains_string(char * string, char * string_array);
 
 int main(void) {
     char * filter_medias;
@@ -20,7 +13,7 @@ int main(void) {
     free(content_type);
 }
 
-int check_variables(char ** filter_medias, char ** filter_msg) {
+void check_variables(char ** filter_medias, char ** filter_msg) {
     char * aux = getenv(env_variables[0]);
     if(aux == NULL) {
         fprintf(stderr, "La variable FILTER_MEDIAS no está definida");
@@ -153,6 +146,7 @@ int handle_attributes(content_type_header_t content_type) {
         putchar(' ');
         skip_line();
     }
+    return FAIL;
 }
 
 int search_boundary(char * boundary, int print) {
