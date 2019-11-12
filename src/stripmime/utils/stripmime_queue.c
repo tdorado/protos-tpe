@@ -43,3 +43,14 @@ content_type_header_t stack_peek(stack_t stack) {
 int stack_is_empty(stack_t stack) {
     return stack->head == NULL ? TRUE : FALSE;
 }
+
+void stack_free_queue_elems(stack_t stack) {
+    node_t aux;
+    while(stack->head != NULL) {
+        free(stack->head->elem);
+        aux = stack->head;
+        stack->head = stack->head->next;
+        free(aux);
+    }
+    free(stack);
+}

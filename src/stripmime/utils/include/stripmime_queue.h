@@ -16,5 +16,6 @@ void stack_push(stack_t stack, content_type_header_t elem);
 content_type_header_t stack_pop(stack_t stack);
 content_type_header_t stack_peek(stack_t stack);
 int stack_is_empty(stack_t stack);
+void stack_free_queue_elems(stack_t stack);
 
 #endif

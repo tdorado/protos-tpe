@@ -6,11 +6,9 @@ int main(void) {
     char * filter_medias;
     char * filter_msg;
     check_variables(&filter_medias, &filter_msg);
-    content_type_header_t content_type = malloc(sizeof(content_type_header));
     stack_t stack = create_stack();
     manage_body(stack, filter_medias, filter_msg);
-    free(stack);
-    free(content_type);
+    stack_free_queue_elems(stack);
 }
 
 void check_variables(char ** filter_medias, char ** filter_msg) {
@@ -190,13 +188,13 @@ int search_boundary(char * boundary, int print) {
 
 int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
     content_type_header_t actual_content = malloc(sizeof(content_type_header));
+    content_type_header_t aux = malloc(sizeof(content_type_header));
     headers(actual_content, replace_mime);
     stack_push(stack, actual_content);
     int print = TRUE;
     int rta;
     while(!stack_is_empty(stack)) {
         actual_content = stack_pop(stack);
-        content_type_header_t aux = malloc(sizeof(content_type_header));
         if(strncmp("multipart/", actual_content->content_type, 10) == 0) {
             rta = search_boundary(actual_content->boundary, print);
             if(rta == START_BOUNDARY) {
@@ -209,6 +207,7 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
         else if(strncmp("message/", actual_content->content_type, 8) == 0) {
             stack_t stack = create_stack();
             manage_body(stack, replace_mime, replace_text);
+            stack_free_queue_elems(stack);
         }
         else if(contains_string(actual_content->content_type, replace_mime)) {
             print = FALSE;
@@ -223,5 +222,7 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
         while((c=getchar()) != EOF)
         putchar(c);
    }
+   free(actual_content);
+   free(aux);
    return SUCCESS;
 }
