@@ -119,8 +119,7 @@ void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t
     }
     parse_ok_response(msg_response, &msg_response_len);
     ret = sctp_sendmsg(connection_fd, (void *)msg_response, msg_response_len, NULL, 0, 0, 0, 0, 0, 0);
-    if (ret == -1) {
-        printf("Error in sctp_sendmsg()\n");
+    if (ret == -1 || ret == 0) {
         perror("Error sending admin message");
         stop = true;
     } else {
@@ -128,8 +127,7 @@ void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t
     }
     while(!stop) {
         msg_received_len = sctp_recvmsg(connection_fd, msg_received, BUFFER_MAX, NULL, 0, 0, 0);
-        if (msg_received_len == -1) {
-            printf("Error in sctp_recvmsg()\n");
+        if (msg_received_len == -1 || msg_received_len == 0) {
             perror("Error receiving admin message");
             break;
         } else {
@@ -139,8 +137,7 @@ void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t
 
         if (msg_received_len != 0) {
             ret = sctp_sendmsg(connection_fd, (void *)msg_response, msg_response_len, NULL, 0, 0, 0, 0, 0, 0);
-            if (ret == -1) {
-                printf("Error in sctp_sendmsg()\n");
+            if (ret == -1 || ret == 0) {
                 perror("Error sending admin message");
                 break;
             } else {
@@ -148,5 +145,6 @@ void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t
             }
         }
     }
+    log_message(false, "Closing admin connection");
     close(connection_fd);
 }
