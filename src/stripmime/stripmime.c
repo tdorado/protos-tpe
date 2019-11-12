@@ -203,6 +203,10 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
             print = FALSE;
             printf("%s\r\n", replace_text);
             free(actual_content);
+            if(stack_is_empty(stack)){
+                free(actual_content);
+                return SUCCESS;
+            }
         } else {
             print = TRUE;
             free(actual_content);
