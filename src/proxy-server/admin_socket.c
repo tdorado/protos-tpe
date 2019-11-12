@@ -1,5 +1,6 @@
-#include "include/admin_socket.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -8,89 +9,90 @@
 #include <sys/select.h>
 
 #include "include/admin_socket.h"
+#include "include/admin_thread.h"
+#include "include/admin_parser.h"
+#include "include/logs.h"
 
-#define BUFFER_MAX 2048
-#define MAX_CONCURRENT_CONECTIONS 10
-#define MAX_INT_DIGITS 10
-#define TIMEOUT 180
+int start_listen(int fd, int backlog);
+int set_socket_opt(int admin_socket, int level, int opt_name, void *opt_val, socklen_t opt_len);
+int binding(int admin_socket, struct sockaddr_in *server_addr, size_t server_addr_size);
+int create_sctp_socket();
 
 int create_sctp_socket() {
     int admin_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
-    if (admin_fd == -1)
-    {
-        printf("Failed to create sctp socket\n");
-        perror("socket()");
-        exit(1);
+    if (admin_fd == -1) {
+        perror("Error creating admin socket");
+        exit(EXIT_FAILURE);
     }
     return admin_fd;
 }
 
-int binding(int admin_socket, struct sockaddr_in *server_addr, size_t server_addr_size) {
-    int binding_fd = bind(admin_socket, server_addr, server_addr_size);
-    if (binding_fd == -1)
-    {
-        printf("Bind failed \n");
-        perror("bind()");
-        close(admin_socket);
-        exit(1);
+int binding(int admin_fd, struct sockaddr_in *admin_addr, size_t admin_addr_size) {
+    int binding_fd = bind(admin_fd, (struct sockaddr *)admin_addr, admin_addr_size);
+    if (binding_fd == -1) {
+        perror("Error on bind admin");
+        close(admin_fd);
+        exit(EXIT_FAILURE);
     }
     return binding_fd;
 }
 
-int set_socket_opt(int admin_socket, int level, int opt_name, void *opt_val, socklen_t opt_len) {
-    int set_socket_fd = setsockopt(admin_socket, level, opt_name, opt_val, opt_len);
-    if (set_socket_fd == -1)
-    {
-        printf("setsockopt() failed \n");
-        perror("setsockopt()");
-        close(admin_socket);
-        exit(1);
+int set_socket_opt(int admin_fd, int level, int opt_name, void *opt_val, socklen_t opt_len) {
+    int set_socket_fd = setsockopt(admin_fd, level, opt_name, opt_val, opt_len);
+    if (set_socket_fd == -1) {
+        perror("Error on setsockopt admin");
+        close(admin_fd);
+        exit(EXIT_FAILURE);
     }
     return set_socket_fd;
 }
 
-int start_listen(int fd, int backlog) {
-    int listen_fd = listen(fd, 5);
-    if (listen_fd == -1)
-    {
-        printf("listen() failed \n");
-        perror("listen()");
+int start_listen(int fd, int max_connections) {
+    int listen_fd = listen(fd, max_connections);
+    if (listen_fd == -1){
+        perror("Error on listen admin");
         close(fd);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     return listen_fd;
 }
 
-int init_admin_socket(struct sockaddr_in *server_addr, socklen_t *server_addr_len, settings_t settings) {
-    int admin_socket, ret;
-    struct sockaddr_in serv_addr;
+int init_admin_socket(struct sockaddr_in *admin_addr, socklen_t *admin_addr_len, settings_t settings) {
+    int admin_fd;
     struct sctp_initmsg init_msg;
 
-    admin_socket = create_sctp_socket(); 
+    memset(admin_addr, 0, sizeof(*admin_addr));
 
-    bzero((void *)&serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(settings->management_port);
+    admin_fd = create_sctp_socket(); 
 
-    ret = binding(admin_socket, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+    admin_addr->sin_family = AF_INET;
+    if (strcmp(settings->management_addr, "loopback") == 0){
+        admin_addr->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    }
+    else if (strcmp(settings->management_addr, "any") == 0){
+        admin_addr->sin_addr.s_addr = htonl(INADDR_ANY);
+    }
+    else{
+        inet_pton(AF_INET, settings->management_addr, &(admin_addr->sin_addr));
+    }
+    admin_addr->sin_port = htons(settings->management_port);
 
-    /* Specify that a maximum of 10 streams will be available per socket */
+    binding(admin_fd, admin_addr, sizeof(*admin_addr));
+
     memset(&init_msg, 0, sizeof(init_msg));
-    init_msg.sinit_num_ostreams = MAX_CONCURRENT_CONECTIONS;
-    init_msg.sinit_max_instreams = MAX_CONCURRENT_CONECTIONS;
-    init_msg.sinit_max_attempts = 5;
-    ret = set_socket_opt(admin_socket, IPPROTO_SCTP, SCTP_INITMSG, &init_msg, sizeof(init_msg));
+    init_msg.sinit_num_ostreams = MAX_STREAMS;
+    init_msg.sinit_max_instreams = MAX_STREAMS;
+    init_msg.sinit_max_attempts = MAX_ATTEMPTS;
+    set_socket_opt(admin_fd, IPPROTO_SCTP, SCTP_INITMSG, &init_msg, sizeof(init_msg));
 
-    ret = start_listen(admin_socket, MAX_CONCURRENT_CONECTIONS); 
+    start_listen(admin_fd, MAX_CONNECTIONS); 
 
-    return admin_socket;
+    return admin_fd;
 }
 
-void resolve_admin_client(int admin_socket, fd_set *readFDs, struct sockaddr_in *admin_addr, socklen_t *admin_addr_len, settings_t settings, metrics_t metrics) {
-    if (FD_ISSET(admin_socket, readFDs))
-    {
-        resolve_admin_socket(admin_socket, admin_addr, admin_addr_len, settings, metrics);
+void resolve_admin_client(int admin_fd, fd_set *readFDs, struct sockaddr_in *admin_addr, socklen_t *admin_addr_len, settings_t settings, metrics_t metrics) {
+    if (FD_ISSET(admin_fd, readFDs)) {
+        resolve_admin_fd_in_thread(admin_fd, admin_addr, admin_addr_len, settings, metrics);
     }
 }
 
@@ -101,215 +103,53 @@ void set_admin_fd(const int admin_fd, int *max_fd, fd_set *read_fds){
     }
 }
 
-void resolve_sctp_client(int admin_socket, struct sockaddr_in *admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics) {
-    int flags = 0;
-    __uint8_t admin_received_msg[BUFFER_MAX];
-    char *proxy_response_msg = malloc(BUFFER_MAX * sizeof(char));
+void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics) {
+    int connection_fd = -1;
+    int ret = -1;
+    int msg_received_len = -1;
+    char msg_received[BUFFER_MAX];
+    int msg_response_len = -1;
+    char msg_response[BUFFER_MAX];
+    bool logged = false;
+    bool stop = false;
 
-    struct sctp_sndrcvinfo sndrcv_info;
-    int ret;
-
-    int msg_reveived_len;
-
-    time_t first_time = time(NULL);
-
-    bool auth = false;
-
-    int connection_socket = accept(admin_socket, (struct sockaddr *)admin_addr, admin_addr_len);
-    while(1) {
-        if (time(NULL) - first_time >= TIMEOUT) close(connection_socket);
-        msg_reveived_len = sctp_recvmsg(connection_socket, admin_received_msg, BUFFER_MAX, (struct sockaddr *)NULL, 0, &sndrcv_info, &flags);
-        if (msg_reveived_len == -1) {
+    connection_fd = accept(admin_fd, (struct sockaddr *)admin_addr, admin_addr_len);
+    if (connection_fd == -1){
+        perror("Error accepting admin");
+        return;
+    }
+    parse_ok_response(msg_response, &msg_response_len);
+    ret = sctp_sendmsg(connection_fd, (void *)msg_response, msg_response_len, NULL, 0, 0, 0, 0, 0, 0);
+    if (ret == -1) {
+        printf("Error in sctp_sendmsg()\n");
+        perror("Error sending admin message");
+        stop = true;
+    }
+    else {
+        log_message(false, "Successfully sent data to admin");
+    }
+    while(!stop) {
+        msg_received_len = sctp_recvmsg(connection_fd, msg_received, BUFFER_MAX, NULL, 0, 0, 0);
+        if (msg_received_len == -1) {
             printf("Error in sctp_recvmsg()\n");
-            perror("sctp_recvmsg()");
+            perror("Error receiving admin message");
             break;
         } else {
-            if (!auth && (admin_received_msg[0] == LOGIN_REQUEST || admin_received_msg[0] == LOGOUT_REQUEST)) {
-                auth = parseLoginOrLogout(admin_received_msg);
-                if (auth) {
-                    strcpy(proxy_response_msg, "Login succesful");
-                } else if (admin_received_msg[0] == LOGOUT_REQUEST) {
-                    strcpy(proxy_response_msg, "Logout succesful");
-                } else {
-                    strcpy(proxy_response_msg, "Forbidden");
-                }
-            } else if (auth) {
-                proxy_response_msg = parse_request(admin_received_msg, settings, metrics);
-            } else {
-                strcpy(proxy_response_msg, "Forbidden");
-            }
+            log_message(false, "Successfully received data from admin");
+            stop = parse_msg_received(&logged, msg_received, msg_received_len, msg_response, &msg_response_len, settings, metrics);
         }
 
-        if (msg_reveived_len != 0) {
-            ret = sctp_sendmsg(connection_socket, (void *)proxy_response_msg, (size_t)BUFFER_MAX, NULL, 0, 0, 0, 0, 0, 0);
+        if (msg_received_len != 0) {
+            ret = sctp_sendmsg(connection_fd, (void *)msg_response, msg_response_len, NULL, 0, 0, 0, 0, 0, 0);
             if (ret == -1) {
                 printf("Error in sctp_sendmsg()\n");
-                perror("sctp_sendmsg()");
+                perror("Error sending admin message");
                 break;
             }
             else {
-                printf("Successfully sent %d bytes data to admin\n", ret);
+                log_message(false, "Successfully sent %d bytes data to admin");
             }
         }
     }
-    free(proxy_response_msg);
-}
-
-bool parseLoginOrLogout(__uint8_t *admin_received_msg) {
-    switch (admin_received_msg[0]) {
-        case LOGIN_REQUEST:
-            return isTokenValid(admin_received_msg+1);
-        case LOGOUT_REQUEST:
-            return false;
-        default:
-            return false;
-    }
-}
-
-bool isTokenValid(__uint8_t *token) {
-    return strcmp((char *)token, "tokenazo") == 0 ? true : false;
-}
-
-char *parse_request(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics) {
-    char *response = NULL;
-    switch(admin_received_msg[0]) {
-        case GET_REQUEST:
-            return parse_get(admin_received_msg + 1, settings, metrics);
-        case SET_REQUEST:
-            return parse_set(admin_received_msg + 1, settings, metrics);
-        case RM_REQUEST:
-            return parse_rm(admin_received_msg + 1, settings, metrics);
-        case ENABLE_TRANSFORMATION_REQUEST:
-            return parse_enable_transformation(settings);
-        case DISABLE_TRANSFORMATION_REQUEST:
-            return parse_disable_transformation(settings);
-    }
-    return response;
-}
-
-char *parse_enable_transformation(settings_t settings) {
-    if (!settings->transformations) {
-        settings->transformations = true;
-        return "Transformations enable!";
-    }
-    return "Transformation are already enable!";
-}
-
-char *parse_disable_transformation(settings_t settings) {
-    if (settings->transformations) {
-        settings->transformations = false;
-        return "Transformations disable!";
-    }
-    return "Transformations are already disable!"; 
-}
-
-char *parse_get(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics) {
-    char *response = NULL;
-    switch(admin_received_msg[0]) {
-        case CONCURRENT:
-            response = buildMetricsResponse(metrics->concurrent_connections, "Concurrent conections: ");
-            return response;
-        case ACCESSES:
-            response = buildMetricsResponse(metrics->total_connections, "Total connections: ");
-            return response;
-        case BYTES:
-            response = buildMetricsResponse(metrics->bytes_transfered, "Bytes transfered: ");
-            return response;
-        case CMD:
-            response = buildGetResponseWithString(settings->cmd, "Command active: ");
-            return response;
-        case MTYPES:
-            response = buildGetResponseWithString(settings->media_types, "Media types actives: ");
-            return response;
-    }
-    return response;
-}
-
-char *buildMetricsResponse(int data, char *initial_msg) {
-    char *response = malloc(strlen(initial_msg) + MAX_INT_DIGITS + 1);
-    strncpy(response, initial_msg, strlen(initial_msg));
-    sprintf(response + strlen(initial_msg), "%d\0", data);
-    return response;
-}
-
-char *buildGetResponseWithString(char *data, char *initial_msg) {
-    char *response = malloc(strlen(initial_msg) + strlen(data) + 1);
-    strncpy(response, initial_msg, strlen(initial_msg));
-    strcpy(response + strlen(initial_msg), data);
-    return response;
-}
-
-
-char *parse_set(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics) {
-    char *response = "TODO MAKE RESPONSE";
-    switch(admin_received_msg[0]) {
-        case CMD:
-            handle_set_cmd(admin_received_msg, settings);
-            break;
-        case MTYPES:
-            handle_set_mtypes(admin_received_msg+1, settings);
-            break;
-    }
-    return response;
-}
-
-void handle_set_mtypes(__uint8_t *admin_received_msg, settings_t settings) {
-    char *old_mtypes = settings->media_types; 
-    char *new_mtypes = malloc(strlen(((char *)admin_received_msg))+1);
-    strcpy(new_mtypes, (char *)admin_received_msg);
-    settings->media_types = new_mtypes;
-}
-
-void handle_set_cmd(__uint8_t *admin_received_msg, settings_t settings) {
-    size_t new_cmd_len = strlen((char *) admin_received_msg+1);
-    char *new_cmd = malloc((new_cmd_len + 1) * sizeof(char));
-    strcpy(new_cmd, admin_received_msg+1);
-    char *old_cmd = settings->cmd;
-    settings->cmd = new_cmd;
-}
-
-// char *filter_repetitions_mtypes(char *current_mtypes, char *new_mtypes) { //nth
-//             filtered_mtypes += j;
-//             j = 0;
-//         }
-//     }
-//     filtered_mtypes[count_filtered_mtypes+1] = '\0';
-//     char *new_current_mtypes = malloc(count_filtered_mtypes+1+strlen(current_mtypes));
-//     strcpy(new_current_mtypes, current_mtypes);
-//     strcat(new_current_mtypes, filter_repetitions_mtypes);
-//     free(filtered_mtypes);
-//     free(current_mtypes);
-//     return new_current_mtypes;
-// }
-
-char *parse_rm(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics) {
-    char *response = "TODO RM";
-    switch(admin_received_msg[0]) {
-        case MTYPES:
-            handle_rm_mtypes(admin_received_msg, settings);
-            break;
-    }
-    return response;
-}
-
-void handle_rm_mtypes(__uint8_t *admin_received_msg, settings_t settings) {
-    char *old_mtypes = settings->media_types; 
-    char *new_mtypes = rm_mtypes(old_mtypes, admin_received_msg+2);
-    settings->media_types = new_mtypes;
-}
-
-char *rm_mtypes(char *current_mtypes, char *mtypes_to_rm) {
-    char *new_mtypes = malloc(strlen(current_mtypes) + 1); // que haya de mas
-    char mtype[100];
-    int j = 0;
-    for (int i = 0 ; i <= strlen(current_mtypes) ; i++) {
-        mtype[j++] = current_mtypes[i];
-        if (current_mtypes[i] == ',' || current_mtypes[i] == '\0') {
-            if (strstr(mtype, mtypes_to_rm) == NULL) {
-                strncpy(new_mtypes, mtype, j+1);
-            } 
-            j = 0;
-        } 
-    }
-    return new_mtypes;
+    close(connection_fd);
 }

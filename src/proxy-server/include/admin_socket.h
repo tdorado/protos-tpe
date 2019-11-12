@@ -7,57 +7,37 @@
 
 #include "settings.h"
 #include "metrics.h"
-#include "proxy_clients.h"
 
-typedef enum requestType {
-    LOGIN_REQUEST = 0x01,
-    LOGOUT_REQUEST, 
-    GET_REQUEST, 
-    SET_REQUEST,
-    RM_REQUEST,
-    ENABLE_TRANSFORMATION_REQUEST,
-    DISABLE_TRANSFORMATION_REQUEST
-} requestType;
+#define BUFFER_MAX 2048
+#define MAX_CONNECTIONS 1
+#define MAX_STREAMS 1
+#define MAX_ATTEMPTS 5
+#define MAX_INT_DIGITS 10
 
-typedef enum operations {
-    CONCURRENT = 0X01,
-    ACCESSES,
-    BYTES,
-    MTYPES,
-    CMD
-} operations;
+enum admin_commands {
+    LOGIN = 0,
+    LOGOUT,
+    GET_CONCURRENT_CONNECTIONS,
+    GET_TOTAL_CONNECTIONS,
+    GET_BYTES_TRANSFERED,
+    GET_MTYPES,
+    GET_CMD,
+    SET_CMD,
+    SET_MTYPE,
+    RM_MTYPE,
+    ENABLE_MTYPE_TRANSFORMATIONS,
+    ENABLE_CMD_TRANSFORMATIONS,
+    DISABLE_TRANSFORMATIONS
+};
 
-typedef enum response_type { // is equivalent to request type, it kinda be duplicated code, but we win on expresiveness.
-    LOGIN_RESPONSE = 0x01,
-    LOGOUT_RESPONSE,
-    GET_RESPONSE,
-    SET_RESPONSE,
-    RM_RESPONSE,
-    ENABLE_TRANSFORMATION_RESPONSE,
-    DISABLE_TRANSFORMATION_RESPONSE
-} response_type;
+enum admin_responses {
+    OK = 0,
+    ERR,
+};
 
 int init_admin_socket(struct sockaddr_in *server_addr, socklen_t *server_addr_len, settings_t settings);
 void resolve_admin_client(int admin_socket, fd_set *readFDs, struct sockaddr_in *admin_addr, socklen_t *admin_addr_len, settings_t settings, metrics_t metrics);
 void set_admin_fd(const int admin_fd, int *max_fd, fd_set *read_fds);
 void resolve_sctp_client(int admin_socket, struct sockaddr_in *admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics);
-int start_listen(int fd, int backlog);
-int set_socket_opt(int admin_socket, int level, int opt_name, void *opt_val, socklen_t opt_len);
-int binding(int admin_socket, struct sockaddr_in *server_addr, size_t server_addr_size);
-int create_sctp_socket();
-
-// parsing
-bool parseLoginOrLogout(__uint8_t *admin_received_msg);
-bool isTokenValid(__uint8_t *token);
-char *parse_request(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics);
-char *parse_get(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics);
-char *buildMetricsResponse(int data, char *initial_msg);
-char *buildGetResponseWithString(char *data, char *initial_msg);
-char *parse_set(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics);
-char *parse_rm(__uint8_t *admin_received_msg, settings_t settings, metrics_t metrics);
-char *filter_repetitions_mtypes(char *current_mtypes, char *new_mtypes);
-char *rm_mtypes(char *current_mtypes, char *mtypes_to_rm);
-char *parse_enable_transformation(settings_t settings);
-char *parse_disable_transformation(settings_t settings);
 
 #endif

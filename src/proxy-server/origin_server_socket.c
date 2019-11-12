@@ -4,6 +4,9 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "include/origin_server_socket.h"
 
 typedef struct thread_args * thread_args_t;

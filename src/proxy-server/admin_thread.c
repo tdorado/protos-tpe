@@ -25,7 +25,7 @@ struct thread_args{
 
 static void *resolve_admin_thread(void *args);
 
-void resolve_admin_socket(int admin_fd, struct sockaddr_in *admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics) {
+void resolve_admin_fd_in_thread(int admin_fd, struct sockaddr_in *admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics) {
     thread_args_t thread_args = malloc(sizeof(*thread_args));
     if(thread_args == NULL){
         perror("Error creating admin thread");

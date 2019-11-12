@@ -8,7 +8,6 @@
 
 #include "settings.h"
 #include "metrics.h"
-#include "constants.h"
 #include "buffer.h"
 #include "utils.h"
 #include "pop_parser.h"

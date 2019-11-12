@@ -28,6 +28,7 @@ struct settings{
     uint16_t local_port;
     char *replace_message;
     char *media_types;
+    int mtypes;
     char *cmd;
     char *error_file;
     bool transformations;
