@@ -54,6 +54,7 @@ void stack_push(stack_t stack, content_type_header_t elem) {
     node->elem = elem;
     node->next = stack->head;
     stack->head = node;
+    //printf(".%s.", stack->head->elem->content_type);
 }
 
 content_type_header_t stack_pop(stack_t stack) {
@@ -74,12 +75,13 @@ content_type_header_t stack_peek(stack_t stack) {
     return NULL;
 }
 
+int stack_is_empty(stack_t stack) {
+    return stack->head == NULL ? TRUE : FALSE;
+}
 
 int main(void) {
     content_type_header_t content_type = malloc(sizeof(content_type_header));
-    headers(content_type, "hola/chau");
     stack_t stack = create_stack();
-    stack_push(stack, content_type);
     manage_body(stack, "hola/chau", "Confiscado");
     free(stack);
     free(content_type);
@@ -102,18 +104,20 @@ int headers(content_type_header_t content_type, char * replace_mime) {
                 content_type->content_type[content_actual_length] = '\0';
                 if( c == ';') {
                     if (strcmp(content_type->content_type, replace_mime) == 0) {
-                        strcpy(content_type->content_type, "text/plain");
+                        printf("text/plain");
                     }
-                    printf("%s;", content_type->content_type);
+                    else
+                        printf("%s;", content_type->content_type);
                     handle_attributes(content_type);
                     skip_to_body();
                     return SUCCESS;
                 }
                 else if( c == '\r' && (c = getchar()) == '\n') {
                     if (strcmp(content_type->content_type, replace_mime) == 0) {
-                        strcpy(content_type->content_type, "text/plain");
+                        printf("text/plain\r\n");
                     }
-                    printf("%s\r\n", content_type->content_type);
+                    else
+                        printf("%s\r\n", content_type->content_type);
                     skip_to_body();
                     return SUCCESS;
                 }
@@ -205,5 +209,34 @@ int search_boundary(char * boundary, int print) {
 }
 
 int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
-   content_type_header_t actual_content;
+    content_type_header_t actual_content = malloc(sizeof(content_type_header));
+    headers(actual_content, replace_mime);
+    stack_push(stack, actual_content);
+    int print = TRUE;
+    int rta;
+    while(!stack_is_empty(stack)) {
+        actual_content = stack_pop(stack);
+        content_type_header_t aux = malloc(sizeof(content_type_header));
+        if(strncmp(actual_content->content_type, "multipart/", 10) == 0) {
+            rta = search_boundary(actual_content->boundary, print);
+            if(rta == START_BOUNDARY) {
+                headers(aux, replace_mime);
+                stack_push(stack, actual_content);
+                stack_push(stack, aux);
+            }
+            print = TRUE;
+        }
+        else if(strcmp(actual_content->content_type, replace_mime) == 0) {
+            print = FALSE;
+            printf("%s\n", replace_text);
+        }
+        else {
+            print = TRUE;
+        }
+   }
+   if(rta != FAIL) {
+       int c;
+       while((c=getchar()) != EOF)
+        putchar(c);
+   }
 }

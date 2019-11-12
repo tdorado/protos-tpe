@@ -3,11 +3,13 @@ Chau: bai
 
 Esto es sin nada
 --uno
-Content-Type: text/plain
+Content-Type: hola/chau
 
 Esto es el primero
+
+
 --uno
-Content-Type: text/plain
+Content-Type: hola/chau
 
 Esto es el segundo
 --uno
@@ -21,7 +23,7 @@ Content-Type: text/plain
 Esto es el primer nesteado
 
 --dos
-Content-Type: prueba/plain
+Content-Type: hola/chau
 
 Esto es el segundo nesteado
 
