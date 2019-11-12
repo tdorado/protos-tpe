@@ -6,17 +6,11 @@
 
 #include "include/admin_client_parser.h"
 
-bool valid_digit(char * digit);
-bool valid_address(char * address);
-bool valid_port(char * port);
-void print_usage();
-
 bool valid_digit(char * digit) {
     while (*digit) {
         if (*digit >= '0' && *digit <= '9') {
             digit++;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -53,63 +47,59 @@ void print_usage() {
 
 bool validate_and_set_params(const int argc, char ** argv, struct addr_and_port * addr_port) {
     if (argc == 1 || argc == 3 || argc == 5) {
-    
-    int c;
-    bool error = false;
 
-    strcpy(addr_port->addr, "127.0.0.1");
-    addr_port->port = 9090;
+      int c;
+      bool error = false;
 
-    while ((c = getopt(argc, argv, "a:p:")) != EOF && !error) {
-        switch (c) {
-            case 'a':
-                if (valid_address(optarg)){
-                    strcpy(addr_port->addr, optarg);
-                }
-                else{
-                    perror("Invalid -a <manegement-addr> argument. \n");
-                    error = true;
-                }
-                break;
-            case 'p':
-                if (valid_port(optarg)){
-                    addr_port->port = (uint16_t) atoi(optarg);
-                }
-                else{
-                    perror("Invalid -p <manegement-port> argument. \n");
-                    error = true;
-                }
-                break;
-            default:
-                break;
-        }
-    }
+      strcpy(addr_port->addr, "127.0.0.1");
+      addr_port->port = 9090;
 
-    return error;
-    }
-    else{
+      while ((c = getopt(argc, argv, "a:p:")) != EOF && !error) {
+          switch (c) {
+              case 'a':
+                  if (valid_address(optarg)){
+                      strcpy(addr_port->addr, optarg);
+                  } else {
+                      perror("Invalid -a <manegement-addr> argument. \n");
+                      error = true;
+                  }
+                  break;
+              case 'p':
+                  if (valid_port(optarg)){
+                      addr_port->port = (uint16_t) atoi(optarg);
+                  } else {
+                      perror("Invalid -p <manegement-port> argument. \n");
+                      error = true;
+                  }
+                  break;
+              default:
+                  break;
+          }
+      }
+
+      return error;
+    } else {
         print_usage();
         return true;
     }
 }
 
-bool parse_greeting(char msg_received[BUFFER_MAX], int received_len){
-    if(received_len == 1 && msg_received[0] == OK){
+bool parse_greeting(char msg_received[BUFFER_MAX], int received_len) {
+    if(received_len == 1 && msg_received[0] == OK) {
         printf("+OK Connection established\n");
         return false;
-    }
-    else{
+    } else {
         printf("-ERR Closing\n");
         return true;
     }
 }
 
-void parse_on_buffer(char msg_to_send[BUFFER_MAX], int * to_send_len, char command){
+void parse_on_buffer(char msg_to_send[BUFFER_MAX], int * to_send_len, char command) {
     msg_to_send[0] = command;
     *to_send_len = 1;
 }
 
-void printf_help(){
+void printf_help() {
     printf("Commands:\n");
     printf("\tlogin\n");
     printf("\tlogout\n");
@@ -126,128 +116,108 @@ void printf_help(){
     printf("\tdisable transformations\n");
 }
 
-state_t parse_command(char msg_received[BUFFER_MAX], char msg_to_send[BUFFER_MAX], int * to_send_len){
+state_t parse_command(char msg_received[BUFFER_MAX], char msg_to_send[BUFFER_MAX], int * to_send_len) {
     if(strncasecmp(LOGIN_TEXT, msg_received, 5) == 0){
         parse_on_buffer(msg_to_send, to_send_len, LOGIN);
         strcpy(msg_to_send + 1, "TOKENAZO");
         *to_send_len += 8;
         return LOGIN;
-    }
-    else if(strncasecmp(LOGOUT_TEXT, msg_received, 6) == 0){
+    } else if(strncasecmp(LOGOUT_TEXT, msg_received, 6) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, LOGOUT);
         return LOGOUT;
-    }
-    else if(strncasecmp(GET_CONC_CONN_TEXT, msg_received, 6) == 0){
+    } else if(strncasecmp(GET_CONC_CONN_TEXT, msg_received, 6) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, GET_CONCURRENT_CONNECTIONS);
         return GET_CONCURRENT_CONNECTIONS;
-    }
-    else if(strncasecmp(GET_TOTAL_CONN_TEXT, msg_received, 6) == 0){
+    } else if(strncasecmp(GET_TOTAL_CONN_TEXT, msg_received, 6) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, GET_TOTAL_CONNECTIONS);
         return GET_TOTAL_CONNECTIONS;
-    }
-    else if(strncasecmp(GET_BYTES_TRANSF_TEXT, msg_received, 6) == 0){
+    } else if(strncasecmp(GET_BYTES_TRANSF_TEXT, msg_received, 6) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, GET_BYTES_TRANSFERED);
         return GET_BYTES_TRANSFERED;
-    }
-    else if(strncasecmp(GET_MTYPES_TEXT, msg_received, 10) == 0){
+    } else if(strncasecmp(GET_MTYPES_TEXT, msg_received, 10) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, GET_MTYPES);
         return GET_MTYPES;
-    }
-    else if(strncasecmp(GET_CMD_TEXT, msg_received, 7) == 0){
+    } else if(strncasecmp(GET_CMD_TEXT, msg_received, 7) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, GET_CMD);
         return GET_CMD;
-    }
-    else if(strncasecmp(SET_CMD_TEXT, msg_received, 7) == 0){
+    } else if(strncasecmp(SET_CMD_TEXT, msg_received, 7) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, SET_CMD);
         strcpy(msg_to_send + 1, msg_received + 7 + 1 );
         return SET_CMD;
-    }
-    else if(strncasecmp(SET_MTYPE_TEXT, msg_received, 9) == 0){
+    } else if(strncasecmp(SET_MTYPE_TEXT, msg_received, 9) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, SET_MTYPE);
         strcpy(msg_to_send + 1, msg_received + 9 + 1);
         return SET_MTYPE;
-    }
-    else if(strncasecmp(RM_MTYPE_TEXT, msg_received, 8) == 0){
+    } else if(strncasecmp(RM_MTYPE_TEXT, msg_received, 8) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, RM_MTYPE);
         strcpy(msg_to_send + 1, msg_received + 8 + 1);
         return RM_MTYPE;
-    }
-    else if(strncasecmp(ENABLE_MTYPE_TEXT, msg_received, 28) == 0){
+    } else if(strncasecmp(ENABLE_MTYPE_TEXT, msg_received, 28) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, ENABLE_MTYPE_TRANSFORMATIONS);
         return ENABLE_MTYPE_TRANSFORMATIONS;
-    }
-    else if(strncasecmp(ENABLE_CMD_TEXT, msg_received, 26) == 0){
+    } else if(strncasecmp(ENABLE_CMD_TEXT, msg_received, 26) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, ENABLE_CMD_TRANSFORMATIONS);
         return ENABLE_CMD_TRANSFORMATIONS;
-    }
-    else if(strncasecmp(DISABLE_TRANSF_TEXT, msg_received, 23) == 0){
+    } else if(strncasecmp(DISABLE_TRANSF_TEXT, msg_received, 23) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, DISABLE_TRANSFORMATIONS);
         return DISABLE_TRANSFORMATIONS;
-    }
-    else if(strncasecmp(HELP_TEXT, msg_received, 4) == 0){
+    } else if(strncasecmp(HELP_TEXT, msg_received, 4) == 0) {
         printf_help();
         return HELP;
-    }
-    else{
+    } else {
         return INVALID;
     }
 }
 
-bool print_first_response(char a){
+bool print_first_response(char a) {
     if(a == OK){
         printf("+OK\n");
         return true;
-    }
-    else{
+    } else {
         printf("-ERR\n");
         return false;
     }
 }
 
-bool interpret_response(state_t state, char msg_received[BUFFER_MAX]){
+bool interpret_response(state_t state, char msg_received[BUFFER_MAX]) {
     bool ret = false;
     switch(state){
         case LOGIN:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK Logged in.\n");
-            }
-            else{
+            } else {
                 printf("-ERR Incorrect.\n");
             }
             break;
         case LOGOUT:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK Logged out.\n");
                 ret = true;
-            }
-            else{
+            } else {
                 printf("-ERR.\n");
             }
             break;
         case GET_CONCURRENT_CONNECTIONS:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK ");
                 printf("%s\n", msg_received + 1);
-            }
-            else{
+            } else {
                 printf("-ERR\n");
             }
             break;
         case GET_TOTAL_CONNECTIONS:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK ");
                 printf("%s\n", msg_received + 1);
-            }
-            else{
+            } else {
                 printf("-ERR\n");
             }
             break;
         case GET_BYTES_TRANSFERED:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK ");
                 printf("%s\n", msg_received + 1);
-            }
-            else{
+            } else {
                 printf("-ERR\n");
             }
             break;
@@ -255,65 +225,57 @@ bool interpret_response(state_t state, char msg_received[BUFFER_MAX]){
             if(msg_received[0] == OK){
                 printf("+OK ");
                 printf("%s\n", msg_received + 1);
-            }
-            else{
+            } else {
                 printf("-ERR\n");
             }
             break;
         case GET_CMD:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK ");
                 printf("%s\n", msg_received + 1);
-            }
-            else{
+            } else {
                 printf("-ERR\n");
             }
             break;
         case SET_CMD:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK command setted.\n");
-            }
-            else{
+            } else {
                 printf("-ERR\n");
             }
             break;
         case SET_MTYPE:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK media yype added.\n");
-            }
-            else{
+            } else {
                 printf("-ERR invalid media type of already added.\n");
             }
             break;
         case RM_MTYPE:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK media type removed correctly\n");
-            }
-            else{
+            } else {
                 printf("-ERR did not find that media type\n");
             }
             break;
         case ENABLE_MTYPE_TRANSFORMATIONS:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK Media Type transformations enabled.\n");
-            }
-            else{
+            } else {
                 printf("-ERR Already enabled\n");
             }
             break;
         case ENABLE_CMD_TRANSFORMATIONS:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK CMD transformations enabled.\n");
-            }
-            else{
+            } else {
                 printf("-ERR Already enabled\n");
             }
             break;
         case DISABLE_TRANSFORMATIONS:
-            if(msg_received[0] == OK){
+            if(msg_received[0] == OK) {
                 printf("+OK Transformations disabled\n");
-            }
-            else{
+            } else {
                 printf("-ERR Already disabled\n");
             }
             break;
