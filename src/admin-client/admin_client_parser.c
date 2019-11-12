@@ -11,6 +11,8 @@ bool valid_address(char * address);
 bool valid_port(char * port);
 void print_usage(void);
 
+static char *login_token = "ZXN0YUFwcEZ1bmNpb25hTXV5QmllblF1ZUxpbmRhQXBw";
+
 bool valid_digit(char * digit) {
     while (*digit) {
         if (*digit >= '0' && *digit <= '9') {
@@ -123,7 +125,7 @@ void printf_help(void) {
 state_t parse_command(char msg_received[BUFFER_MAX], char msg_to_send[BUFFER_MAX], int * to_send_len) {
     if(strncasecmp(LOGIN_TEXT, msg_received, 5) == 0){
         parse_on_buffer(msg_to_send, to_send_len, LOGIN);
-        strcpy(msg_to_send + 1, "TOKENAZO");
+        strcpy(msg_to_send + 1, login_token);
         *to_send_len += 8;
         return LOGIN;
     } else if(strncasecmp(LOGOUT_TEXT, msg_received, 6) == 0) {

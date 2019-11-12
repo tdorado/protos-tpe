@@ -3,6 +3,8 @@
 
 #include "include/admin_parser.h"
 
+static char *login_token = "ZXN0YUFwcEZ1bmNpb25hTXV5QmllblF1ZUxpbmRhQXBw";
+
 void print_msg_received(char msg_received[BUFFER_MAX], int len){
     if(len > 0){
         switch (*msg_received) {
@@ -107,7 +109,7 @@ void parse_err_response(char msg_response[BUFFER_MAX], int * msg_response_len) {
 }
 
 void parse_login(bool * logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int *msg_response_len) {
-    if(!(*logged) && msg_received_len == 9 && strncmp(msg_received + 1, "TOKENAZO", 8) == 0){
+    if(!(*logged) && msg_received_len == 9 && strncmp(msg_received + 1, login_token, 8) == 0){
         parse_ok_response(msg_response, msg_response_len);
         *logged = true;
     } else {
