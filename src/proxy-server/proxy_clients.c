@@ -300,7 +300,12 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                         client->logged = true;
                     }
                     else if(client->client_state == RETR_REQUEST){
-                        client->client_state = RETR_OK;
+                        if(settings->transformations){
+                            client->client_state = RETR_OK;
+                        }
+                        else{
+                            client->client_state = LOGGED_IN;
+                        }
                     }
                     else if(client->client_state == CAPA_REQUEST){
                         if(client->logged){
