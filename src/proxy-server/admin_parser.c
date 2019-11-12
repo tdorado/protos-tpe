@@ -3,7 +3,7 @@
 
 #include "include/admin_parser.h"
 
-static char *login_token = "ZXN0YUFwcEZ1bmNpb25hTXV5QmllblF1ZUxpbmRhQXBw";
+static char *login_token = "ZXN0YUFw";
 
 void print_msg_received(char msg_received[BUFFER_MAX], int len){
     if(len > 0){
