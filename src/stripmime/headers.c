@@ -23,15 +23,16 @@ typedef struct content_type_header {
 
 typedef struct content_type_header * content_type_header_t;
 
-int headers();
+typedef struct node * node_t;
+typedef struct stack * stack_t;
+
+int headers(content_type_header_t content_type, char * replace_mime);
 int skip_line();
 int skip_to_body();
 int handle_attributes(content_type_header_t);
-int manage_multipart(content_type_header_t, char *, char *);
+int manage_body(stack_t, char *, char *);
 int search_boundary(char *, int );
 
-typedef struct node * node_t;
-typedef struct stack * stack_t;
 
 typedef struct node {
     content_type_header_t elem;
@@ -66,17 +67,25 @@ content_type_header_t stack_pop(stack_t stack) {
     return NULL;
 }
 
+content_type_header_t stack_peek(stack_t stack) {
+    if(stack->head != NULL) {
+        return stack->head->elem;
+    }
+    return NULL;
+}
+
 
 int main(void) {
     content_type_header_t content_type = malloc(sizeof(content_type_header));
-    headers(content_type);
-    if(strcmp(content_type->content_type, "multipart/")) {
-        manage_multipart(content_type, "text/plain", "Confiscado");
-    }
+    headers(content_type, "hola/chau");
+    stack_t stack = create_stack();
+    stack_push(stack, content_type);
+    manage_body(stack, "hola/chau", "Confiscado");
+    free(stack);
     free(content_type);
 }
 
-int headers(content_type_header_t content_type) {
+int headers(content_type_header_t content_type, char * replace_mime) {
     int c;
     int content_length = 0;
     int attribute_length = 0;
@@ -87,19 +96,24 @@ int headers(content_type_header_t content_type) {
             content_length++;
             if(content_length == CONTENT_TYPE_LENGTH) {
                 while( (c = getchar()) != '\r' && c != ';') {
-                    putchar(c);
                     content_type->content_type[content_actual_length] = c;
                     content_actual_length++;
                 }
                 content_type->content_type[content_actual_length] = '\0';
                 if( c == ';') {
-                    putchar(c);
+                    if (strcmp(content_type->content_type, replace_mime) == 0) {
+                        strcpy(content_type->content_type, "text/plain");
+                    }
+                    printf("%s;", content_type->content_type);
                     handle_attributes(content_type);
                     skip_to_body();
                     return SUCCESS;
                 }
                 else if( c == '\r' && (c = getchar()) == '\n') {
-                    printf("\r\n");
+                    if (strcmp(content_type->content_type, replace_mime) == 0) {
+                        strcpy(content_type->content_type, "text/plain");
+                    }
+                    printf("%s\r\n", content_type->content_type);
                     skip_to_body();
                     return SUCCESS;
                 }
@@ -122,7 +136,7 @@ int skip_line() {
             return SUCCESS;
         }
     }
-    fprintf(stderr, "Bad headers format");
+    fprintf(stderr, "Bad headers formats");
     return FAIL;
 }
 
@@ -190,24 +204,6 @@ int search_boundary(char * boundary, int print) {
     return FAIL;
 }
 
-int manage_multipart(content_type_header_t content_type, char * replace_mime, char * replace_text) {
-    content_type_header_t new_content_type = malloc(sizeof(content_type_header));
-    int response;
-    int print = TRUE;
-    while((response = search_boundary(content_type->boundary, print)) != EOF && response != FINAL_BOUNDARY) {
-        if(response == START_BOUNDARY) {
-            headers(new_content_type);
-            if(strncmp(new_content_type->content_type, "multipart/", 10) == 0) {
-                manage_multipart(new_content_type, replace_mime, replace_text);
-            }
-            else if(strcmp(new_content_type->content_type, replace_mime) == 0) {
-                printf("%s\r\n", replace_text);
-                print = FALSE;
-            }
-            else {
-                print = TRUE;
-            }
-        }
-    }
-    free(new_content_type);
+int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
+   content_type_header_t actual_content;
 }
