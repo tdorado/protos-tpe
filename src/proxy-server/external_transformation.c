@@ -31,12 +31,13 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     char * argv[4];
     argv[0] = "bash";
     argv[1] = "-c";
-
     argv[3] = NULL;
+    char * envp[] = { "FILTER_MEDIAS=text/plain", "FILTER_MSG=Confiscado"} ;
 
     if(settings->cmd_or_mtype_transformations && settings->mtypes > 0){  // false cmd, true mtype
         //Mtype
         //setear env y llamar a ./stripmime
+        execve(argv[0], &argv[0], envp);
         
         argv[2] = "./stripmime";
     }
