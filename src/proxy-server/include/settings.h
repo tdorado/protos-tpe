@@ -32,6 +32,7 @@ struct settings {
     char * error_file;
     bool transformations;
     bool cmd_or_mtype_transformations; // false cmd, true mtype
+    char * version;
 };
 
 settings_t init_settings(void);

@@ -171,14 +171,9 @@ int validate_and_set_settings(const int argc, char ** argv, settings_t settings)
                 settings->replace_message = optarg;
                 break;
             case 'M':
-                if (valid_media_type(optarg)) {
                     strcpy(settings->media_types, optarg);
                     settings->transformations = true;
                     settings->cmd_or_mtype_transformations = true;
-                } else {
-                    perror("Invalid -M <filtered-media-type> argument. \n");
-                    flag_error = true;
-                }
                 break;
             default:
                 flag_error = true;
@@ -261,6 +256,7 @@ settings_t init_settings(void) {
     ret->error_file = DEFAULT_ERROR_FILE;
     ret->transformations = false;
     ret->cmd_or_mtype_transformations = false;
+    ret->version = POP3_FILTER_VERSION;
 
     return ret;
 }

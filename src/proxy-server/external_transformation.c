@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "include/external_transformation.h"
 #include "include/error_file.h"
@@ -33,12 +34,15 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     argv[0] = "bash";
     argv[1] = "-c";
     argv[3] = NULL;
-    char * envp[] = { "FILTER_MEDIAS=text/plain", "FILTER_MSG=Confiscado"} ;
 
     if(settings->cmd_or_mtype_transformations && (strlen(settings->media_types) > 2)) {  // false cmd, true mtype
         //Mtype
         //setear env y llamar a ./stripmime
-        execve(argv[0], &argv[0], envp);
+        setenv("FILTER_MEDIAS", settings->media_types,1);
+        setenv("FILTER_MSG", settings->replace_message, 1);
+        setenv("POP3FILTER_VERSION", settings->version, 1);
+        setenv("POP3_USERNAME", "foo", 1);
+        setenv("POP3_SERVER", settings->origin_server_addr, 1);
 
         argv[2] = "./stripmime";
     } else {
