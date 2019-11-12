@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <errno.h>
+
 #include "include/pop_parser.h"
 #include "include/proxy_clients.h"
 

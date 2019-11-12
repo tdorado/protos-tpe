@@ -34,7 +34,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
 
     argv[3] = NULL;
 
-    if(settings->cmd_or_mtype_transformations){  // false cmd, true mtype
+    if(settings->cmd_or_mtype_transformations && settings->mtypes > 0){  // false cmd, true mtype
         //Mtype
         //setear env y llamar a ./stripmime
         

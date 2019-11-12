@@ -186,6 +186,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                     settings->media_types = optarg;
                     settings->transformations = true;
                     settings->cmd_or_mtype_transformations = true;
+                    settings->mtypes = 1;
                 }
                 else{
                     perror("Invalid -M <filtered-media-type> argument. \n");
@@ -266,6 +267,7 @@ settings_t init_settings(){
     }
     strcpy(ret->cmd, DEFAULT_CMD);
     ret->error_file = DEFAULT_ERROR_FILE;
+    ret->mtypes = 0;
     ret->transformations = false;
     ret->cmd_or_mtype_transformations = false;
 

@@ -1,3 +1,6 @@
+#include <string.h>
+#include <stdlib.h>
+
 #include "include/proxy_clients.h"
 #include "include/origin_server_socket.h"
 #include "include/external_transformation.h"
@@ -312,7 +315,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set *read_fds
                         }
                         buffer_reset(client->origin_server_buffer);
                         aux[bytes_read] = '\0';
-                        if(strstr(aux, "PIPELINING") == NULL){
+                        if(strstr(aux, "\r\nPIPELINING\r\n") == NULL){
                             strcpy(aux + bytes_read - 3, "PIPELINING\r\n.\r\n");
                             bytes_read += 12;
                         }

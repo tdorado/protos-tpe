@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <sys/select.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #include "include/proxy_socket.h"
 #include "include/logs.h"

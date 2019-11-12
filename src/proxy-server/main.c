@@ -1,4 +1,25 @@
-#include "include/constants.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <errno.h>
+#include <netdb.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/sctp.h>
+#include <netinet/in.h>
 
 #include "include/proxy_socket.h"
 #include "include/settings.h"
@@ -56,8 +77,6 @@ int start_server() {
     socklen_t server_addr_len;
     struct sockaddr_in admin_addr;
     socklen_t admin_addr_len;
-
-    memset(&admin_addr, 0, sizeof(admin_addr));
 
     proxy_fd = init_proxy_socket(&server_addr, &server_addr_len, settings);
     admin_fd = init_admin_socket(&admin_addr, &admin_addr_len, settings);
