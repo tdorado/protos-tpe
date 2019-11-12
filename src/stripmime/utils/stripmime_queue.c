@@ -10,13 +10,13 @@ typedef struct stack {
 } stack;
 
 stack_t create_stack() {
-    stack_t stack = malloc(sizeof(stack));
+    stack_t stack = malloc(sizeof(*stack));
     stack->head = NULL;
     return stack;
 }
 
 void stack_push(stack_t stack, content_type_header_t elem) {
-    node_t node = malloc(sizeof(node));
+    node_t node = malloc(sizeof(*node));
     node->elem = elem;
     node->next = stack->head;
     stack->head = node;

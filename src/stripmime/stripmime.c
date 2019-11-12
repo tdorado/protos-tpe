@@ -67,21 +67,12 @@ int headers(content_type_header_t content_type, char * replace_mime) {
                 }
                 content_type->content_type[content_actual_length] = '\0';
                 if( c == ';') {
-                    if (contains_string(content_type->content_type, replace_mime)) {
-                        printf("text/plain");
-                    }
-                    else {
-                        printf("%s;", content_type->content_type);
-                    }
+                    printf("%s;", content_type->content_type);
                     handle_attributes(content_type);
                     skip_to_body();
                     return SUCCESS;
                 }
                 else if( c == '\r' && (c = getchar()) == '\n') {
-                    if (contains_string(content_type->content_type, replace_mime)) {
-                        printf("text/plain\r\n");
-                    }
-                    else
                         printf("%s\r\n", content_type->content_type);
                     skip_to_body();
                     return SUCCESS;
