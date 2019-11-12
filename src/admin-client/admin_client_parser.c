@@ -11,7 +11,7 @@ bool valid_address(char * address);
 bool valid_port(char * port);
 void print_usage(void);
 
-static char *login_token = "ZXN0YUFwcEZ1bmNpb25hTXV5QmllblF1ZUxpbmRhQXBw";
+static char *login_token = "ZXN0YUFw";
 
 bool valid_digit(char * digit) {
     while (*digit) {

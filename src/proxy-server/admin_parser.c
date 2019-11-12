@@ -3,7 +3,7 @@
 
 #include "include/admin_parser.h"
 
-static char *login_token = "ZXN0YUFwcEZ1bmNpb25hTXV5QmllblF1ZUxpbmRhQXBw";
+static char *login_token = "ZXN0YUFw";
 
 void print_msg_received(char msg_received[BUFFER_MAX], int len){
     if(len > 0){
@@ -182,7 +182,6 @@ void parse_set_cmd(bool *logged, char msg_received[BUFFER_MAX], int msg_received
 
 void parse_set_mtypes(bool *logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings) {
     if(*logged) {
-        printf("s = %s\n", msg_received +1);
         strncpy(settings->media_types, msg_received + 1, msg_received_len - 1);
         settings->media_types[msg_received_len] = 0;
         parse_ok_response(msg_response, msg_response_len);
