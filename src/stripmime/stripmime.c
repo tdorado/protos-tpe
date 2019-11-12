@@ -35,7 +35,8 @@ int contains_string(char * string, char * string_array) {
     int i = 0;
     int j = 0;
     while(string_array[i] != '\0') {
-        while( string[j] == string_array[i] && (string[j] != '\0' && string_array[i] != '\0')) {
+        while( tolower(string[j]) == tolower(string_array[i])
+         && (string[j] != '\0' && string_array[i] != '\0')) {
             i++;
             j++;
             if(string_array[i] == '/' && string_array[i+1] == '*') {

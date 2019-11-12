@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "./stripmime_types.h"
 
 typedef struct node * node_t;
