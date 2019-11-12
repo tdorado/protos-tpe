@@ -11,7 +11,6 @@ int main(void) {
 int headers(content_type_header_t content_type, char * replace_mime) {
     int c;
     int content_length = 0;
-    int attribute_length = 0;
     int content_actual_length = 0;
     while((c = getchar()) != EOF) {
         putchar(c);
@@ -82,12 +81,12 @@ int skip_to_body() {
 }
 
 int handle_attributes(content_type_header_t content_type) {
-    int c;
-    c = getchar();
-    int boundary_length = scanf(" boundary=%s", content_type->boundary);
+    getchar();
+    scanf(" boundary=%s", content_type->boundary);
     printf(" boundary=%s\r\n", content_type->boundary);
     getchar();
     getchar();
+    return SUCCESS;
 }
 
 int search_boundary(char * boundary, int print) {
@@ -156,8 +155,9 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
         }
    }
    if(rta != FAIL) {
-       int c;
-       while((c=getchar()) != EOF)
+        int c;
+        while((c=getchar()) != EOF)
         putchar(c);
    }
+   return SUCCESS;
 }
