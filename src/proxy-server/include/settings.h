@@ -31,6 +31,7 @@ struct settings{
     char *cmd;
     char *error_file;
     bool transformations;
+    bool cmd_or_mtype_transformations; // false cmd, true mtype
 };
 
 settings_t init_settings();

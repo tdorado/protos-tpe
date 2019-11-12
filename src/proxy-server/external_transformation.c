@@ -31,8 +31,20 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     char * argv[4];
     argv[0] = "bash";
     argv[1] = "-c";
-    argv[2] = settings->cmd;
+
     argv[3] = NULL;
+
+    if(settings->cmd_or_mtype_transformations){  // false cmd, true mtype
+        //Mtype
+        //setear env y llamar a ./stripmime
+        
+        argv[2] = "./stripmime";
+    }
+    else{
+        //CMD
+        argv[2] = settings->cmd;
+    }
+    
 
     pid_t p_id;
     if((p_id = fork()) == -1) {
