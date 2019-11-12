@@ -9,7 +9,7 @@
 bool valid_digit(char * digit);
 bool valid_address(char * address);
 bool valid_port(char * port);
-void print_usage();
+void print_usage(void);
 
 bool valid_digit(char * digit) {
     while (*digit) {
@@ -43,7 +43,7 @@ bool valid_port(char * port) {
     return false;
 }
 
-void print_usage() {
+void print_usage(void) {
     printf("USAGE: ./adminclient [POSIX style options]\n"
             "POSIX style options: \n"
             "   -p <manegement-port>        Specifies the port where the Manegement server is located. By default is 9090. \n"
@@ -104,7 +104,7 @@ void parse_on_buffer(char msg_to_send[BUFFER_MAX], int * to_send_len, char comma
     *to_send_len = 1;
 }
 
-void printf_help() {
+void printf_help(void) {
     printf("Commands:\n");
     printf("\tlogin\n");
     printf("\tlogout\n");
@@ -276,6 +276,8 @@ bool interpret_response(state_t state, char msg_received[BUFFER_MAX]) {
                 printf("-ERR Already disabled\n");
             }
             break;
+        case HELP:
+        case INVALID:
         default:
             printf("-ERR\n");
             break;

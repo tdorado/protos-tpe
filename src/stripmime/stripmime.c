@@ -94,7 +94,7 @@ int headers(content_type_header_t content_type, char * replace_mime) {
     return FAIL;
 }
 
-int skip_line() {
+int skip_line(void) {
     int c;
     while((c = getchar()) != EOF ) {
         if( c == '\r' && (c=getchar()) == '\n') {
@@ -108,7 +108,7 @@ int skip_line() {
     return FAIL;
 }
 
-int skip_to_body() {
+int skip_to_body(void) {
     int c;
     while( ( c = getchar()) != EOF) {
         if ( c == '\r' && (c = getchar()) == '\n') {

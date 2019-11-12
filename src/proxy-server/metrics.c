@@ -3,7 +3,7 @@
 
 #include "include/metrics.h"
 
-metrics_t init_metrics() {
+metrics_t init_metrics(void) {
   metrics_t ret = (metrics_t)malloc(sizeof(*ret));
 
   if (ret == NULL) {

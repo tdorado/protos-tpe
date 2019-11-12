@@ -49,7 +49,7 @@ enum admin_responses {
 bool validate_and_set_params(const int argc, char ** argv, struct addr_and_port * addr_port);
 bool parse_greeting(char msg_received[BUFFER_MAX], int received_len);
 void parse_on_buffer(char msg_to_send[BUFFER_MAX], int * to_send_len, char command);
-void printf_help();
+void printf_help(void);
 state_t parse_command(char msg_received[BUFFER_MAX], char msg_to_send[BUFFER_MAX], int * to_send_len);
 bool print_first_response(char a);
 bool interpret_response(state_t state, char msg_received[BUFFER_MAX]);

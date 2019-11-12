@@ -34,9 +34,9 @@ struct settings {
     bool cmd_or_mtype_transformations; // false cmd, true mtype
 };
 
-settings_t init_settings();
-void print_usage();
-void print_version();
+settings_t init_settings(void);
+void print_usage(void);
+void print_version(void);
 bool valid_digit(char * digit);
 bool valid_address(char * address);
 bool valid_port(char * port);

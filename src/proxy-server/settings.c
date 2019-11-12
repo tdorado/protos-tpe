@@ -8,7 +8,7 @@
 
 #include "include/settings.h"
 
-void print_usage() {
+void print_usage(void) {
     printf("USAGE: ./pop3filter [POSIX style options] <origin-server-address> \n"
             "   <origin-server-address>        Address of POP3 origin server. \n\n"
             "POSIX style options: \n"
@@ -25,7 +25,7 @@ void print_usage() {
             "   -e <error-file>                Specifies the file where to redirect stderr. By default is /dev/null'. \n");
 }
 
-void print_version() {
+void print_version(void) {
     printf("POP3 Proxy Filter %s\n", POP3_FILTER_VERSION);
 }
 
@@ -99,12 +99,10 @@ bool valid_executable(char * command) {
     return false;
 }
 
-int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
+int validate_and_set_settings(const int argc, char ** argv, settings_t settings) {
     int c;
     bool flag_error = false;
     char * aux;
-
-    init_settings(settings);
 
     while ((c = getopt(argc, argv, "e:l:L:m:M:o:p:P:t:")) != EOF && !flag_error) {
         switch (c) {
@@ -221,7 +219,7 @@ int input_parser(const int argc, char ** argv, settings_t settings) {
         return -1;
     }
 
-    if (validate_and_set_params(argc, argv, settings) < 0) {
+    if (validate_and_set_settings(argc, argv, settings) < 0) {
         print_usage();
         return -1;
     }
@@ -235,7 +233,7 @@ void free_settings(settings_t settings) {
     free(settings);
 }
 
-settings_t init_settings() {
+settings_t init_settings(void) {
     settings_t ret = (settings_t)malloc(sizeof(*ret));
     if(ret == NULL) {
         perror("Error creating settings");

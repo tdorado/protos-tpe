@@ -22,8 +22,8 @@
 #define MAX_FILTER_MEDIAS 5
 
 int headers(content_type_header_t content_type, char * replace_mime);
-int skip_line();
-int skip_to_body();
+int skip_line(void);
+int skip_to_body(void);
 int handle_attributes(content_type_header_t content_type);
 int manage_body(stack_t stack, char * replace_mime, char * replace_text);
 int search_boundary(char * boundary, int print);

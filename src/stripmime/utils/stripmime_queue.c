@@ -9,7 +9,7 @@ typedef struct stack {
     node_t head;
 } stack;
 
-stack_t create_stack() {
+stack_t create_stack(void) {
     stack_t stack = malloc(sizeof(stack));
     stack->head = NULL;
     return stack;

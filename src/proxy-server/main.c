@@ -31,13 +31,13 @@
 #include "include/admin_socket.h"
 
 void init_server_config(int argc, char ** argv);
-int start_server();
+int start_server(void);
 bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics);
 void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len,  struct sockaddr_in admin_addr, socklen_t * admin_addr_len, int admin_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics);
 static void signal_action_handler(const int signal_number);
 static void thread_handler(const int signal_number);
-int set_up_signals();
-void turn_off_proxy();
+int set_up_signals(void);
+void turn_off_proxy(void);
 
 static settings_t settings;
 static metrics_t metrics;
@@ -71,7 +71,7 @@ void init_server_config(int argc, char ** argv) {
 
 }
 
-int start_server() {
+int start_server(void) {
 
     struct sockaddr_in6 server_addr;
     socklen_t server_addr_len;
@@ -170,6 +170,8 @@ static void signal_action_handler(const int signal_number) {
             log_message(true, "SIGPIPE catched. Turning off proxy...");
             turn_off_proxy();
             break;
+        default:
+            break;
     }
 }
 
@@ -203,7 +205,7 @@ int set_up_signals(void) {
     return 0;
 }
 
-void turn_off_proxy() {
+void turn_off_proxy(void) {
     free_client_list(client_list);
     free_settings(settings);
     free_metrics(metrics);

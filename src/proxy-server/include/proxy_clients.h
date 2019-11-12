@@ -85,7 +85,7 @@ struct client_list {
 
 typedef struct client_list * client_list_t;
 
-client_list_t init_client_list();
+client_list_t init_client_list(void);
 client_t create_client(client_list_t client_list, const int fd);
 void remove_client(client_list_t client_list, client_t client);
 void free_client_list(client_list_t client_list);
