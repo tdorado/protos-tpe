@@ -174,10 +174,9 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                 break;
             case 'M':
                 if (valid_media_type(optarg)) {
-                    settings->media_types = optarg;
+                    strcpy(settings->media_types, optarg);
                     settings->transformations = true;
                     settings->cmd_or_mtype_transformations = true;
-                    settings->mtypes = 1;
                 } else {
                     perror("Invalid -M <filtered-media-type> argument. \n");
                     flag_error = true;
@@ -231,6 +230,7 @@ int input_parser(const int argc, char ** argv, settings_t settings) {
 }
 
 void free_settings(settings_t settings) {
+    free(settings->media_types);
     free(settings->cmd);
     free(settings);
 }
@@ -248,7 +248,12 @@ settings_t init_settings() {
     ret->local_addr = DEFAULT_LOCAL_ADDR;
     ret->local_port = DEFAULT_LOCAL_PORT;
     ret->replace_message = DEFAULT_REPLACE_MESSAGE;
-    ret->media_types = DEFAULT_MEDIA_TYPES;
+    ret->media_types = (char *)malloc(CMD_BUFFER);
+    if(ret->media_types == NULL){
+        perror("Error creating settings");
+        exit(EXIT_FAILURE);
+    }
+    ret->media_types[0] = 0;
     ret->cmd = (char *)malloc(CMD_BUFFER);
     if(ret->cmd == NULL){
         perror("Error creating settings");
@@ -256,7 +261,6 @@ settings_t init_settings() {
     }
     strcpy(ret->cmd, DEFAULT_CMD);
     ret->error_file = DEFAULT_ERROR_FILE;
-    ret->mtypes = 0;
     ret->transformations = false;
     ret->cmd_or_mtype_transformations = false;
 

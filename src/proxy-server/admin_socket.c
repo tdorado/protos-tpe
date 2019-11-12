@@ -144,7 +144,7 @@ void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t
                 perror("Error sending admin message");
                 break;
             } else {
-                log_message(false, "Successfully sent %d bytes data to admin");
+                log_message(false, "Successfully sent data to admin");
             }
         }
     }

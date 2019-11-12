@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
 #include "include/external_transformation.h"
 #include "include/error_file.h"
@@ -34,7 +35,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     argv[3] = NULL;
     char * envp[] = { "FILTER_MEDIAS=text/plain", "FILTER_MSG=Confiscado"} ;
 
-    if(settings->cmd_or_mtype_transformations && settings->mtypes > 0) {  // false cmd, true mtype
+    if(settings->cmd_or_mtype_transformations && (strlen(settings->media_types) > 2)) {  // false cmd, true mtype
         //Mtype
         //setear env y llamar a ./stripmime
         execve(argv[0], &argv[0], envp);

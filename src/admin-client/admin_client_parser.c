@@ -114,8 +114,7 @@ void printf_help() {
     printf("\tget mtypes\n");
     printf("\tget cmd\n");
     printf("\tset cmd <cmd>\n");
-    printf("\tset mtype <mtype>\n");
-    printf("\trm mtype <mtype>\n");
+    printf("\tset mtypes <mtype,mtype,mtype,mtype...>\n");
     printf("\tenable mtype transformations\n");
     printf("\tenable cmd transformations\n");
     printf("\tdisable transformations\n");
@@ -148,15 +147,13 @@ state_t parse_command(char msg_received[BUFFER_MAX], char msg_to_send[BUFFER_MAX
     } else if(strncasecmp(SET_CMD_TEXT, msg_received, 7) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, SET_CMD);
         strcpy(msg_to_send + 1, msg_received + 7 + 1 );
+        *to_send_len += strlen(msg_received + 7 + 1) + 1;
         return SET_CMD;
-    } else if(strncasecmp(SET_MTYPE_TEXT, msg_received, 9) == 0) {
-        parse_on_buffer(msg_to_send, to_send_len, SET_MTYPE);
-        strcpy(msg_to_send + 1, msg_received + 9 + 1);
-        return SET_MTYPE;
-    } else if(strncasecmp(RM_MTYPE_TEXT, msg_received, 8) == 0) {
-        parse_on_buffer(msg_to_send, to_send_len, RM_MTYPE);
-        strcpy(msg_to_send + 1, msg_received + 8 + 1);
-        return RM_MTYPE;
+    } else if(strncasecmp(SET_MTYPES_TEXT, msg_received, 10) == 0) {
+        parse_on_buffer(msg_to_send, to_send_len, SET_MTYPES);
+        strcpy(msg_to_send + 1, msg_received + 10 + 1);
+        *to_send_len += strlen(msg_received + 10 + 1) + 1;
+        return SET_MTYPES;
     } else if(strncasecmp(ENABLE_MTYPE_TEXT, msg_received, 28) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, ENABLE_MTYPE_TRANSFORMATIONS);
         return ENABLE_MTYPE_TRANSFORMATIONS;
@@ -244,23 +241,18 @@ bool interpret_response(state_t state, char msg_received[BUFFER_MAX]) {
             break;
         case SET_CMD:
             if(msg_received[0] == OK) {
-                printf("+OK command setted.\n");
+                printf("+OK command setted: ");
+                printf("%s\n", msg_received + 1);
             } else {
                 printf("-ERR\n");
             }
             break;
-        case SET_MTYPE:
+        case SET_MTYPES:
             if(msg_received[0] == OK) {
-                printf("+OK media yype added.\n");
+                printf("+OK media types added: ");
+                printf("%s \n", msg_received + 1);
             } else {
-                printf("-ERR invalid media type of already added.\n");
-            }
-            break;
-        case RM_MTYPE:
-            if(msg_received[0] == OK) {
-                printf("+OK media type removed correctly\n");
-            } else {
-                printf("-ERR did not find that media type\n");
+                printf("-ERR\n");
             }
             break;
         case ENABLE_MTYPE_TRANSFORMATIONS:
