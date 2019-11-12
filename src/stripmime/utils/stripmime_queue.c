@@ -10,13 +10,13 @@ typedef struct stack {
 } stack;
 
 stack_t create_stack(void) {
-    stack_t stack = malloc(sizeof(stack));
+    stack_t stack = malloc(sizeof(*stack));
     stack->head = NULL;
     return stack;
 }
 
 void stack_push(stack_t stack, content_type_header_t elem) {
-    node_t node = malloc(sizeof(node));
+    node_t node = malloc(sizeof(*node));
     node->elem = elem;
     node->next = stack->head;
     stack->head = node;
@@ -42,4 +42,15 @@ content_type_header_t stack_peek(stack_t stack) {
 
 int stack_is_empty(stack_t stack) {
     return stack->head == NULL ? TRUE : FALSE;
+}
+
+void stack_free_queue_elems(stack_t stack) {
+    node_t aux;
+    while(stack->head != NULL) {
+        free(stack->head->elem);
+        aux = stack->head;
+        stack->head = stack->head->next;
+        free(aux);
+    }
+    free(stack);
 }

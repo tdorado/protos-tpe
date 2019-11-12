@@ -5,18 +5,20 @@ const char * env_variables[]  = {"FILTER_MEDIAS", "FILTER_MSG"};
 int main(void) {
     char * filter_medias;
     char * filter_msg;
-    check_variables(&filter_medias, &filter_msg);
-    content_type_header_t content_type = malloc(sizeof(content_type_header));
+    if( check_variables(&filter_medias, &filter_msg) == FAIL ) {
+        print_all_stdin();
+        return FAIL;
+    }
     stack_t stack = create_stack();
     manage_body(stack, filter_medias, filter_msg);
-    free(stack);
-    free(content_type);
+    stack_free_queue_elems(stack);
 }
 
-void check_variables(char ** filter_medias, char ** filter_msg) {
+int check_variables(char ** filter_medias, char ** filter_msg) {
     char * aux = getenv(env_variables[0]);
     if(aux == NULL) {
         fprintf(stderr, "La variable FILTER_MEDIAS no está definida");
+        return FAIL;
     } else {
         *filter_medias = aux;
         aux = getenv(env_variables[1]);
@@ -26,6 +28,7 @@ void check_variables(char ** filter_medias, char ** filter_msg) {
             *filter_msg = aux;
         }
     }
+    return SUCCESS;
 }
 
 int contains_string(char * string, char * string_array) {
@@ -68,20 +71,13 @@ int headers(content_type_header_t content_type, char * replace_mime) {
                 }
                 content_type->content_type[content_actual_length] = '\0';
                 if( c == ';') {
-                    if (contains_string(content_type->content_type, replace_mime)) {
-                        printf("text/plain");
-                    } else {
-                        printf("%s;", content_type->content_type);
-                    }
+                    printf("%s;", content_type->content_type);
                     handle_attributes(content_type);
                     skip_to_body();
                     return SUCCESS;
-                } else if( c == '\r' && (c = getchar()) == '\n') {
-                    if (contains_string(content_type->content_type, replace_mime)) {
-                        printf("text/plain\r\n");
-                    } else {
-                        printf("%s\r\n", content_type->content_type);
-                    }
+                }
+                else if( c == '\r' && (c = getchar()) == '\n') {
+                    printf("%s\r\n", content_type->content_type);
                     skip_to_body();
                     return SUCCESS;
                 }
@@ -187,10 +183,10 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
     int rta;
     while(!stack_is_empty(stack)) {
         actual_content = stack_pop(stack);
-        content_type_header_t aux = malloc(sizeof(content_type_header));
         if(strncmp("multipart/", actual_content->content_type, 10) == 0) {
             rta = search_boundary(actual_content->boundary, print);
             if(rta == START_BOUNDARY) {
+                content_type_header_t aux = malloc(sizeof(content_type_header));
                 headers(aux, replace_mime);
                 stack_push(stack, actual_content);
                 stack_push(stack, aux);
@@ -199,11 +195,16 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
         } else if(strncmp("message/", actual_content->content_type, 8) == 0) {
             stack_t stack = create_stack();
             manage_body(stack, replace_mime, replace_text);
-        } else if(contains_string(actual_content->content_type, replace_mime)) {
+            stack_free_queue_elems(stack);
+            free(actual_content);
+        }
+        else if(contains_string(actual_content->content_type, replace_mime)) {
             print = FALSE;
             printf("%s\r\n", replace_text);
+            free(actual_content);
         } else {
             print = TRUE;
+            free(actual_content);
         }
    }
    if(rta != FAIL) {
@@ -211,5 +212,13 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
         while((c=getchar()) != EOF)
         putchar(c);
    }
+   free(actual_content);
    return SUCCESS;
+}
+
+void print_all_stdin(void) {
+    int c;
+    while((c=getchar()) != EOF) {
+        putchar(c);
+    }
 }

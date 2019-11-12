@@ -27,7 +27,8 @@ int skip_to_body(void);
 int handle_attributes(content_type_header_t content_type);
 int manage_body(stack_t stack, char * replace_mime, char * replace_text);
 int search_boundary(char * boundary, int print);
-void check_variables(char ** filter_medias, char ** filter_msg);
+int check_variables(char ** filter_medias, char ** filter_msg);
 int contains_string(char * string, char * string_array);
+void print_all_stdin(void);
 
 #endif
