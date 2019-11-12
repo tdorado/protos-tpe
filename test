@@ -1,4 +1,4 @@
-Content-Type: multipart/eo; boundary=uno
+Content-Type: multipart/eo; boundary="uno"
 Chau: bai
 
 Esto es sin nada
@@ -13,7 +13,7 @@ Content-Type: hola/chau
 
 Esto es el segundo
 --uno
-Content-Type: multipart/eee; boundary=dos
+Content-Type: multipart/eee; boundary="dos"
 
 asdkasldkaslda
 asdkasldkaslda

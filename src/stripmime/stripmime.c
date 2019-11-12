@@ -79,8 +79,9 @@ int headers(content_type_header_t content_type, char * replace_mime) {
                     if (contains_string(content_type->content_type, replace_mime)) {
                         printf("text/plain");
                     }
-                    else
+                    else {
                         printf("%s;", content_type->content_type);
+                    }
                     handle_attributes(content_type);
                     skip_to_body();
                     return SUCCESS;
@@ -202,7 +203,7 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
     while(!stack_is_empty(stack)) {
         actual_content = stack_pop(stack);
         content_type_header_t aux = malloc(sizeof(content_type_header));
-        if(strncmp(actual_content->content_type, "multipart/", 10) == 0) {
+        if(strncmp("multipart/", actual_content->content_type, 10) == 0) {
             rta = search_boundary(actual_content->boundary, print);
             if(rta == START_BOUNDARY) {
                 headers(aux, replace_mime);
@@ -211,9 +212,13 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
             }
             print = TRUE;
         }
+        else if(strncmp("message/", actual_content->content_type, 8) == 0) {
+            stack_t stack = create_stack();
+            manage_body(stack, replace_mime, replace_text);
+        }
         else if(contains_string(actual_content->content_type, replace_mime)) {
             print = FALSE;
-            printf("%s\n", replace_text);
+            printf("%s\r\n", replace_text);
         }
         else {
             print = TRUE;
