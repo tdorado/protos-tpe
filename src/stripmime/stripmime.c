@@ -3,7 +3,7 @@
 int main(void) {
     content_type_header_t content_type = malloc(sizeof(content_type_header));
     stack_t stack = create_stack();
-    manage_body(stack, "hola/chau", "Confiscado");
+    manage_body(stack, "image/png", "Confiscado");
     free(stack);
     free(content_type);
 }
@@ -54,10 +54,12 @@ int headers(content_type_header_t content_type, char * replace_mime) {
 int skip_line() {
     int c;
     while((c = getchar()) != EOF ) {
-        putchar(c);
         if( c == '\r' && (c=getchar()) == '\n') {
-            printf("\n\r");
+            printf("\r\n");
             return SUCCESS;
+        }
+        else {
+            putchar(c);
         }
     }
     fprintf(stderr, "Bad headers formats");
@@ -67,12 +69,12 @@ int skip_line() {
 int skip_to_body() {
     int c;
     while( ( c = getchar()) != EOF) {
-        putchar(c);
         if ( c == '\r' && (c = getchar()) == '\n') {
-            putchar('\n');
+            printf("\r\n");
             return SUCCESS;
         }
         else {
+            putchar(c);
             skip_line();
         }
     }
@@ -81,12 +83,22 @@ int skip_to_body() {
 }
 
 int handle_attributes(content_type_header_t content_type) {
-    getchar();
-    scanf(" boundary=%s", content_type->boundary);
-    printf(" boundary=%s\r\n", content_type->boundary);
-    getchar();
-    getchar();
-    return SUCCESS;
+    int rta = scanf(" boundary=\"%s", content_type->boundary);
+    if(rta == 1) {
+        int i = 0;
+        while(content_type->boundary[i] != '\0'){
+            i++;
+        }
+        content_type->boundary[i-1] = '\0';
+        printf(" boundary=\"%s\"\r\n", content_type->boundary);
+        getchar();
+        getchar();
+        return SUCCESS;
+    }
+    else {
+        putchar(' ');
+        skip_line();
+    }
 }
 
 int search_boundary(char * boundary, int print) {
