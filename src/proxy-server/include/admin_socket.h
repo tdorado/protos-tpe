@@ -23,8 +23,7 @@ enum admin_commands {
     GET_MTYPES,
     GET_CMD,
     SET_CMD,
-    SET_MTYPE,
-    RM_MTYPE,
+    SET_MTYPES,
     ENABLE_MTYPE_TRANSFORMATIONS,
     ENABLE_CMD_TRANSFORMATIONS,
     DISABLE_TRANSFORMATIONS
@@ -35,9 +34,9 @@ enum admin_responses {
     ERR,
 };
 
-int init_admin_socket(struct sockaddr_in *server_addr, socklen_t *server_addr_len, settings_t settings);
-void resolve_admin_client(int admin_socket, fd_set *readFDs, struct sockaddr_in *admin_addr, socklen_t *admin_addr_len, settings_t settings, metrics_t metrics);
-void set_admin_fd(const int admin_fd, int *max_fd, fd_set *read_fds);
-void resolve_sctp_client(int admin_socket, struct sockaddr_in *admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics);
+int init_admin_socket(struct sockaddr_in * server_addr, socklen_t * server_addr_len, settings_t settings);
+void resolve_admin_client(int admin_socket, fd_set * readFDs, struct sockaddr_in * admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics);
+void set_admin_fd(const int admin_fd, int * max_fd, fd_set * read_fds);
+void resolve_sctp_client(int admin_socket, struct sockaddr_in * admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics);
 
 #endif

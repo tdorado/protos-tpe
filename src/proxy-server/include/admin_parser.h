@@ -15,13 +15,10 @@ void parse_bytes_transfered(bool * logged, char msg_response[BUFFER_MAX], int * 
 void parse_get_mtypes(bool * logged, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings);
 void parse_get_cmd(bool * logged, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings);
 void parse_set_cmd(bool *logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings);
-void parse_set_mtype(bool *logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings);
-void parse_rm_mtype(bool *logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings);
+void parse_set_mtypes(bool *logged, char msg_received[BUFFER_MAX], int msg_received_len, char msg_response[BUFFER_MAX], int * msg_response_len, settings_t settings);
 void parse_enable_mtype_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings);
 void parse_enable_cmd_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings);
 void parse_disable_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings);
-bool valid_mtype_and_not_already_in(settings_t settings, char * mtype);
-bool rm_mtype(settings_t settings, char * mtype);
 void parse_int_to_msg(int number, char msg_response[BUFFER_MAX], int * msg_response_len);
 
 #endif

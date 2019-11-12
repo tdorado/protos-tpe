@@ -15,15 +15,13 @@ void check_variables(char ** filter_medias, char ** filter_msg) {
     char * aux = getenv(env_variables[0]);
     if(aux == NULL) {
         fprintf(stderr, "La variable FILTER_MEDIAS no está definida");
-    }
-    else {
+    } else {
         *filter_medias = aux;
         aux = getenv(env_variables[1]);
         if (aux == NULL) {
             *filter_msg = FILTER_MSG_DEFAULT;
-        }
-        else {
-            * filter_msg = aux;
+        } else {
+            *filter_msg = aux;
         }
     }
 }
@@ -46,8 +44,9 @@ int contains_string(char * string, char * string_array) {
             i++;
         }
         j=0;
-        if(string_array[i] == ',')
+        if(string_array[i] == ',') {
             i++;
+        }
     }
     return FALSE;
 }
@@ -73,13 +72,12 @@ int headers(content_type_header_t content_type, char * replace_mime) {
                     return SUCCESS;
                 }
                 else if( c == '\r' && (c = getchar()) == '\n') {
-                        printf("%s\r\n", content_type->content_type);
+                    printf("%s\r\n", content_type->content_type);
                     skip_to_body();
                     return SUCCESS;
                 }
             }
-        }
-        else {
+        } else {
             content_length = 0;
             skip_line();
         }
@@ -87,14 +85,13 @@ int headers(content_type_header_t content_type, char * replace_mime) {
     return FAIL;
 }
 
-int skip_line() {
+int skip_line(void) {
     int c;
     while((c = getchar()) != EOF ) {
         if( c == '\r' && (c=getchar()) == '\n') {
             printf("\r\n");
             return SUCCESS;
-        }
-        else {
+        } else {
             putchar(c);
         }
     }
@@ -102,14 +99,13 @@ int skip_line() {
     return FAIL;
 }
 
-int skip_to_body() {
+int skip_to_body(void) {
     int c;
     while( ( c = getchar()) != EOF) {
         if ( c == '\r' && (c = getchar()) == '\n') {
             printf("\r\n");
             return SUCCESS;
-        }
-        else {
+        } else {
             putchar(c);
             skip_line();
         }
@@ -122,7 +118,7 @@ int handle_attributes(content_type_header_t content_type) {
     int rta = scanf(" boundary=\"%s", content_type->boundary);
     if(rta == 1) {
         int i = 0;
-        while(content_type->boundary[i] != '\0'){
+        while(content_type->boundary[i] != '\0') {
             i++;
         }
         content_type->boundary[i-1] = '\0';
@@ -130,8 +126,7 @@ int handle_attributes(content_type_header_t content_type) {
         getchar();
         getchar();
         return SUCCESS;
-    }
-    else {
+    } else {
         putchar(' ');
         skip_line();
     }
@@ -151,23 +146,21 @@ int search_boundary(char * boundary, int print) {
                         getchar();
                         printf("--%s\r\n", boundary);
                         return START_BOUNDARY;
-                    }
-                    else if( c == '-' && (c=getchar()) == '-' && boundary[boundary_position] == '\0'){
+                    } else if( c == '-' && (c=getchar()) == '-' && boundary[boundary_position] == '\0') {
                         getchar();
                         getchar();
                         printf("--%s--\r\n", boundary);
                         return FINAL_BOUNDARY;
-                    }
-                    else  {
+                    } else  {
                         if(print) printf("--");
-                        for(int i = 0; i<boundary_position; i++){
+                        for(int i = 0; i<boundary_position; i++) {
                             putchar(boundary[i]);
                         }
                         boundary_position=0;
                     }
-                }
-                else
+                } else {
                     if(print) printf("-%c", c);
+                }
                 break;
             default:
                 if(print) putchar(c);
@@ -194,8 +187,7 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
                 stack_push(stack, aux);
             }
             print = TRUE;
-        }
-        else if(strncmp("message/", actual_content->content_type, 8) == 0) {
+        } else if(strncmp("message/", actual_content->content_type, 8) == 0) {
             stack_t stack = create_stack();
             manage_body(stack, replace_mime, replace_text);
             stack_free_queue_elems(stack);
@@ -203,8 +195,7 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
         else if(contains_string(actual_content->content_type, replace_mime)) {
             print = FALSE;
             printf("%s\r\n", replace_text);
-        }
-        else {
+        } else {
             print = TRUE;
         }
    }

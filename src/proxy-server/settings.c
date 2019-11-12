@@ -8,7 +8,7 @@
 
 #include "include/settings.h"
 
-void print_usage() {
+void print_usage(void) {
     printf("USAGE: ./pop3filter [POSIX style options] <origin-server-address> \n"
             "   <origin-server-address>        Address of POP3 origin server. \n\n"
             "POSIX style options: \n"
@@ -25,7 +25,7 @@ void print_usage() {
             "   -e <error-file>                Specifies the file where to redirect stderr. By default is /dev/null'. \n");
 }
 
-void print_version() {
+void print_version(void) {
     printf("POP3 Proxy Filter %s\n", POP3_FILTER_VERSION);
 }
 
@@ -33,8 +33,7 @@ bool valid_digit(char * digit) {
     while (*digit) {
         if (*digit >= '0' && *digit <= '9') {
             digit++;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -44,10 +43,9 @@ bool valid_digit(char * digit) {
 bool valid_address(char * address) {
     struct sockaddr_in6 sa6;
     struct sockaddr_in sa;
-    if (strcmp(address, "loopback") == 0 || strcmp(address, "any") == 0){
+    if (strcmp(address, "loopback") == 0 || strcmp(address, "any") == 0) {
         return true;
-    }
-    else{
+    } else {
         return inet_pton(AF_INET6, address, &(sa6.sin6_addr)) == 1 || inet_pton(AF_INET, address, &(sa.sin_addr)) == 1;
     }
 }
@@ -68,12 +66,12 @@ bool valid_port(char * port) {
     return false;
 }
 
-bool valid_media_type(char * media_type){
+bool valid_media_type(char * media_type) {
     int i = 0;
 
-    while(media_type[i] != 0){
-        if(media_type[i] == '/'){
-            if(media_type[i + 1] != 0){
+    while(media_type[i] != 0) {
+        if(media_type[i] == '/') {
+            if(media_type[i + 1] != 0) {
                 return true;
             }
         }
@@ -82,7 +80,7 @@ bool valid_media_type(char * media_type){
     return false;
 }
 
-bool valid_error_file(char * error_file){
+bool valid_error_file(char * error_file) {
     struct stat st;
 
     if (stat(error_file, &st) < 0)
@@ -91,9 +89,9 @@ bool valid_error_file(char * error_file){
     return S_ISREG(st.st_mode);
 }
 
-bool valid_executable(char * command){
+bool valid_executable(char * command) {
     struct stat st;
-    if (stat(command, &st) == 0 && st.st_mode & S_IXUSR){
+    if (stat(command, &st) == 0 && st.st_mode & S_IXUSR) {
         /* executable and with permitions*/
         return true;
     }
@@ -101,79 +99,70 @@ bool valid_executable(char * command){
     return false;
 }
 
-int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
+int validate_and_set_settings(const int argc, char ** argv, settings_t settings) {
     int c;
     bool flag_error = false;
     char * aux;
 
-    init_settings(settings);
-
     while ((c = getopt(argc, argv, "e:l:L:m:M:o:p:P:t:")) != EOF && !flag_error) {
         switch (c) {
             case 'P':
-                if (valid_port(optarg)){
+                if (valid_port(optarg)) {
                     settings->origin_server_port = (uint16_t) atoi(optarg);
-                }
-                else{
+                } else {
                     perror("Invalid -P <origin-server-port> argument. \n");
                     flag_error = true;
                 }
                 break;
             case 'l':
-                if (valid_address(optarg)){
+                if (valid_address(optarg)) {
                     settings->local_addr = optarg;
-                }
-                else{
+                } else {
                     perror("Invalid -l <local-address> argument. \n");
                     flag_error = true;
                 }
                 break;
             case 'p':
-                if (valid_port(optarg)){
+                if (valid_port(optarg)) {
                     settings->local_port = (uint16_t) atoi(optarg);
-                }
-                else{
+                } else {
                     perror("Invalid -p <local-port> argument. \n");
                     flag_error = true;
                 }
                 break;
             case 'L':
-                if (valid_address(optarg)){
+                if (valid_address(optarg)) {
                     settings->management_addr = optarg;
-                }
-                else{
+                } else {
                     perror("Invalid -L <managment-address> argument. \n");
                     flag_error = true;
                 }
                 break;
             case 'o':
-                if (valid_port(optarg)){
+                if (valid_port(optarg)) {
                     settings->management_port = (uint16_t) atoi(optarg);
-                }
-                else{
+                } else {
                     perror("Invalid -o <managment-port> argument. \n");
                     flag_error = true;
                 }
                 break;
             case 't':
                 aux = (char *)optarg;
-                if(valid_executable(optarg)){
-                    if(aux[0] != '.'){
+                if(valid_executable(optarg)) {
+                    if(aux[0] != '.') {
                         /* No empieza con ./ se lo agrego */
                         sprintf(settings->cmd, "./%s", aux);
                     }
                     settings->transformations = true;
                     settings->cmd_or_mtype_transformations = false;
-                }
-                else {
+                } else {
                     strcpy(settings->cmd, aux);
                 }
                 break;
             case 'e':
-                if (valid_error_file(optarg)){
+                if (valid_error_file(optarg)) {
                     settings->error_file = optarg;
-                }
-                else{
+                } else {
                     perror("Invalid -e <error-file> argument. \n");
                     flag_error = true;
                 }
@@ -182,16 +171,9 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
                 settings->replace_message = optarg;
                 break;
             case 'M':
-                if (valid_media_type(optarg)){
-                    settings->media_types = optarg;
+                    strcpy(settings->media_types, optarg);
                     settings->transformations = true;
                     settings->cmd_or_mtype_transformations = true;
-                    settings->mtypes = 1;
-                }
-                else{
-                    perror("Invalid -M <filtered-media-type> argument. \n");
-                    flag_error = true;
-                }
                 break;
             default:
                 flag_error = true;
@@ -201,8 +183,7 @@ int validate_and_set_params(const int argc, char ** argv, settings_t settings) {
 
     if (optind == argc - 1 && !flag_error) {
         settings->origin_server_addr = argv[optind];
-    }
-    else if (!flag_error) {
+    } else if (!flag_error) {
         perror("Expected <origin-server-address> argument after options. \n");
         flag_error = true;
     }
@@ -233,7 +214,7 @@ int input_parser(const int argc, char ** argv, settings_t settings) {
         return -1;
     }
 
-    if (validate_and_set_params(argc, argv, settings) < 0) {
+    if (validate_and_set_settings(argc, argv, settings) < 0) {
         print_usage();
         return -1;
     }
@@ -241,14 +222,15 @@ int input_parser(const int argc, char ** argv, settings_t settings) {
     return 0;
 }
 
-void free_settings(settings_t settings){
+void free_settings(settings_t settings) {
+    free(settings->media_types);
     free(settings->cmd);
     free(settings);
 }
 
-settings_t init_settings(){
+settings_t init_settings(void) {
     settings_t ret = (settings_t)malloc(sizeof(*ret));
-    if(ret == NULL){
+    if(ret == NULL) {
         perror("Error creating settings");
         exit(EXIT_FAILURE);
     }
@@ -259,7 +241,12 @@ settings_t init_settings(){
     ret->local_addr = DEFAULT_LOCAL_ADDR;
     ret->local_port = DEFAULT_LOCAL_PORT;
     ret->replace_message = DEFAULT_REPLACE_MESSAGE;
-    ret->media_types = DEFAULT_MEDIA_TYPES;
+    ret->media_types = (char *)malloc(CMD_BUFFER);
+    if(ret->media_types == NULL){
+        perror("Error creating settings");
+        exit(EXIT_FAILURE);
+    }
+    ret->media_types[0] = 0;
     ret->cmd = (char *)malloc(CMD_BUFFER);
     if(ret->cmd == NULL){
         perror("Error creating settings");
@@ -267,9 +254,9 @@ settings_t init_settings(){
     }
     strcpy(ret->cmd, DEFAULT_CMD);
     ret->error_file = DEFAULT_ERROR_FILE;
-    ret->mtypes = 0;
     ret->transformations = false;
     ret->cmd_or_mtype_transformations = false;
+    ret->version = POP3_FILTER_VERSION;
 
     return ret;
 }

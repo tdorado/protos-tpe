@@ -19,25 +19,25 @@
 
 typedef struct settings * settings_t;
 
-struct settings{
-    char *origin_server_addr;
+struct settings {
+    char * origin_server_addr;
     uint16_t origin_server_port;
-    char *management_addr;
+    char * management_addr;
     uint16_t management_port;
-    char *local_addr;
+    char * local_addr;
     uint16_t local_port;
-    char *replace_message;
-    char *media_types;
-    int mtypes;
-    char *cmd;
-    char *error_file;
+    char * replace_message;
+    char * media_types;
+    char * cmd;
+    char * error_file;
     bool transformations;
     bool cmd_or_mtype_transformations; // false cmd, true mtype
+    char * version;
 };
 
-settings_t init_settings();
-void print_usage();
-void print_version();
+settings_t init_settings(void);
+void print_usage(void);
+void print_version(void);
 bool valid_digit(char * digit);
 bool valid_address(char * address);
 bool valid_port(char * port);

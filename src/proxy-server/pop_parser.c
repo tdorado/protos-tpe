@@ -84,8 +84,7 @@ ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_sta
                 if(parser_state->out_ps.first_r_found && parser_state->out_ps.first_n_found && !parser_state->out_ps.dot_found) {
                     write(fd, "\r\n", 2);
                     ret+=2;
-                }
-                else if(parser_state->out_ps.first_r_found && parser_state->out_ps.first_n_found && !parser_state->out_ps.second_r_found) {
+                } else if(parser_state->out_ps.first_r_found && parser_state->out_ps.first_n_found && !parser_state->out_ps.second_r_found) {
                     write(fd, "\r\n", 2);
                     ret+=2;
                 }
@@ -96,7 +95,7 @@ ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_sta
                 parser_state->out_ps.second_r_found = false;
                 break;
         }
-        if(puts_c){
+        if(puts_c) {
             ret++;
             write(fd, &c, 1);
         }

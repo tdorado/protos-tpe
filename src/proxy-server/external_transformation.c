@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "include/external_transformation.h"
 #include "include/error_file.h"
@@ -12,7 +14,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     int pipeFatherToChild[2] = {-1, -1};
     int pipeChildToFather[2] = {-1, -1};
 
-    if ( pipe(pipeFatherToChild) == -1 || pipe(pipeChildToFather) == -1 ){
+    if ( pipe(pipeFatherToChild) == -1 || pipe(pipeChildToFather) == -1 ) {
         perror("Error creating pipes of external transformation process.");
         return -1;
     }
@@ -32,27 +34,28 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     argv[0] = "bash";
     argv[1] = "-c";
     argv[3] = NULL;
-    char * envp[] = { "FILTER_MEDIAS=text/plain", "FILTER_MSG=Confiscado"} ;
 
-    if(settings->cmd_or_mtype_transformations && settings->mtypes > 0){  // false cmd, true mtype
+    if(settings->cmd_or_mtype_transformations && (strlen(settings->media_types) > 2)) {  // false cmd, true mtype
         //Mtype
         //setear env y llamar a ./stripmime
-        execve(argv[0], &argv[0], envp);
-        
+        setenv("FILTER_MEDIAS", settings->media_types,1);
+        setenv("FILTER_MSG", settings->replace_message, 1);
+        setenv("POP3FILTER_VERSION", settings->version, 1);
+        setenv("POP3_USERNAME", "foo", 1);
+        setenv("POP3_SERVER", settings->origin_server_addr, 1);
+
         argv[2] = "./stripmime";
-    }
-    else{
+    } else {
         //CMD
         argv[2] = settings->cmd;
     }
-    
+
 
     pid_t p_id;
     if((p_id = fork()) == -1) {
         perror("Error creating external transformation process.");
         return ERROR_TRANSFORMATION_PROCESS;
-    }
-    else if(p_id == 0) {
+    } else if(p_id == 0) {
         close(pipeFatherToChild[WRITE_END]);
         close(pipeChildToFather[READ_END]);
         dup2(pipeFatherToChild[READ_END], STDIN_FILENO);
@@ -62,13 +65,12 @@ int start_external_transformation_process(settings_t settings, client_t client) 
 
         int exec_ret = execve("/bin/bash", argv, NULL);
 
-        if (exec_ret == -1){
+        if (exec_ret == -1) {
             perror("Error on external transformations execve \n");
             exit(EXIT_FAILURE);
         }
 
-    }
-    else {
+    } else {
         close(pipeFatherToChild[READ_END]);
         close(pipeChildToFather[WRITE_END]);
 

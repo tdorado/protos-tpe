@@ -11,8 +11,7 @@ STRIPMIME_DIR = src/stripmime
 STRIPMIME_SOURCES = $(STRIPMIME_DIR)/stripmime $(STRIPMIME_DIR)/utils/stripmime_queue
 
 CC_C = gcc
-CFLAGS = -Wall -std=c99 -D_DEFAULT_SOURCE
-CFLAGSBIEN = -Wall -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wstrict-prototypes -Wcast-align -Wstrict-overflow=5 -Waggregate-return -Wcast-qual -Wswitch-default -Wswitch-enum -Wunreachable-code -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Werror -pedantic-errors -Wmissing-prototypes -pedantic -std=c99 -D_DEFAULT_SOURCE
+CFLAGS = -Wall -Wextra -Wfloat-equal -Wpointer-arith -Wstrict-prototypes -Wcast-align -Wstrict-overflow=5 -Waggregate-return -Wcast-qual -Wswitch-default -Wswitch-enum -Wunreachable-code -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Werror -pedantic-errors -Wmissing-prototypes -pedantic -std=c99 -D_DEFAULT_SOURCE
 SCTPFLAGS = -lsctp
 PTHREADFLAG = -pthread
 DEBUGFLAGS = -g
