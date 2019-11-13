@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <signal.h>
 #include <errno.h>
+#include <netinet/in.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 
 #include "include/proxy_socket.h"
 #include "include/settings.h"
