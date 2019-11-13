@@ -63,7 +63,7 @@ pop3ctl
 # Mac
 .DS_Store
 
-# testing files
+# Testing files
 Fedora-Server-netinst-x86_64-26-1.5.iso
 i_big.head
 i_big.tail
@@ -74,3 +74,4 @@ out
 test
 lazy.sh
 bytestuffed.sh
+envs.sh
