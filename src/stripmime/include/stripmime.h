@@ -21,7 +21,7 @@
 #define FILTER_MSG_DEFAULT "Confiscado"
 #define MAX_FILTER_MEDIAS 5
 
-int headers(content_type_header_t content_type, char * replace_mime);
+int headers(content_type_header_t content_type, char * replace_mime, int first);
 int skip_line(void);
 int skip_to_body(void);
 int handle_attributes(content_type_header_t content_type);

@@ -57,12 +57,22 @@ int contains_string(char * string, char * string_array) {
     return FALSE;
 }
 
-int headers(content_type_header_t content_type, char * replace_mime) {
+char * skip_line_headers(char * string, int * i);
+#define BLOCK 10
+
+int headers(content_type_header_t content_type, char * replace_mime, int first) {
     int c;
     int content_length = 0;
     int content_actual_length = 0;
+    char * headers = NULL;
+    int index=0;
     while((c = getchar()) != EOF) {
+        if(index%BLOCK == 0) {
+            headers = realloc(headers, sizeof(char)*(index+BLOCK));
+        }
         putchar(c);
+        headers[index] = c;
+        index++;
         if( c == CONTENT_TYPE[content_length]) {
             content_length++;
             if(content_length == CONTENT_TYPE_LENGTH) {
@@ -71,24 +81,72 @@ int headers(content_type_header_t content_type, char * replace_mime) {
                     content_actual_length++;
                 }
                 content_type->content_type[content_actual_length] = '\0';
+                if(index%BLOCK == 0) {
+                    headers = realloc(headers, sizeof(char)*(index+1));
+                }
+                headers[index+1] = '\0';
                 if( c == ';') {
-                    printf("%s;", content_type->content_type);
-                    handle_attributes(content_type);
-                    skip_to_body();
+                    if(contains_string(content_type->content_type, replace_mime)) {
+                        if(!first) {
+                            printf("Content-Type: %s; charser=US-ASCII\r\n", content_type->content_type);
+                        } else {
+                            printf("%stext/plain; charset=US-ASCII\r\n", headers);
+                        }
+                        skip_line();
+                    }
+                    else {
+                        printf("%s%s;", headers, content_type->content_type);
+                        handle_attributes(content_type);
+                    }
                     return SUCCESS;
                 }
                 else if( c == '\r' && (c = getchar()) == '\n') {
-                    printf("%s\r\n", content_type->content_type);
-                    skip_to_body();
+                    if(contains_string(content_type->content_type, replace_mime)) {
+                        if(!first) {
+                            printf("Content-Type: text/plain\r\n");
+                        } else {
+                            printf("%s%s\r\n", headers, content_type->content_type);
+                        }
+                    }
+                    else {
+                        printf("%s%s\r\n", headers, content_type->content_type);
+                    }
                     return SUCCESS;
                 }
+                skip_to_body();
+                return FAIL;
             }
         } else {
             content_length = 0;
-            skip_line();
+            headers = skip_line_headers(headers, &index);
         }
     }
     return FAIL;
+}
+
+char * skip_line_headers(char * string, int * i){
+    int c;
+    char * aux = string;
+    while(( c = getchar()) != EOF) {
+        if(*i % BLOCK == 0 ){
+            aux = realloc(aux, sizeof(char)*(*i + BLOCK));
+        }
+        if ( c == '\r' && (c = getchar()) == '\n') {
+            aux[*i] = '\r';
+            *i = *i + 1;
+            if(*i % BLOCK == 0 ){
+                aux = realloc(aux, sizeof(char)*(*i + BLOCK));
+            }
+            aux[*i+1] = '\n';
+            *i = *i + 1;
+            return aux;
+        } else {
+            aux[*i] = c;
+        }
+        *i = *i + 1 ;
+    }
+    fprintf(stderr, "Bad headers formats");
+    return NULL;
 }
 
 int skip_line(void) {
@@ -178,7 +236,7 @@ int search_boundary(char * boundary, int print) {
 
 int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
     content_type_header_t actual_content = malloc(sizeof(content_type_header));
-    headers(actual_content, replace_mime);
+    headers(actual_content, replace_mime, TRUE);
     stack_push(stack, actual_content);
     int print = TRUE;
     int rta;
@@ -188,7 +246,7 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
             rta = search_boundary(actual_content->boundary, print);
             if(rta == START_BOUNDARY) {
                 content_type_header_t aux = malloc(sizeof(content_type_header));
-                headers(aux, replace_mime);
+                headers(aux, replace_mime, FALSE);
                 stack_push(stack, actual_content);
                 stack_push(stack, aux);
             }
