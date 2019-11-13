@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "include/origin_server_socket.h"
+#include "include/logs.h"
 
 typedef struct thread_args * thread_args_t;
 
@@ -101,7 +102,9 @@ static void * resolve_origin_server_thread(void *args) {
     return NULL;
 }
 
-void verify_origin_server_valid(settings_t settings) {
+static void * get_pipelining_origin_server_thread(void *args) {
+    settings_t settings = (settings_t)args;
+
     struct addrinfo hints;
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
@@ -110,8 +113,10 @@ void verify_origin_server_valid(settings_t settings) {
     struct addrinfo *res;
 
     if (getaddrinfo(settings->origin_server_addr, NULL, &hints, &res) != 0) {
-        fprintf(stderr, "Invalid <origin-server-address> argument. \n");
-        exit(EXIT_FAILURE);
+        perror("Error connecting to Origin Server\n");
+        settings->pipelining = false;
+        log_message(false, "Could not get origin Server pipelining, assume it doesn't");
+        pthread_exit(NULL);
     }
 
     struct addrinfo *rp;
@@ -139,11 +144,41 @@ void verify_origin_server_valid(settings_t settings) {
     }
 
     if (rp == NULL) {
-        fprintf(stderr, "Invalid <origin-server-address> argument. \n");
-        freeaddrinfo(res);
-        exit(EXIT_FAILURE);
+        perror("Error connecting to Origin Server\n");
+        settings->pipelining = false;
+        log_message(false, "Could not get origin Server pipelining, assume it doesn't");
+        pthread_exit(NULL);
+    }
+
+    char buffer[500];
+    int len;
+
+    len = read(origin_server_fd, buffer, 500);
+    if(len > 0 && buffer[0] == '+'){
+        write(origin_server_fd, "CAPA\n", 5);
+        len = read(origin_server_fd, buffer, 500);
+        buffer[len] = '\0';
+        if(strstr(buffer, "\nPIPELINING") != NULL){
+            settings->pipelining = true;
+            log_message(false, "Origin Server has pipelining");
+        }
+        else{
+            settings->pipelining = false;
+            log_message(false, "Origin Server does not have pipelining");
+        }
     }
 
     close(origin_server_fd);
     freeaddrinfo(res);
+    pthread_exit(NULL);
+    return NULL;
+}
+
+void get_pipelining_origin_server(settings_t settings) {
+    pthread_t thread;
+
+    if (pthread_create(&thread, NULL, get_pipelining_origin_server_thread, (void *)settings) == -1) {
+        perror("Error creating pipelining thread");
+        exit(EXIT_FAILURE);
+    }
 }

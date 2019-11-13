@@ -6,6 +6,6 @@
 #include "settings.h"
 
 int resolve_origin_server(client_t client, settings_t settings);
-void verify_origin_server_valid(settings_t settings);
+void get_pipelining_origin_server(settings_t settings);
 
 #endif

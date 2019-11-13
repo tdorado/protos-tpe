@@ -33,6 +33,7 @@ struct settings {
     bool transformations;
     bool cmd_or_mtype_transformations; // false cmd, true mtype
     char * version;
+    bool pipelining;
 };
 
 settings_t init_settings(void);

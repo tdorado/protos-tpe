@@ -257,6 +257,7 @@ settings_t init_settings(void) {
     ret->transformations = false;
     ret->cmd_or_mtype_transformations = false;
     ret->version = POP3_FILTER_VERSION;
+    ret->pipelining = false;
 
     return ret;
 }

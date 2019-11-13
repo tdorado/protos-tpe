@@ -213,8 +213,8 @@ void parse_enable_cmd_transformations(bool * logged, char msg_response[BUFFER_MA
 }
 
 void parse_disable_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings) {
-    if(*logged && settings->cmd_or_mtype_transformations) {
-        settings->cmd_or_mtype_transformations = false;
+    if(*logged && settings->transformations) {
+        settings->transformations = false;
         parse_ok_response(msg_response, msg_response_len);
     } else {
         parse_err_response(msg_response, msg_response_len);

@@ -62,8 +62,6 @@ stripmime
 # Mac
 .DS_Store
 
-bytestuffed.sh
-
 # testing files
 Fedora-Server-netinst-x86_64-26-1.5.iso
 i_big.head
@@ -72,3 +70,6 @@ i_big.mbox
 ii_images.mbox
 iii_images_fwd.mbox
 out
+test
+lazy.sh
+bytestuffed.sh

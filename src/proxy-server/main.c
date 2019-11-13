@@ -64,11 +64,10 @@ void init_server_config(int argc, char ** argv) {
         exit(EXIT_FAILURE);
     }
 
-    // verify_origin_server_valid(settings);
     redirect_stderr(settings);
     metrics = init_metrics();
     client_list = init_client_list();
-
+    get_pipelining_origin_server(settings);
 }
 
 int start_server(void) {

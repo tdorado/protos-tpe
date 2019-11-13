@@ -2,7 +2,16 @@
 ## TPE Protocolos de Comunicación 2019 2 Cuatrimestre
 
 ### Código fuente
-El código fuente de la pre-entrega se encuenta dentro de la carpeta src/proxy-server
+El código fuente del trabajo se encuenta dentro de la directorio src:
+```sh
+src/
+```
+
+### Documentación
+Tanto las consignas del trabajo como manual, informe y presentación se encuentan en el directorio:
+```sh
+docs/
+```
 
 ### Instrucciones de compilación
 En el directorio principal del proyecto realizar:

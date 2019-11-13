@@ -35,7 +35,6 @@ typedef enum client_states {
     PASS_REQUEST,
     LOGGED_IN,
     CAPA_REQUEST,
-    CAPA_OK,
     RETR_REQUEST,
     RETR_OK,
     RETR_TRANSFORMING,
@@ -60,8 +59,6 @@ struct client {
     buffer_t client_read_buffer;
     buffer_t client_write_buffer;
     bool logged;
-    char command_received[4];
-    size_t command_received_len;
 
     origin_server_state_t origin_server_state;
     int origin_server_fd;
