@@ -26,7 +26,7 @@ int resolve_origin_server(client_t client, settings_t settings) {
     thread_args_t thread_args = (thread_args_t)malloc(sizeof(*thread_args));
     if (thread_args == NULL){
         perror("Error creating threadArgs");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     thread_args->client = client;
@@ -38,7 +38,7 @@ int resolve_origin_server(client_t client, settings_t settings) {
 
     if (pthread_create(&thread, NULL, resolve_origin_server_thread, (void *)thread_args) == -1) {
         perror("Error creating new thread");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     return 1;

@@ -177,6 +177,12 @@ void set_client_fd(client_t client, fd_set * read_fds, fd_set * write_fds){
 
 int set_origin_server_fd(client_list_t client_list, fd_set * read_fds, fd_set * write_fds, client_t client, settings_t settings, metrics_t metrics){
     if (client->origin_server_state == NOT_RESOLVED_ORIGIN_SERVER) {
+        if(settings->local_port == settings->origin_server_port){
+            send_message_to_fd(client->client_fd, ERR_ORIGIN_SERVER_CONNECTION, ERR_ORIGIN_SERVER_CONNECTION_LEN);
+            remove_client(client_list, client);
+            metrics->concurrent_connections--;
+            return ERROR_ORIGIN_SERVER;
+        }
         resolve_origin_server(client, settings);
     } else if (client->origin_server_state == ERROR_ORIGIN_SERVER) {
         send_message_to_fd(client->client_fd, ERR_ORIGIN_SERVER_CONNECTION, ERR_ORIGIN_SERVER_CONNECTION_LEN);
