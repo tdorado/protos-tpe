@@ -137,11 +137,13 @@ int validate_and_set_settings(const int argc, char ** argv, settings_t settings)
                 break;
             case 't':
                 strcpy(settings->cmd, (char *)optarg);
-                if(strstr(settings->cmd, ".sh") != NULL){
-                    if(settings->cmd[0] != '.'){
-                        strcpy(settings->cmd + 2, settings->cmd);
-                        settings->cmd[0] = '.';
-                        settings->cmd[1] = '/';
+                if(strstr(settings->cmd, ".") != NULL){
+                    if(strstr(settings->cmd, "bash") == NULL){
+                        if(settings->cmd[0] != '.'){
+                            strcpy(settings->cmd + 2, settings->cmd);
+                            settings->cmd[0] = '.';
+                            settings->cmd[1] = '/';
+                        }
                     }
                 }
                 settings->transformations = true;
