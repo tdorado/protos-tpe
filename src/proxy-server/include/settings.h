@@ -44,7 +44,6 @@ bool valid_address(char * address);
 bool valid_port(char * port);
 bool valid_media_type(char * media_type);
 bool valid_error_file(char * error_file);
-bool valid_executable(char * command);
 int validate_and_set_settings(const int argc, char ** argv, settings_t settings);
 int input_parser(int argc, char ** argv, settings_t settings);
 void free_settings(settings_t settings);

@@ -89,20 +89,9 @@ bool valid_error_file(char * error_file) {
     return S_ISREG(st.st_mode);
 }
 
-bool valid_executable(char * command) {
-    struct stat st;
-    if (stat(command, &st) == 0 && st.st_mode & S_IXUSR) {
-        /* executable and with permitions*/
-        return true;
-    }
-    /* not executable */
-    return false;
-}
-
 int validate_and_set_settings(const int argc, char ** argv, settings_t settings) {
     int c;
     bool flag_error = false;
-    char * aux;
 
     while ((c = getopt(argc, argv, "e:l:L:m:M:o:p:P:t:")) != EOF && !flag_error) {
         switch (c) {
@@ -147,17 +136,16 @@ int validate_and_set_settings(const int argc, char ** argv, settings_t settings)
                 }
                 break;
             case 't':
-                aux = (char *)optarg;
-                if(valid_executable(optarg)) {
-                    if(aux[0] != '.') {
-                        /* No empieza con ./ se lo agrego */
-                        sprintf(settings->cmd, "./%s", aux);
+                strcpy(settings->cmd, (char *)optarg);
+                if(strstr(settings->cmd, ".sh") != NULL){
+                    if(settings->cmd[0] != '.'){
+                        strcpy(settings->cmd + 2, settings->cmd);
+                        settings->cmd[0] = '.';
+                        settings->cmd[1] = '/';
                     }
-                    settings->transformations = true;
-                    settings->cmd_or_mtype_transformations = false;
-                } else {
-                    strcpy(settings->cmd, aux);
                 }
+                settings->transformations = true;
+                settings->cmd_or_mtype_transformations = false;
                 break;
             case 'e':
                 if (valid_error_file(optarg)) {

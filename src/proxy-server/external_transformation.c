@@ -50,7 +50,6 @@ int start_external_transformation_process(settings_t settings, client_t client) 
         argv[2] = settings->cmd;
     }
 
-
     pid_t p_id;
     if((p_id = fork()) == -1) {
         perror("Error creating external transformation process.");

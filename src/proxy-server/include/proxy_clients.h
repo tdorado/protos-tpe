@@ -15,8 +15,8 @@
 #define BUFFER_SIZE 2048
 #define CICLES_LIMIT 10000
 
-#define CRLF_DOT_CRLF "\r\n.\r\n"
-#define CRLF_DOT_CRLF_LEN 5
+#define DOT_CRLF ".\r\n"
+#define DOT_CRLF_LEN 3
 #define OK_WELCOME "+OK Proxy filter ready\r\n"
 #define OK_WELCOME_LEN 24
 #define ERR_TRANSFORMATION "-ERR Transformation refused\r\n"

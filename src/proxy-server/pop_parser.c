@@ -11,6 +11,8 @@ parser_state_t init_parser_state() {
         return NULL;
     }
 
+    ret->in_ps.buffer = init_buffer(BUFFER_SIZE);
+
     reset_parser_state(ret);
 
     return ret;
@@ -22,6 +24,7 @@ void reset_parser_state(parser_state_t parser_state) {
     parser_state->out_ps.dot_found = false;
     parser_state->out_ps.second_r_found = false;
 
+    buffer_reset(parser_state->in_ps.buffer);
     parser_state->in_ps.r_found = false;
     parser_state->in_ps.n_found = false;
     parser_state->in_ps.last_char = 0;
@@ -60,9 +63,9 @@ ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_sta
                     }
                 }
                 if(parser_state->out_ps.second_r_found) {
-                    //\r\n.\r\n found
-                    char aux = EOF;
-                    write(fd, &aux, 1);
+                    write(fd, "\r\n", 2);
+                    ret+=2;
+                    close(fd);
                     reads = false;
                 }
                 break;
@@ -108,14 +111,18 @@ ssize_t read_and_parse_from_fd(int fd, buffer_t buffer, parser_state_t parser_st
     ssize_t n;
     ssize_t ret = 0;
     bool writes = true, puts_dot;
+
+    n = read_from_fd(fd, parser_state->in_ps.buffer);
+    if(n == 0){
+        return 0;
+    }
+
     if(buffer_can_write(buffer) && parser_state->in_ps.last_char != 0) {
         buffer_write(buffer, parser_state->in_ps.last_char);
         parser_state->in_ps.last_char = 0;
     }
-    while(writes && buffer_can_write(buffer) && ((n = read(fd, &c, 1) != -1))) {
-        if(errno != 0) {
-            return ret;
-        }
+    while(writes && buffer_can_write(buffer) && buffer_can_read(parser_state->in_ps.buffer)) {
+        c = buffer_read(parser_state->in_ps.buffer);
         puts_dot = false;
         switch(c) {
             case '\r':
@@ -136,9 +143,6 @@ ssize_t read_and_parse_from_fd(int fd, buffer_t buffer, parser_state_t parser_st
                     parser_state->in_ps.r_found = false;
                     parser_state->in_ps.n_found = false;
                 }
-                break;
-            case EOF:
-                writes = false;
                 break;
             default:
                 parser_state->in_ps.r_found = false;

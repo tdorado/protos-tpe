@@ -18,6 +18,7 @@ struct out_parser_state {
 };
 
 struct in_parser_state {
+    buffer_t buffer;
     bool r_found;
     bool n_found;
     char last_char;

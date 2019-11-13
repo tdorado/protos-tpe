@@ -246,7 +246,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
         }
 
         if(bytes_read >= 4){
-            if (strncasecmp((char *)client->client_read_buffer->read, "retr", 4) == 0 && client->client_state == LOGGED_IN && !settings->transformations) {
+            if (strncasecmp((char *)client->client_read_buffer->read, "retr", 4) == 0 && client->client_state == LOGGED_IN && settings->transformations) {
                 client->client_state = RETR_REQUEST;
             } else if (strncasecmp((char *)client->client_read_buffer->read, "pass", 4) == 0) {
                 client->client_state = PASS_REQUEST;
@@ -331,26 +331,20 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
                     buffer_write(client->client_write_buffer, buffer_read(client->origin_server_buffer));
                     client->client_state = RETR_TRANSFORMING;
                 }
-                if (!buffer_can_read(client->origin_server_buffer)) {
-                    close(client->external_transformation_write_fd);
-                }
                 if (FD_ISSET(client->external_transformation_write_fd, write_fds)) {
                     write_and_parse_to_fd(client->external_transformation_write_fd, client->origin_server_buffer, client->parser_state);
                 }
                 if (FD_ISSET(client->external_transformation_read_fd, read_fds)) {
-
                     bytes_read = read_and_parse_from_fd(client->external_transformation_read_fd, client->client_write_buffer, client->parser_state);
-
                     if (bytes_read == 0) {
                         close(client->external_transformation_read_fd);
-                        close(client->external_transformation_write_fd);
                         client->external_transformation_read_fd = -1;
                         client->external_transformation_write_fd = -1;
                         client->external_transformation_state = PROCESS_NOT_INITIALIZED;
                         reset_parser_state(client->parser_state);
 
                         write_to_fd(client->client_fd, client->client_write_buffer);
-                        send_message_to_fd(client->client_fd, CRLF_DOT_CRLF, CRLF_DOT_CRLF_LEN);
+                        send_message_to_fd(client->client_fd, DOT_CRLF, DOT_CRLF_LEN);
                         client->client_state = LOGGED_IN;
                     }
                 }
