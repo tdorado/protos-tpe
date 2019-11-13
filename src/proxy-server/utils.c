@@ -16,11 +16,13 @@ int max_of_three(int n1, int n2, int n3) {
 ssize_t read_from_fd(int fd, buffer_t buffer) {
     uint8_t * ptr;
     size_t len;
-    ssize_t ret;
+    ssize_t ret = -1;
 
     ptr = buffer_write_ptr(buffer, &len);
     ret = read(fd, ptr, len);
-    buffer_write_adv(buffer, ret);
+    if(ret > 0){
+        buffer_write_adv(buffer, ret);
+    }
 
     return ret;
 }
@@ -32,7 +34,9 @@ ssize_t write_to_fd(int fd, buffer_t buffer) {
 
     ptr = buffer_read_ptr(buffer, &len);
     ret = write(fd, ptr, len);
-    buffer_read_adv(buffer, ret);
+    if (ret > 0){
+        buffer_read_adv(buffer, ret);
+    }
 
     return ret;
 }
@@ -54,7 +58,9 @@ ssize_t write_until_enter_to_fd(int fd, buffer_t buffer) {
     ret++;
 
     ret = write(fd, ptr, ret);
-    buffer_read_adv(buffer, ret);
+    if(ret > 0){
+        buffer_read_adv(buffer, ret);
+    }
 
     return ret;
 }

@@ -55,6 +55,7 @@ dkms.conf
 pop3filter
 adminclient
 stripmime
+pop3ctl
 
 # Visual Studio Code
 .vscode

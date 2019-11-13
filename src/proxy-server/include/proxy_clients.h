@@ -13,6 +13,7 @@
 #include "pop_parser.h"
 
 #define BUFFER_SIZE 2048
+#define CICLES_LIMIT 10000
 
 #define CRLF_DOT_CRLF "\r\n.\r\n"
 #define CRLF_DOT_CRLF_LEN 5
@@ -54,6 +55,8 @@ typedef enum external_transformation_states {
 typedef struct client * client_t;
 
 struct client {
+    int cicles;
+
     client_state_t client_state;
     int client_fd;
     buffer_t client_read_buffer;

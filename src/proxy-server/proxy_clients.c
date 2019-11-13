@@ -32,6 +32,8 @@ client_t create_client(client_list_t client_list, const int fd) {
         return NULL;
     }
 
+    client->cicles = 0;
+
     client->client_state = NOT_LOGGED_IN;
     client->client_fd = fd;
     client->client_read_buffer = init_buffer(BUFFER_SIZE);
@@ -233,9 +235,14 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
         bytes_read = read_from_fd(client->client_fd, client->client_read_buffer);
 
         if (bytes_read == 0) {
-            remove_client(client_list, client);
-            metrics->concurrent_connections--;
-            return;
+            if(client->cicles > CICLES_LIMIT){
+                remove_client(client_list, client);
+                metrics->concurrent_connections--;
+                return;
+            }
+            else{
+                client->cicles++;
+            }
         }
 
         if(bytes_read >= 4){
@@ -253,6 +260,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
 
     if (FD_ISSET(client->client_fd, write_fds)) {
         write_to_fd(client->client_fd, client->client_write_buffer);
+        client->cicles = 0;
     }
 
     if (client->origin_server_state == RESOLVED_TO_ORIGIN_SERVER) {

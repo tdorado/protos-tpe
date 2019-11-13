@@ -20,7 +20,7 @@ $ make
 ```
 Esto generara los ejecutables:
   - pop3filter
-  - adminclient
+  - pop3ctl
   - stripmime
 
 ### Ejecución
@@ -31,7 +31,7 @@ $ ./pop3filter [POSIX Style Options] <origin-server-address>
 
 Para ejecutar adminclient:
 ```sh
-$ ./adminclient -a <management-address> -p <management-port>
+$ ./pop3ctl -a <management-address> -p <management-port>
 ```
 Siendo ambas opciones no necesarias, si no se indican, se tomarán los valores por defecto que son 127.0.0.1 de managment-address y 9090 de managment-port.
 
