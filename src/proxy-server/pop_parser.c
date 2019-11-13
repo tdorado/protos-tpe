@@ -63,6 +63,7 @@ ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_sta
                     }
                 }
                 if(parser_state->out_ps.second_r_found) {
+                    /*Encontramos el final, cierro el fd para mandar EOF */
                     write(fd, "\r\n", 2);
                     ret+=2;
                     close(fd);
@@ -113,8 +114,8 @@ ssize_t read_and_parse_from_fd(int fd, buffer_t buffer, parser_state_t parser_st
     bool writes = true, puts_dot;
 
     n = read_from_fd(fd, parser_state->in_ps.buffer);
-    if(n == 0){
-        return 0;
+    if(n <= 0){
+        return n;
     }
 
     if(buffer_can_write(buffer) && parser_state->in_ps.last_char != 0) {

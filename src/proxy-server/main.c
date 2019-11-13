@@ -117,14 +117,14 @@ int start_server(void) {
 }
 
 bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics) {
-
+    *max_fd = 0;
     FD_ZERO(read_fds);
     FD_ZERO(write_fds);
 
-    *max_fd = 0;
-
-    set_proxy_fd(proxy_fd, max_fd, read_fds);
-    set_admin_fd(admin_fd, max_fd, read_fds);
+    FD_SET(proxy_fd, read_fds);
+    FD_SET(admin_fd, read_fds);
+    
+    *max_fd = max_of_three(*max_fd, proxy_fd, admin_fd);
 
     client_t client = client_list->first;
 

@@ -95,13 +95,6 @@ void resolve_admin_client(int admin_fd, fd_set * readFDs, struct sockaddr_in * a
     }
 }
 
-void set_admin_fd(const int admin_fd, int * max_fd, fd_set * read_fds) {
-    FD_SET(admin_fd, read_fds);
-    if (admin_fd > *max_fd) {
-        *max_fd = admin_fd;
-    }
-}
-
 void resolve_sctp_client(int admin_fd, struct sockaddr_in *admin_addr, socklen_t * admin_addr_len, settings_t settings, metrics_t metrics) {
     int connection_fd = -1;
     int ret = -1;
