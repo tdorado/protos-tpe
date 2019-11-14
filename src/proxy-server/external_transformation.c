@@ -37,14 +37,16 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     argv[1] = "-c";
     argv[3] = NULL;
 
+    set_envs(settings->envs_for_transformation, settings, client);
     if(settings->mtype_transformations && settings->cmd_transformations) {
-        set_envs(settings->envs_for_transformation, settings, client);
+        // Primero stripmime y despues el cmd
         sprintf(settings->cmd_for_transformation, "./stripmime | %s", settings->cmd);
         argv[2] = settings->cmd_for_transformation;
     } else if (settings->mtype_transformations){
-        set_envs(settings->envs_for_transformation, settings, client);
+        // Solo stripmime
         argv[2] = "./stripmime";
     } else {
+        // Solo cmd
         argv[2] = settings->cmd;
     }
 

@@ -119,7 +119,7 @@ void printf_help(void) {
     printf("\tset mtypes <mtype,mtype,mtype,mtype...>\n");
     printf("\tenable mtype transformations\n");
     printf("\tenable cmd transformations\n");
-    printf("\tdisable transformations\n");
+    printf("\tdisable mtype transformations\n");
 }
 
 state_t parse_command(char msg_received[BUFFER_MAX], char msg_to_send[BUFFER_MAX], int * to_send_len) {
