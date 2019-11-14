@@ -17,7 +17,7 @@ int main(void) {
 int check_variables(char ** filter_medias, char ** filter_msg) {
     char * aux = getenv(env_variables[0]);
     if(aux == NULL) {
-        fprintf(stderr, "La variable FILTER_MEDIAS no está definida");
+        print_rest_error("La variable filter medias no está definida");
         return FAIL;
     } else {
         *filter_medias = aux;
@@ -57,9 +57,6 @@ int contains_string(char * string, char * string_array) {
     return FALSE;
 }
 
-char * skip_line_headers(char * string, int * i);
-#define BLOCK 10
-
 int headers(content_type_header_t content_type, char * replace_mime, int first) {
     int c;
     int content_length = 0;
@@ -70,7 +67,6 @@ int headers(content_type_header_t content_type, char * replace_mime, int first) 
         if(index%BLOCK == 0) {
             headers = realloc(headers, sizeof(char)*(index+BLOCK));
         }
-        putchar(c);
         headers[index] = c;
         index++;
         if( c == CONTENT_TYPE[content_length]) {
@@ -84,97 +80,109 @@ int headers(content_type_header_t content_type, char * replace_mime, int first) 
                 if(index%BLOCK == 0) {
                     headers = realloc(headers, sizeof(char)*(index+1));
                 }
-                headers[index+1] = '\0';
+                headers[index] = '\0';
+                index++;
                 if( c == ';') {
                     if(contains_string(content_type->content_type, replace_mime)) {
                         if(!first) {
                             printf("Content-Type: %s; charser=US-ASCII\r\n", content_type->content_type);
+                            skip_to_body(FALSE);
                         } else {
                             printf("%stext/plain; charset=US-ASCII\r\n", headers);
+                            skip_to_body(TRUE);
                         }
-                        skip_line();
                     }
                     else {
                         printf("%s%s;", headers, content_type->content_type);
                         handle_attributes(content_type);
+                        skip_to_body(TRUE);
                     }
+                    free(headers);
                     return SUCCESS;
                 }
                 else if( c == '\r' && (c = getchar()) == '\n') {
                     if(contains_string(content_type->content_type, replace_mime)) {
                         if(!first) {
-                            printf("Content-Type: text/plain\r\n");
+                            printf("Content-Type: text/plain\r\n\r\n");
+                            skip_to_body(FALSE);
                         } else {
                             printf("%s%s\r\n", headers, content_type->content_type);
+                            skip_to_body(TRUE);
                         }
                     }
                     else {
                         printf("%s%s\r\n", headers, content_type->content_type);
+                        skip_to_body(TRUE);
                     }
+                    free(headers);
                     return SUCCESS;
                 }
-                skip_to_body();
+                skip_to_body(TRUE);
+                free(headers);
                 return FAIL;
             }
         } else {
+            skip_line_headers(&headers, &index);
             content_length = 0;
-            headers = skip_line_headers(headers, &index);
         }
     }
+    free(headers);
     return FAIL;
 }
 
-char * skip_line_headers(char * string, int * i){
+char * skip_line_headers(char ** string, int * i){
     int c;
-    char * aux = string;
+    char * aux = *string;
+    int index = *i;
     while(( c = getchar()) != EOF) {
-        if(*i % BLOCK == 0 ){
-            aux = realloc(aux, sizeof(char)*(*i + BLOCK));
+        if(index % BLOCK == 0 ){
+            aux = realloc(aux, sizeof(char)*(index + BLOCK));
         }
         if ( c == '\r' && (c = getchar()) == '\n') {
-            aux[*i] = '\r';
-            *i = *i + 1;
-            if(*i % BLOCK == 0 ){
-                aux = realloc(aux, sizeof(char)*(*i + BLOCK));
+            aux[index] = '\r';
+            index++;
+            if(index % BLOCK == 0 ){
+                aux = realloc(aux, sizeof(char)*(index + BLOCK));
             }
-            aux[*i+1] = '\n';
-            *i = *i + 1;
+            aux[index] = '\n';
+            index++;
+            *i = index;
             return aux;
         } else {
-            aux[*i] = c;
+            aux[index] = c;
+            index = index + 1 ;
         }
-        *i = *i + 1 ;
     }
-    fprintf(stderr, "Bad headers formats");
+    print_rest_error("Bad headers format");
     return NULL;
 }
 
-int skip_line(void) {
+int skip_line(int print) {
     int c;
     while((c = getchar()) != EOF ) {
         if( c == '\r' && (c=getchar()) == '\n') {
-            printf("\r\n");
+            if(print) printf("\r\n");
             return SUCCESS;
         } else {
-            putchar(c);
+            if(print) putchar(c);
         }
     }
-    fprintf(stderr, "Bad headers formats");
+    print_rest_error("Bad headers format");
     return FAIL;
 }
 
-int skip_to_body(void) {
+int skip_to_body(int print) {
     int c;
     while( ( c = getchar()) != EOF) {
         if ( c == '\r' && (c = getchar()) == '\n') {
-            printf("\r\n");
+            if(print) printf("\r\n");
             return SUCCESS;
         } else {
-            putchar(c);
-            skip_line();
+            if(print) putchar(c);
+            skip_line(print);
         }
     }
-    fprintf(stderr, "Bad headers format");
+    print_rest_error("Bad headers format");
     return FAIL;
 }
 
@@ -192,7 +200,7 @@ int handle_attributes(content_type_header_t content_type) {
         return SUCCESS;
     } else {
         putchar(' ');
-        skip_line();
+        skip_line(TRUE);
     }
     return FAIL;
 }
@@ -284,4 +292,12 @@ void print_all_stdin(void) {
     while((c=getchar()) != EOF) {
         putchar(c);
     }
+}
+
+void print_rest_error(const char * msg) {
+    int c;
+    while((c=getchar() != EOF)) {
+        putchar(c);
+    }
+    perror(msg);
 }
