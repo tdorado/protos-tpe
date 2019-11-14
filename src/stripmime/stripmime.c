@@ -85,10 +85,10 @@ int headers(content_type_header_t content_type, char * replace_mime, int first) 
                 if( c == ';') {
                     if(contains_string(content_type->content_type, replace_mime)) {
                         if(!first) {
-                            printf("Content-Type: %s; charser=US-ASCII\r\n", content_type->content_type);
+                            printf("Content-Type: text/plain; charset=US-ASCII\r\n\r\n");
                             skip_to_body(FALSE);
                         } else {
-                            printf("%stext/plain; charset=US-ASCII\r\n", headers);
+                            printf("%stext/plain; charset=US-ASCII\r\n\r\n", headers);
                             skip_to_body(TRUE);
                         }
                     }
@@ -103,10 +103,10 @@ int headers(content_type_header_t content_type, char * replace_mime, int first) 
                 else if( c == '\r' && (c = getchar()) == '\n') {
                     if(contains_string(content_type->content_type, replace_mime)) {
                         if(!first) {
-                            printf("Content-Type: text/plain\r\n\r\n");
+                            printf("Content-Type: text/plain; charset=US-ASCII\r\n\r\n");
                             skip_to_body(FALSE);
                         } else {
-                            printf("%s%s\r\n", headers, content_type->content_type);
+                            printf("%stext/plain\r\n\r\n", headers);
                             skip_to_body(TRUE);
                         }
                     }
