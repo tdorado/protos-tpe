@@ -33,12 +33,14 @@ client_t create_client(client_list_t client_list, const int fd) {
     }
 
     client->cicles = 0;
+    strcpy(client->username, "foo");
 
     client->client_state = NOT_LOGGED_IN;
     client->client_fd = fd;
     client->client_read_buffer = init_buffer(BUFFER_SIZE);
     client->client_write_buffer = init_buffer(BUFFER_SIZE);
     client->logged = false;
+    client->client_parser_state = init_client_parser_state();
 
     client->origin_server_state = NOT_RESOLVED_ORIGIN_SERVER;
     client->origin_server_fd = -1;
@@ -48,7 +50,7 @@ client_t create_client(client_list_t client_list, const int fd) {
     client->external_transformation_state = PROCESS_NOT_INITIALIZED;
     client->external_transformation_read_fd = -1;
     client->external_transformation_write_fd = -1;
-    client->parser_state = init_parser_state();
+    client->transformation_parser_state = init_transformation_parser_state();
 
     client->next = NULL;
 
@@ -106,7 +108,8 @@ void remove_client(client_list_t client_list, client_t client) {
     free_buffer(client->client_read_buffer);
     free_buffer(client->client_write_buffer);
     free_buffer(client->origin_server_buffer);
-    free_parser_state(client->parser_state);
+    free_client_parser_state(client->client_parser_state);
+    free_transformation_parser_state(client->transformation_parser_state);
     free(client);
 
     log_message(false, "Removal of client successful.");
@@ -250,22 +253,14 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
                 client->cicles++;
             }
         }
-
-        if(bytes_read >= 4){
-            if (strncasecmp((char *)client->client_read_buffer->read, "retr", 4) == 0 && client->client_state == LOGGED_IN && settings->transformations) {
-                client->client_state = RETR_REQUEST;
-            } else if (strncasecmp((char *)client->client_read_buffer->read, "pass", 4) == 0) {
-                client->client_state = PASS_REQUEST;
-            } else if (strncasecmp((char *)client->client_read_buffer->read, "capa", 4) == 0 && !settings->transformations) {
-                client->client_state = CAPA_REQUEST;
-            }
-        }
+        parse_client_message(client, settings);
 
         metrics->bytes_transfered += bytes_read;
     }
 
     if (FD_ISSET(client->client_fd, write_fds)) {
         write_to_fd(client->client_fd, client->client_write_buffer);
+        reset_client_parser_state(client->client_parser_state);
         client->cicles = 0;
     }
 
@@ -273,6 +268,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
         if (FD_ISSET(client->origin_server_fd, write_fds)) {
             if(settings->transformations || !settings->pipelining){
                 write_until_enter_to_fd(client->origin_server_fd, client->client_read_buffer);
+                reset_client_parser_state(client->client_parser_state);
             }
             else{
                 write_to_fd(client->origin_server_fd, client->client_read_buffer);
@@ -338,16 +334,16 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
                     client->client_state = RETR_TRANSFORMING;
                 }
                 if (FD_ISSET(client->external_transformation_write_fd, write_fds)) {
-                    write_and_parse_to_fd(client->external_transformation_write_fd, client->origin_server_buffer, client->parser_state);
+                    write_and_parse_transformation_to_fd(client->external_transformation_write_fd, client->origin_server_buffer, client->transformation_parser_state);
                 }
                 if (FD_ISSET(client->external_transformation_read_fd, read_fds)) {
-                    bytes_read = read_and_parse_from_fd(client->external_transformation_read_fd, client->client_write_buffer, client->parser_state);
+                    bytes_read = read_and_parse_transformation_from_fd(client->external_transformation_read_fd, client->client_write_buffer, client->transformation_parser_state);
                     if (bytes_read == 0) {
                         close(client->external_transformation_read_fd);
                         client->external_transformation_read_fd = -1;
                         client->external_transformation_write_fd = -1;
                         client->external_transformation_state = PROCESS_NOT_INITIALIZED;
-                        reset_parser_state(client->parser_state);
+                        reset_transformation_parser_state(client->transformation_parser_state);
 
                         write_to_fd(client->client_fd, client->client_write_buffer);
                         send_message_to_fd(client->client_fd, DOT_CRLF, DOT_CRLF_LEN);
@@ -357,6 +353,52 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
             }
         } else {
             buffer_copy(client->origin_server_buffer, client->client_write_buffer);
+        }
+    }
+}
+
+void parse_client_message(client_t client, settings_t settings) {
+    client_parser_state_t client_parser_state = client->client_parser_state;
+    char * buffer = (char *)client->client_read_buffer->read;
+    int len = client->client_read_buffer->write - client->client_read_buffer->read;
+    char c;
+    int i = 0;
+
+    while(i < len){
+        c = buffer[i++];
+        if(c == '\n'){
+            if(client_parser_state->waiting_username){
+                client_parser_state->username[client_parser_state->username_len] = 0;
+                strcpy(client->username, client_parser_state->username);
+            }
+            reset_client_parser_state(client_parser_state);
+            return;
+        }
+        else if(client_parser_state->found_command && !client_parser_state->waiting_username) {
+            return;
+        }
+        else if(client_parser_state->command_len < 4) {
+            client_parser_state->command[client_parser_state->command_len++] = c;
+        }
+        else if(client_parser_state->waiting_username) {
+            if(c != ' '){
+                client_parser_state->username[client_parser_state->username_len++] = c;
+            }
+        }
+        else {
+            if (strncasecmp(client_parser_state->command, "retr", 4) == 0 && client->logged && settings->transformations) {
+                client->client_state = RETR_REQUEST;
+                client_parser_state->found_command = true;
+            } else if (strncasecmp(client_parser_state->command, "pass", 4) == 0) {
+                client->client_state = PASS_REQUEST;
+                client_parser_state->found_command = true;
+            } else if (strncasecmp(client_parser_state->command, "capa", 4) == 0 && settings->transformations) {
+                client->client_state = CAPA_REQUEST;
+                client_parser_state->found_command = true;
+            } else if (strncasecmp(client_parser_state->command, "user", 4) == 0 && !client->logged) {
+                client_parser_state->waiting_username = true;
+                client_parser_state->found_command = true;
+            }
         }
     }
 }

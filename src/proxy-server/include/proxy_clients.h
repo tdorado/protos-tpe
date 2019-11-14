@@ -56,12 +56,14 @@ typedef struct client * client_t;
 
 struct client {
     int cicles;
+    char username[80];
 
     client_state_t client_state;
     int client_fd;
     buffer_t client_read_buffer;
     buffer_t client_write_buffer;
     bool logged;
+    client_parser_state_t client_parser_state;
 
     origin_server_state_t origin_server_state;
     int origin_server_fd;
@@ -71,7 +73,7 @@ struct client {
     external_transformation_state_t external_transformation_state;
     int external_transformation_read_fd;
     int external_transformation_write_fd;
-    parser_state_t parser_state;
+    transformation_parser_state_t transformation_parser_state;
 
     client_t prev;
     client_t next;
@@ -96,5 +98,6 @@ int set_origin_server_fd(client_list_t client_list, fd_set * read_fds, fd_set * 
 int set_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set * read_fds, fd_set * write_fds, metrics_t metrics);
 void resolve_client(client_t client, client_list_t client_list, fd_set * read_fds, fd_set * write_fds, settings_t settings, metrics_t metrics);
 pop_response_t get_response(buffer_t buffer);
+void parse_client_message(client_t client, settings_t settings);
 
 #endif

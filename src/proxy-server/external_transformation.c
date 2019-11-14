@@ -41,7 +41,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
         setenv("FILTER_MEDIAS", settings->media_types,1);
         setenv("FILTER_MSG", settings->replace_message, 1);
         setenv("POP3FILTER_VERSION", settings->version, 1);
-        setenv("POP3_USERNAME", "foo", 1);
+        setenv("POP3_USERNAME", client->username, 1);
         setenv("POP3_SERVER", settings->origin_server_addr, 1);
 
         argv[2] = "./stripmime";

@@ -1,11 +1,12 @@
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 #include "include/pop_parser.h"
 #include "include/proxy_clients.h"
 
-parser_state_t init_parser_state() {
-    parser_state_t ret = (parser_state_t)malloc(sizeof(*ret));
+transformation_parser_state_t init_transformation_parser_state() {
+    transformation_parser_state_t ret = (transformation_parser_state_t)malloc(sizeof(*ret));
     if(ret == NULL) {
         perror("Error creating parser state for client");
         return NULL;
@@ -13,28 +14,29 @@ parser_state_t init_parser_state() {
 
     ret->in_ps.buffer = init_buffer(BUFFER_SIZE);
 
-    reset_parser_state(ret);
+    reset_transformation_parser_state(ret);
 
     return ret;
 }
 
-void reset_parser_state(parser_state_t parser_state) {
-    parser_state->out_ps.first_r_found = false;
-    parser_state->out_ps.first_n_found = false;
-    parser_state->out_ps.dot_found = false;
-    parser_state->out_ps.second_r_found = false;
+void reset_transformation_parser_state(transformation_parser_state_t transformation_parser_state) {
+    transformation_parser_state->out_ps.first_r_found = false;
+    transformation_parser_state->out_ps.first_n_found = false;
+    transformation_parser_state->out_ps.dot_found = false;
+    transformation_parser_state->out_ps.second_r_found = false;
 
-    buffer_reset(parser_state->in_ps.buffer);
-    parser_state->in_ps.r_found = false;
-    parser_state->in_ps.n_found = false;
-    parser_state->in_ps.last_char = 0;
+    buffer_reset(transformation_parser_state->in_ps.buffer);
+    transformation_parser_state->in_ps.r_found = false;
+    transformation_parser_state->in_ps.n_found = false;
+    transformation_parser_state->in_ps.last_char = 0;
 }
 
-void free_parser_state (parser_state_t parser_state) {
-    free(parser_state);
+void free_transformation_parser_state (transformation_parser_state_t transformation_parser_state) {
+    free_buffer(transformation_parser_state->in_ps.buffer);
+    free(transformation_parser_state);
 }
 
-ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_state) {
+ssize_t write_and_parse_transformation_to_fd(int fd, buffer_t buffer, transformation_parser_state_t transformation_parser_state) {
     char c;
     ssize_t ret = 0;
     bool puts_c = true;
@@ -44,25 +46,25 @@ ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_sta
         switch(c) {
             case '\r':
                 puts_c = false;
-                if(!parser_state->out_ps.first_r_found) {
-                    parser_state->out_ps.first_r_found = true;
+                if(!transformation_parser_state->out_ps.first_r_found) {
+                    transformation_parser_state->out_ps.first_r_found = true;
                 }
-                if(parser_state->out_ps.first_r_found && parser_state->out_ps.first_n_found && !parser_state->out_ps.dot_found) {
+                if(transformation_parser_state->out_ps.first_r_found && transformation_parser_state->out_ps.first_n_found && !transformation_parser_state->out_ps.dot_found) {
                         write(fd, "\r\n", 2);
                         ret+=2;
                 }
-                if(parser_state->out_ps.dot_found) {
-                    parser_state->out_ps.second_r_found = true;
+                if(transformation_parser_state->out_ps.dot_found) {
+                    transformation_parser_state->out_ps.second_r_found = true;
                 }
                 break;
             case '\n':
                 puts_c = false;
-                if(parser_state->out_ps.first_r_found) {
-                    if(!parser_state->out_ps.first_n_found) {
-                        parser_state->out_ps.first_n_found = true;
+                if(transformation_parser_state->out_ps.first_r_found) {
+                    if(!transformation_parser_state->out_ps.first_n_found) {
+                        transformation_parser_state->out_ps.first_n_found = true;
                     }
                 }
-                if(parser_state->out_ps.second_r_found) {
+                if(transformation_parser_state->out_ps.second_r_found) {
                     /*Encontramos el final, cierro el fd para mandar EOF */
                     write(fd, "\r\n", 2);
                     ret+=2;
@@ -71,32 +73,32 @@ ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_sta
                 }
                 break;
             case '.':
-                if(parser_state->out_ps.dot_found) {
+                if(transformation_parser_state->out_ps.dot_found) {
                     write(fd, "\r\n", 2);
                     ret+=2;
                     puts_c = true;
-                    parser_state->out_ps.first_r_found = false;
-                    parser_state->out_ps.first_n_found = false;
-                    parser_state->out_ps.dot_found = false;
+                    transformation_parser_state->out_ps.first_r_found = false;
+                    transformation_parser_state->out_ps.first_n_found = false;
+                    transformation_parser_state->out_ps.dot_found = false;
                 }
-                if(parser_state->out_ps.first_n_found) {
+                if(transformation_parser_state->out_ps.first_n_found) {
                     puts_c = false;
-                    parser_state->out_ps.dot_found = true;
+                    transformation_parser_state->out_ps.dot_found = true;
                 }
                 break;
             default:
-                if(parser_state->out_ps.first_r_found && parser_state->out_ps.first_n_found && !parser_state->out_ps.dot_found) {
+                if(transformation_parser_state->out_ps.first_r_found && transformation_parser_state->out_ps.first_n_found && !transformation_parser_state->out_ps.dot_found) {
                     write(fd, "\r\n", 2);
                     ret+=2;
-                } else if(parser_state->out_ps.first_r_found && parser_state->out_ps.first_n_found && !parser_state->out_ps.second_r_found) {
+                } else if(transformation_parser_state->out_ps.first_r_found && transformation_parser_state->out_ps.first_n_found && !transformation_parser_state->out_ps.second_r_found) {
                     write(fd, "\r\n", 2);
                     ret+=2;
                 }
                 puts_c = true;
-                parser_state->out_ps.first_r_found = false;
-                parser_state->out_ps.first_n_found = false;
-                parser_state->out_ps.dot_found = false;
-                parser_state->out_ps.second_r_found = false;
+                transformation_parser_state->out_ps.first_r_found = false;
+                transformation_parser_state->out_ps.first_n_found = false;
+                transformation_parser_state->out_ps.dot_found = false;
+                transformation_parser_state->out_ps.second_r_found = false;
                 break;
         }
         if(puts_c) {
@@ -107,47 +109,47 @@ ssize_t write_and_parse_to_fd(int fd, buffer_t buffer, parser_state_t parser_sta
     return ret;
 }
 
-ssize_t read_and_parse_from_fd(int fd, buffer_t buffer, parser_state_t parser_state) {
+ssize_t read_and_parse_transformation_from_fd(int fd, buffer_t buffer, transformation_parser_state_t transformation_parser_state) {
     char c;
     ssize_t n;
     ssize_t ret = 0;
     bool writes = true, puts_dot;
 
-    n = read_from_fd(fd, parser_state->in_ps.buffer);
+    n = read_from_fd(fd, transformation_parser_state->in_ps.buffer);
     if(n <= 0){
         return n;
     }
 
-    if(buffer_can_write(buffer) && parser_state->in_ps.last_char != 0) {
-        buffer_write(buffer, parser_state->in_ps.last_char);
-        parser_state->in_ps.last_char = 0;
+    if(buffer_can_write(buffer) && transformation_parser_state->in_ps.last_char != 0) {
+        buffer_write(buffer, transformation_parser_state->in_ps.last_char);
+        transformation_parser_state->in_ps.last_char = 0;
     }
-    while(writes && buffer_can_write(buffer) && buffer_can_read(parser_state->in_ps.buffer)) {
-        c = buffer_read(parser_state->in_ps.buffer);
+    while(writes && buffer_can_write(buffer) && buffer_can_read(transformation_parser_state->in_ps.buffer)) {
+        c = buffer_read(transformation_parser_state->in_ps.buffer);
         puts_dot = false;
         switch(c) {
             case '\r':
-                if(!parser_state->in_ps.r_found) {
-                    parser_state->in_ps.r_found = true;
+                if(!transformation_parser_state->in_ps.r_found) {
+                    transformation_parser_state->in_ps.r_found = true;
                 }
                 break;
             case '\n':
-                if(parser_state->in_ps.r_found) {
-                    if(!parser_state->in_ps.n_found) {
-                        parser_state->in_ps.n_found = true;
+                if(transformation_parser_state->in_ps.r_found) {
+                    if(!transformation_parser_state->in_ps.n_found) {
+                        transformation_parser_state->in_ps.n_found = true;
                     }
                 }
                 break;
             case '.':
-                if(parser_state->in_ps.n_found) {
+                if(transformation_parser_state->in_ps.n_found) {
                     puts_dot = true;
-                    parser_state->in_ps.r_found = false;
-                    parser_state->in_ps.n_found = false;
+                    transformation_parser_state->in_ps.r_found = false;
+                    transformation_parser_state->in_ps.n_found = false;
                 }
                 break;
             default:
-                parser_state->in_ps.r_found = false;
-                parser_state->in_ps.n_found = false;
+                transformation_parser_state->in_ps.r_found = false;
+                transformation_parser_state->in_ps.n_found = false;
                 break;
         }
         if(puts_dot) {
@@ -159,10 +161,33 @@ ssize_t read_and_parse_from_fd(int fd, buffer_t buffer, parser_state_t parser_st
                 buffer_write(buffer, c);
                 ret++;
             } else {
-                parser_state->in_ps.last_char = c;
+                transformation_parser_state->in_ps.last_char = c;
                 writes = false;
             }
         }
     }
     return ret;
+}
+
+
+client_parser_state_t init_client_parser_state(void) {
+    client_parser_state_t ret = (client_parser_state_t)malloc(sizeof(*ret));
+    if(ret == NULL) {
+        perror("Error creating parser state for client");
+        return NULL;
+    }
+    reset_client_parser_state(ret);
+
+    return ret;
+}
+
+void reset_client_parser_state(client_parser_state_t client_parser_state) {
+    client_parser_state->command_len = 0;
+    client_parser_state->username_len = 0;
+    client_parser_state->found_command = false;
+    client_parser_state->waiting_username = false;
+}
+
+void free_client_parser_state (client_parser_state_t client_parser_state) {
+    free(client_parser_state);
 }

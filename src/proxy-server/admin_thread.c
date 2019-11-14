@@ -53,6 +53,7 @@ static void * resolve_admin_thread(void * args) {
     resolve_sctp_client(thread_args->admin_fd, thread_args->admin_addr, thread_args->admin_addr_len, thread_args->settings, thread_args->metrics);
 
     free(thread_args);
+    pthread_detach(pthread_self());
     pthread_exit(NULL);
     return NULL;
 }

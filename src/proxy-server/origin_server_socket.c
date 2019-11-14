@@ -96,8 +96,9 @@ static void * resolve_origin_server_thread(void *args) {
     }
 
     freeaddrinfo(res);
-
+    free(thread_args);
     pthread_kill(thread_args->p_id, SIGUSR1);
+    pthread_detach(pthread_self());
     pthread_exit(NULL);
     return NULL;
 }
@@ -170,6 +171,7 @@ static void * get_pipelining_origin_server_thread(void *args) {
 
     close(origin_server_fd);
     freeaddrinfo(res);
+    pthread_detach(pthread_self());
     pthread_exit(NULL);
     return NULL;
 }
