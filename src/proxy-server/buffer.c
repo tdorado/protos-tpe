@@ -90,17 +90,18 @@ void buffer_compact(buffer_t b) {
 
 buffer_t init_buffer(const size_t bytes) {
     uint8_t * data = (uint8_t *)malloc(bytes*sizeof(uint8_t));
-    buffer_t buffer = (buffer_t)malloc(sizeof(*buffer));
-
-    if (data == NULL || buffer == NULL) {
+    if (data == NULL) {
         perror("Error initializing a buffer");
-        exit(EXIT_FAILURE);
+        return NULL;
+    }
+    buffer_t buffer = (buffer_t)malloc(sizeof(*buffer));
+    if (buffer == NULL) {
+        free(data);
+        perror("Error initializing a buffer");
+        return NULL;
     }
 
     buffer_init(buffer, bytes, data);
-
-    // is this necesary?
-    // free(data);
 
     return buffer;
 }

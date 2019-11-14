@@ -13,6 +13,11 @@ transformation_parser_state_t init_transformation_parser_state() {
     }
 
     ret->in_ps.buffer = init_buffer(BUFFER_SIZE);
+    if(ret->in_ps.buffer == NULL){
+        free(ret);
+        perror("Error creating parser state for client");
+        return NULL;
+    }
 
     reset_transformation_parser_state(ret);
 

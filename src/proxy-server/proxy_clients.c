@@ -38,19 +38,59 @@ client_t create_client(client_list_t client_list, const int fd) {
     client->client_state = NOT_LOGGED_IN;
     client->client_fd = fd;
     client->client_read_buffer = init_buffer(BUFFER_SIZE);
+    if(client->client_read_buffer == NULL) {
+        free(client);
+        log_message(true, "Client not created");
+        perror("Error creating client");
+        return NULL;
+    }
     client->client_write_buffer = init_buffer(BUFFER_SIZE);
+    if(client->client_write_buffer == NULL) {
+        free_buffer(client->client_read_buffer);
+        free(client);
+        log_message(true, "Client not created");
+        perror("Error creating client");
+        return NULL;
+    }
     client->logged = false;
     client->client_parser_state = init_client_parser_state();
+    if(client->client_parser_state == NULL) {
+        free_buffer(client->client_write_buffer);
+        free_buffer(client->client_read_buffer);
+        free(client);
+        log_message(true, "Client not created");
+        perror("Error creating client");
+        return NULL;
+    }
 
     client->origin_server_state = NOT_RESOLVED_ORIGIN_SERVER;
     client->origin_server_fd = -1;
     client->origin_server_buffer = init_buffer(BUFFER_SIZE);
+    if(client->origin_server_buffer == NULL) {
+        free_client_parser_state(client->client_parser_state);
+        free_buffer(client->client_write_buffer);
+        free_buffer(client->client_read_buffer);
+        free(client);
+        log_message(true, "Client not created");
+        perror("Error creating client");
+        return NULL;
+    }
     client->received_greeting = false;
 
     client->external_transformation_state = PROCESS_NOT_INITIALIZED;
     client->external_transformation_read_fd = -1;
     client->external_transformation_write_fd = -1;
     client->transformation_parser_state = init_transformation_parser_state();
+        if(client->origin_server_buffer == NULL) {
+        free_buffer(client->origin_server_buffer);
+        free_client_parser_state(client->client_parser_state);
+        free_buffer(client->client_write_buffer);
+        free_buffer(client->client_read_buffer);
+        free(client);
+        log_message(true, "Client not created");
+        perror("Error creating client");
+        return NULL;
+    }
 
     client->next = NULL;
 
