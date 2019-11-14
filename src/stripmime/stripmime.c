@@ -271,7 +271,6 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
             printf("%s\r\n", replace_text);
             free(actual_content);
             if(stack_is_empty(stack)){
-                free(actual_content);
                 return SUCCESS;
             }
         } else {
@@ -284,7 +283,6 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
         while((c=getchar()) != EOF)
         putchar(c);
    }
-   free(actual_content);
    return SUCCESS;
 }
 
