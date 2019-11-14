@@ -41,8 +41,11 @@ void print_msg_received(char msg_received[BUFFER_MAX], int len){
             case ENABLE_CMD_TRANSFORMATIONS:
                 printf("ENABLE CMD TRANSFORMATION\n");
                 break;
-            case DISABLE_TRANSFORMATIONS:
-                printf("DISABLE TRANSFORMATIONS\n");
+            case DISABLE_MTYPE_TRANSFORMATIONS:
+                printf("DISABLE MTYPE TRANSFORMATIONS\n");
+                break;
+            case DISABLE_CMD_TRANSFORMATIONS:
+                printf("DISABLE CMD TRANSFORMATIONS\n");
                 break;
             default:
                 printf("NOT A COMMAND\n");
@@ -88,8 +91,11 @@ bool parse_msg_received(bool * logged, char msg_received[BUFFER_MAX], int msg_re
         case ENABLE_CMD_TRANSFORMATIONS:
             parse_enable_cmd_transformations(logged, msg_response, msg_response_len, settings);
             break;
-        case DISABLE_TRANSFORMATIONS:
-            parse_disable_transformations(logged, msg_response, msg_response_len, settings);
+        case DISABLE_MTYPE_TRANSFORMATIONS:
+            parse_disable_mtype_transformations(logged, msg_response, msg_response_len, settings);
+            break;
+        case DISABLE_CMD_TRANSFORMATIONS:
+            parse_disable_cmd_transformations(logged, msg_response, msg_response_len, settings);
             break;
         default:
             parse_err_response(msg_response, msg_response_len);
@@ -193,9 +199,8 @@ void parse_set_mtypes(bool *logged, char msg_received[BUFFER_MAX], int msg_recei
 }
 
 void parse_enable_mtype_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings) {
-    if(*logged && (!settings->cmd_or_mtype_transformations || !settings->transformations)) {
-        settings->cmd_or_mtype_transformations = true;
-        settings->transformations = true;
+    if(*logged && !settings->mtype_transformations) {
+        settings->mtype_transformations = true;
         parse_ok_response(msg_response, msg_response_len);
     } else {
         parse_err_response(msg_response, msg_response_len);
@@ -203,18 +208,26 @@ void parse_enable_mtype_transformations(bool * logged, char msg_response[BUFFER_
 }
 
 void parse_enable_cmd_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings) {
-    if(*logged && ( settings->cmd_or_mtype_transformations || !settings->transformations)) {
-        settings->cmd_or_mtype_transformations = false;
-        settings->transformations = true;
+    if(*logged && !settings->cmd_transformations) {
+        settings->cmd_transformations = false;
         parse_ok_response(msg_response, msg_response_len);
     } else {
         parse_err_response(msg_response, msg_response_len);
     }
 }
 
-void parse_disable_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings) {
-    if(*logged && settings->transformations) {
-        settings->transformations = false;
+void parse_disable_mtype_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings) {
+    if(*logged && settings->mtype_transformations) {
+        settings->mtype_transformations = false;
+        parse_ok_response(msg_response, msg_response_len);
+    } else {
+        parse_err_response(msg_response, msg_response_len);
+    }
+}
+
+void parse_disable_cmd_transformations(bool * logged, char msg_response[BUFFER_MAX], int *msg_response_len, settings_t settings) {
+    if(*logged && settings->cmd_transformations) {
+        settings->cmd_transformations = false;
         parse_ok_response(msg_response, msg_response_len);
     } else {
         parse_err_response(msg_response, msg_response_len);

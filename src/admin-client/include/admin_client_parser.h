@@ -22,7 +22,8 @@ typedef enum admin_commands {
     SET_MTYPES,
     ENABLE_MTYPE_TRANSFORMATIONS,
     ENABLE_CMD_TRANSFORMATIONS,
-    DISABLE_TRANSFORMATIONS
+    DISABLE_MTYPE_TRANSFORMATIONS,
+    DISABLE_CMD_TRANSFORMATIONS
 } state_t;
 
 enum admin_responses {
@@ -44,7 +45,8 @@ enum admin_responses {
 #define SET_MTYPES_TEXT "SET MTYPES"
 #define ENABLE_MTYPE_TEXT "ENABLE MTYPE TRANSFORMATIONS"
 #define ENABLE_CMD_TEXT "ENABLE CMD TRANSFORMATIONS"
-#define DISABLE_TRANSF_TEXT "DISABLE TRANSFORMATIONS"
+#define DISABLE_MTYPE_TEXT "DISABLE MTYPE TRANSFORMATIONS"
+#define DISABLE_CMD_TEXT "DISABLE CMD TRANSFORMATIONS"
 
 bool validate_and_set_params(const int argc, char ** argv, struct addr_and_port * addr_port);
 bool parse_greeting(char msg_received[BUFFER_MAX], int received_len);

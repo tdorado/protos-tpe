@@ -10,6 +10,8 @@
 #define READ_END 0
 #define WRITE_END 1
 
+void set_envs(char ** envs, settings_t settings, client_t client);
+
 int start_external_transformation_process(settings_t settings, client_t client) {
     int pipeFatherToChild[2] = {-1, -1};
     int pipeChildToFather[2] = {-1, -1};
@@ -35,18 +37,14 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     argv[1] = "-c";
     argv[3] = NULL;
 
-    if(settings->cmd_or_mtype_transformations && (strlen(settings->media_types) > 2)) {  // false cmd, true mtype
-        //Mtype
-        //setear env y llamar a ./stripmime
-        setenv("FILTER_MEDIAS", settings->media_types,1);
-        setenv("FILTER_MSG", settings->replace_message, 1);
-        setenv("POP3FILTER_VERSION", settings->version, 1);
-        setenv("POP3_USERNAME", client->username, 1);
-        setenv("POP3_SERVER", settings->origin_server_addr, 1);
-
+    if(settings->mtype_transformations && settings->cmd_transformations) {
+        set_envs(settings->envs_for_transformation, settings, client);
+        sprintf(settings->cmd_for_transformation, "./stripmime | %s", settings->cmd);
+        argv[2] = settings->cmd_for_transformation;
+    } else if (settings->mtype_transformations){
+        set_envs(settings->envs_for_transformation, settings, client);
         argv[2] = "./stripmime";
     } else {
-        //CMD
         argv[2] = settings->cmd;
     }
 
@@ -62,7 +60,7 @@ int start_external_transformation_process(settings_t settings, client_t client) 
 
         redirect_stderr(settings);
 
-        int exec_ret = execve("/bin/bash", argv, NULL);
+        int exec_ret = execve("/bin/bash", argv, settings->envs_for_transformation);
 
         if (exec_ret == -1) {
             perror("Error on external transformations execve \n");
@@ -78,4 +76,13 @@ int start_external_transformation_process(settings_t settings, client_t client) 
     }
 
     return PROCESS_INITIALIZED;
+}
+
+void set_envs(char ** envs, settings_t settings, client_t client){
+    sprintf(envs[0], "FILTER_MEDIAS=%s", settings->media_types);
+    sprintf(envs[1], "FILTER_MSG=%s", settings->replace_message);
+    sprintf(envs[2], "POP3FILTER_VERSION=%s", settings->version);
+    sprintf(envs[3], "POP3_USERNAME=%s", client->username);
+    sprintf(envs[4], "POP3_SERVER=%s", settings->origin_server_addr);
+    envs[5] = 0;
 }

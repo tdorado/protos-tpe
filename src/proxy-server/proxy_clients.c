@@ -205,7 +205,7 @@ int set_origin_server_fd(client_list_t client_list, fd_set * read_fds, fd_set * 
 }
 
 int set_external_transformation_fds(client_list_t client_list, client_t client, settings_t settings, fd_set * read_fds, fd_set * write_fds, metrics_t metrics) {
-    if (settings->transformations){
+    if ((settings->cmd_transformations || settings->mtype_transformations) && client->logged){
         if ( client->external_transformation_state == PROCESS_NOT_INITIALIZED ) {
             if (start_external_transformation_process(settings, client) == ERROR_TRANSFORMATION_PROCESS) {
                 send_message_to_fd(client->client_fd, ERR_TRANSFORMATION, ERR_TRANSFORMATION_LEN);
@@ -218,7 +218,7 @@ int set_external_transformation_fds(client_list_t client_list, client_t client, 
             client->external_transformation_state = PROCESS_INITIALIZED;
         }
     }
-    if((settings->transformations && client->client_state == RETR_OK) || client->client_state == RETR_TRANSFORMING) {
+    if(((settings->cmd_transformations || settings->mtype_transformations) && client->client_state == RETR_OK) || client->client_state == RETR_TRANSFORMING) {
         if (client->external_transformation_read_fd != -1 && buffer_can_write(client->client_write_buffer)) {
             FD_SET(client->external_transformation_read_fd, read_fds);
         }
@@ -266,7 +266,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
 
     if (client->origin_server_state == RESOLVED_TO_ORIGIN_SERVER) {
         if (FD_ISSET(client->origin_server_fd, write_fds)) {
-            if(settings->transformations || !settings->pipelining){
+            if((settings->cmd_transformations || settings->mtype_transformations) || !settings->pipelining){
                 write_until_enter_to_fd(client->origin_server_fd, client->client_read_buffer);
                 reset_client_parser_state(client->client_parser_state);
             }
@@ -288,7 +288,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
                         client->client_state = LOGGED_IN;
                         client->logged = true;
                     } else if(client->client_state == RETR_REQUEST) {
-                        if(settings->transformations){
+                        if((settings->cmd_transformations || settings->mtype_transformations)){
                             client->client_state = RETR_OK;
                         } else {
                             client->client_state = LOGGED_IN;
@@ -322,7 +322,7 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
             metrics->bytes_transfered += bytes_read;
         }
 
-        if ((settings->transformations && client->client_state == RETR_OK) || client->client_state == RETR_TRANSFORMING) {
+        if (((settings->cmd_transformations || settings->mtype_transformations) && client->client_state == RETR_OK) || client->client_state == RETR_TRANSFORMING) {
             if (client->external_transformation_state == PROCESS_INITIALIZED) {
                 if (client->client_state == RETR_OK) {
                     // Send response line to client write buffer
@@ -386,13 +386,13 @@ void parse_client_message(client_t client, settings_t settings) {
             }
         }
         else {
-            if (strncasecmp(client_parser_state->command, "retr", 4) == 0 && client->logged && settings->transformations) {
+            if (strncasecmp(client_parser_state->command, "retr", 4) == 0 && client->logged && (settings->cmd_transformations || settings->mtype_transformations)) {
                 client->client_state = RETR_REQUEST;
                 client_parser_state->found_command = true;
             } else if (strncasecmp(client_parser_state->command, "pass", 4) == 0) {
                 client->client_state = PASS_REQUEST;
                 client_parser_state->found_command = true;
-            } else if (strncasecmp(client_parser_state->command, "capa", 4) == 0 && settings->transformations) {
+            } else if (strncasecmp(client_parser_state->command, "capa", 4) == 0 && ((settings->cmd_transformations || settings->mtype_transformations) || !settings->pipelining)) {
                 client->client_state = CAPA_REQUEST;
                 client_parser_state->found_command = true;
             } else if (strncasecmp(client_parser_state->command, "user", 4) == 0 && !client->logged) {

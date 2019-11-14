@@ -29,7 +29,7 @@ Para ejecutar pop3filter:
 $ ./pop3filter [POSIX Style Options] <origin-server-address>
 ```
 
-Para ejecutar adminclient:
+Para ejecutar pop3ctl:
 ```sh
 $ ./pop3ctl -a <management-address> -p <management-port>
 ```

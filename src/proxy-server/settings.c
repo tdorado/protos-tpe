@@ -8,6 +8,9 @@
 
 #include "include/settings.h"
 
+char ** init_envs(void);
+void free_envs(char ** envs);
+
 void print_usage(void) {
     printf("USAGE: ./pop3filter [POSIX style options] <origin-server-address> \n"
             "   <origin-server-address>        Address of POP3 origin server. \n\n"
@@ -146,8 +149,7 @@ int validate_and_set_settings(const int argc, char ** argv, settings_t settings)
                         }
                     }
                 }
-                settings->transformations = true;
-                settings->cmd_or_mtype_transformations = false;
+                settings->cmd_transformations = true;
                 break;
             case 'e':
                 if (valid_error_file(optarg)) {
@@ -162,8 +164,7 @@ int validate_and_set_settings(const int argc, char ** argv, settings_t settings)
                 break;
             case 'M':
                     strcpy(settings->media_types, optarg);
-                    settings->transformations = true;
-                    settings->cmd_or_mtype_transformations = true;
+                    settings->mtype_transformations = true;
                 break;
             default:
                 flag_error = true;
@@ -215,6 +216,8 @@ int input_parser(const int argc, char ** argv, settings_t settings) {
 void free_settings(settings_t settings) {
     free(settings->media_types);
     free(settings->cmd);
+    free_envs(settings->envs_for_transformation);
+    free(settings->cmd_for_transformation);
     free(settings);
 }
 
@@ -244,10 +247,47 @@ settings_t init_settings(void) {
     }
     strcpy(ret->cmd, DEFAULT_CMD);
     ret->error_file = DEFAULT_ERROR_FILE;
-    ret->transformations = false;
-    ret->cmd_or_mtype_transformations = false;
+    ret->cmd_transformations = false;
+    ret->mtype_transformations = false;
     ret->version = POP3_FILTER_VERSION;
     ret->pipelining = false;
+    ret->envs_for_transformation = init_envs();
+    if(ret->envs_for_transformation == NULL){
+        perror("Error creating settings");
+        exit(EXIT_FAILURE);
+    }
+    ret->cmd_for_transformation = malloc(CMD_BUFFER);
+    if(ret->cmd_for_transformation == NULL){
+        perror("Error creating settings");
+        exit(EXIT_FAILURE);
+    }
 
     return ret;
+}
+
+char ** init_envs(void){
+    char ** envs = malloc(6 * sizeof(char *));
+    if(envs == NULL){
+        return NULL;
+    }
+    
+    for(int i = 0; i < 5; i++){
+        envs[i] = malloc(ENV_BUFFER);
+        if(envs[i] == NULL){
+            for(int j = i - 1; j >= 0; j--){
+                free(envs[j]);
+            }
+            return NULL;
+        }
+    }
+
+    return envs;
+}
+void free_envs(char ** envs){
+    free(envs[0]);
+    free(envs[1]);
+    free(envs[2]);
+    free(envs[3]);
+    free(envs[4]);
+    free(envs);
 }

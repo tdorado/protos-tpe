@@ -55,36 +55,36 @@ void print_usage(void) {
 bool validate_and_set_params(const int argc, char ** argv, struct addr_and_port * addr_port) {
     if (argc == 1 || argc == 3 || argc == 5) {
 
-      int c;
-      bool error = false;
+    int c;
+    bool error = false;
 
-      strcpy(addr_port->addr, "127.0.0.1");
-      addr_port->port = 9090;
+    strcpy(addr_port->addr, "127.0.0.1");
+    addr_port->port = 9090;
 
-      while ((c = getopt(argc, argv, "a:p:")) != EOF && !error) {
-          switch (c) {
-              case 'a':
-                  if (valid_address(optarg)){
-                      strcpy(addr_port->addr, optarg);
-                  } else {
-                      perror("Invalid -a <manegement-addr> argument. \n");
-                      error = true;
-                  }
-                  break;
-              case 'p':
-                  if (valid_port(optarg)){
-                      addr_port->port = (uint16_t) atoi(optarg);
-                  } else {
-                      perror("Invalid -p <manegement-port> argument. \n");
-                      error = true;
-                  }
-                  break;
-              default:
-                  break;
-          }
-      }
+    while ((c = getopt(argc, argv, "a:p:")) != EOF && !error) {
+        switch (c) {
+            case 'a':
+                if (valid_address(optarg)){
+                    strcpy(addr_port->addr, optarg);
+                } else {
+                    perror("Invalid -a <manegement-addr> argument. \n");
+                    error = true;
+                }
+                break;
+            case 'p':
+                if (valid_port(optarg)){
+                    addr_port->port = (uint16_t) atoi(optarg);
+                } else {
+                    perror("Invalid -p <manegement-port> argument. \n");
+                    error = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
 
-      return error;
+    return error;
     } else {
         print_usage();
         return true;
@@ -162,9 +162,12 @@ state_t parse_command(char msg_received[BUFFER_MAX], char msg_to_send[BUFFER_MAX
     } else if(strncasecmp(ENABLE_CMD_TEXT, msg_received, 26) == 0) {
         parse_on_buffer(msg_to_send, to_send_len, ENABLE_CMD_TRANSFORMATIONS);
         return ENABLE_CMD_TRANSFORMATIONS;
-    } else if(strncasecmp(DISABLE_TRANSF_TEXT, msg_received, 23) == 0) {
-        parse_on_buffer(msg_to_send, to_send_len, DISABLE_TRANSFORMATIONS);
-        return DISABLE_TRANSFORMATIONS;
+    } else if(strncasecmp(DISABLE_MTYPE_TEXT, msg_received, 29) == 0) {
+        parse_on_buffer(msg_to_send, to_send_len, DISABLE_MTYPE_TRANSFORMATIONS);
+        return DISABLE_MTYPE_TRANSFORMATIONS;
+    } else if(strncasecmp(DISABLE_CMD_TEXT, msg_received, 27) == 0) {
+        parse_on_buffer(msg_to_send, to_send_len, DISABLE_CMD_TRANSFORMATIONS);
+        return DISABLE_CMD_TRANSFORMATIONS;
     } else if(strncasecmp(HELP_TEXT, msg_received, 4) == 0) {
         printf_help();
         return HELP;
@@ -261,21 +264,28 @@ bool interpret_response(state_t state, char msg_received[BUFFER_MAX]) {
             if(msg_received[0] == OK) {
                 printf("+OK Media Type transformations enabled.\n");
             } else {
-                printf("-ERR Already enabled\n");
+                printf("-ERR Media Type transformations already enabled\n");
             }
             break;
         case ENABLE_CMD_TRANSFORMATIONS:
             if(msg_received[0] == OK) {
                 printf("+OK CMD transformations enabled.\n");
             } else {
-                printf("-ERR Already enabled\n");
+                printf("-ERR CMD transformations already enabled\n");
             }
             break;
-        case DISABLE_TRANSFORMATIONS:
+        case DISABLE_MTYPE_TRANSFORMATIONS:
             if(msg_received[0] == OK) {
-                printf("+OK Transformations disabled\n");
+                printf("+OK Media type transformations disabled\n");
             } else {
-                printf("-ERR Already disabled\n");
+                printf("-ERR Media type transformations already disabled\n");
+            }
+            break;
+        case DISABLE_CMD_TRANSFORMATIONS:
+            if(msg_received[0] == OK) {
+                printf("+OK CMD transformations disabled\n");
+            } else {
+                printf("-ERR CMD transformations already disabled\n");
             }
             break;
         case HELP:

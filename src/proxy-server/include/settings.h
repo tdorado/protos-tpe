@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #define CMD_BUFFER 1024
+#define ENV_BUFFER 500
 
 #define DEFAULT_CMD "cat"
 #define DEFAULT_ERROR_FILE "/dev/null"
@@ -30,10 +31,12 @@ struct settings {
     char * media_types;
     char * cmd;
     char * error_file;
-    bool transformations;
-    bool cmd_or_mtype_transformations; // false cmd, true mtype
+    bool cmd_transformations;
+    bool mtype_transformations;
     char * version;
     bool pipelining;
+    char ** envs_for_transformation;
+    char * cmd_for_transformation;
 };
 
 settings_t init_settings(void);
