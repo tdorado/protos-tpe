@@ -63,12 +63,16 @@ int headers(content_type_header_t content_type, char * replace_mime, int first) 
     int content_actual_length = 0;
     char * headers = NULL;
     int index=0;
-    while((c = getchar()) != EOF) {
+    int flag = TRUE;
+    while((c = getchar()) != EOF && flag) {
         if(index%BLOCK == 0) {
             headers = realloc(headers, sizeof(char)*(index+BLOCK));
         }
         headers[index] = c;
         index++;
+        if( c == '\r') {
+            flag = FALSE;
+        }
         if( c == CONTENT_TYPE[content_length]) {
             content_length++;
             if(content_length == CONTENT_TYPE_LENGTH) {
@@ -124,6 +128,12 @@ int headers(content_type_header_t content_type, char * replace_mime, int first) 
         } else {
             skip_line_headers(&headers, &index);
             content_length = 0;
+        }
+    }
+    if(flag == FALSE) {
+        printf("%s", headers);
+        while((c=getchar())!=EOF){
+            putchar(c);
         }
     }
     if(headers!=NULL)
@@ -245,7 +255,10 @@ int search_boundary(char * boundary, int print) {
 
 int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
     content_type_header_t actual_content = malloc(sizeof(content_type_header));
-    headers(actual_content, replace_mime, TRUE);
+    int fail = headers(actual_content, replace_mime, TRUE);
+    if(fail == FAIL) {
+        return FAIL;
+    }
     stack_push(stack, actual_content);
     int print = TRUE;
     int rta;
