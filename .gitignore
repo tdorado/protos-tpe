@@ -50,3 +50,29 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# POP3 Proxy Filter compiled
+pop3filter
+adminclient
+stripmime
+pop3ctl
+
+# Visual Studio Code
+.vscode
+
+# Mac
+.DS_Store
+
+# Testing files
+Fedora-Server-netinst-x86_64-26-1.5.iso
+i_big.head
+i_big.tail
+i_big.mbox
+ii_images.mbox
+iii_images_fwd.mbox
+out
+test
+lazy.sh
+bytestuffed.sh
+envs.sh
+time
