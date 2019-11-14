@@ -126,7 +126,7 @@ int headers(content_type_header_t content_type, char * replace_mime, int first) 
                 return FAIL;
             }
         } else {
-            skip_line_headers(&headers, &index);
+            headers = skip_line_headers(&headers, &index);
             content_length = 0;
         }
     }
@@ -136,8 +136,9 @@ int headers(content_type_header_t content_type, char * replace_mime, int first) 
             putchar(c);
         }
     }
-    if(headers!=NULL)
+    if(headers!=NULL){
         free(headers);
+    }
     return FAIL;
 }
 
