@@ -126,7 +126,8 @@ int headers(content_type_header_t content_type, char * replace_mime, int first) 
             content_length = 0;
         }
     }
-    free(headers);
+    if(headers!=NULL)
+        free(headers);
     return FAIL;
 }
 
