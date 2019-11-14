@@ -18,7 +18,7 @@
 #define START_BOUNDARY 1
 #define FINAL_BOUNDARY 2
 #define ENV_VARIABLES_QUANTITY 2
-#define FILTER_MSG_DEFAULT "Confiscado"
+#define FILTER_MSG_DEFAULT "Parte reemplazada."
 #define MAX_FILTER_MEDIAS 5
 #define BLOCK 10
 

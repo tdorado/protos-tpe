@@ -258,6 +258,7 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
     content_type_header_t actual_content = malloc(sizeof(content_type_header));
     int fail = headers(actual_content, replace_mime, TRUE);
     if(fail == FAIL) {
+        free(actual_content);
         return FAIL;
     }
     stack_push(stack, actual_content);
@@ -296,6 +297,9 @@ int manage_body(stack_t stack, char * replace_mime, char * replace_text) {
         int c;
         while((c=getchar()) != EOF)
         putchar(c);
+   }
+   if(actual_content != NULL) {
+        free(actual_content);
    }
    return SUCCESS;
 }
