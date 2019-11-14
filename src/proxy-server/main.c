@@ -126,14 +126,15 @@ bool set_fds(int * max_fd, fd_set * read_fds, fd_set * write_fds, client_list_t 
 
 void resolve_connections(int proxy_fd, struct sockaddr_in6 server_addr, socklen_t * server_addr_len,  struct sockaddr_in admin_addr, socklen_t * admin_addr_len,
     int admin_fd, fd_set * read_fds, fd_set * write_fds, client_list_t client_list, settings_t settings, metrics_t metrics){
-    
     resolve_proxy_client(proxy_fd, read_fds, client_list, server_addr, server_addr_len, settings, metrics);
     resolve_admin_client(admin_fd, read_fds, &admin_addr, admin_addr_len, settings, metrics);
 
     client_t client = client_list->first;
+    client_t aux;
     while (client != NULL) {
+        aux = client->next;
         resolve_client(client, client_list, read_fds, write_fds, settings, metrics);
-        client = client->next;
+        client = aux;
     }
 }
 
