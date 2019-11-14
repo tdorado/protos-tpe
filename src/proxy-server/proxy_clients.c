@@ -244,6 +244,8 @@ void resolve_client(client_t client, client_list_t client_list, fd_set * read_fd
         bytes_read = read_from_fd(client->client_fd, client->client_read_buffer);
 
         if (bytes_read == 0) {
+            // Solucion mala para que no corte la conexion cuando se hace printf 'USER foo\nPASS foo\n... etc'  | nc -C bar 1110
+            // Y se queda esperando el login del PASS, que tarda mas tiempo.
             if(client->cicles > CICLES_LIMIT){
                 remove_client(client_list, client);
                 metrics->concurrent_connections--;
